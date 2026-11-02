@@ -1,1 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OCTO7 India | Member Portal</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #101827;
+  color: white;
+  text-align: center;
+}
+.container {
+  max-width: 400px;
+  margin: 60px auto;
+  padding: 25px;
+}
+h1 {
+  color: #e5bd68;
+  font-size: 38px;
+}
+.card {
+  background: #1c293b;
+  padding: 25px;
+  border-radius: 15px;
+}
+input {
+  width: 90%;
+  padding: 13px;
+  margin: 9px 0;
+  border: 1px solid #777;
+  border-radius: 7px;
+}
+button {
+  width: 96%;
+  padding: 13px;
+  margin: 8px 0;
+  background: #d6ad55;
+  border: none;
+  border-radius: 7px;
+  font-weight: bold;
+  cursor: pointer;
+}
+#message {
+  color: #e5bd68;
+  overflow-wrap: anywhere;
+}
+</style>
+</head>
+<body>
 
+<div class="container">
+  <h1>OCTO7</h1>
+  <p>INDIA MEMBER PORTAL</p>
+  <div class="card">
+    <h2>Welcome Back</h2>
+    <input id="email" type="email" placeholder="Email address">
+    <input id="password" type="password" placeholder="Password">
+
+    <button onclick="register()">CREATE ACCOUNT</button>
+    <button onclick="login()">MEMBER LOGIN</button>
+    <button onclick="logout()">LOG OUT</button>
+
+    <p id="message">Welcome to OCTO7</p>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "YOUR_PROJECT_URL";
+const SUPABASE_KEY = "YOUR_PUBLISHABLE_KEY";
+
+const client = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+async function register() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  const { data, error } = await client.auth.signUp({
+    email,
+    password
+  });
+
+  document.getElementById("message").textContent =
+    error ? error.message :
+    "Registration submitted. Check your email if confirmation is required.";
+}
+
+async function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  const { data, error } = await client.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  document.getElementById("message").textContent =
+    error ? error.message :
+    "Login successful! Welcome to OCTO7.";
+}
+
+async function logout() {
+  const { error } = await client.auth.signOut();
+  document.getElementById("message").textContent =
+    error ? error.message : "You have logged out.";
+}
+</script>
+
+</body>
+</html>
