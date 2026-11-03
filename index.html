@@ -101,7 +101,27 @@ async function login() {
     password
   });
 
+    if (error) {
   document.getElementById("message").textContent =
+        return;
+    }
+    document.querySelector(".container").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+    document.getElementById("memberEmail").textContent =
+          "Email: " + data.user.email;
+  }
+  async function logout() {
+      const { error } = await client.auth.signOut();
+
+      if (error) {
+            alert(error.message);
+            return;
+      }
+
+      document.getElementById("dashboard").style.display = "none";
+      document.querySelector(".container").style.display = "block";
+      document.getElementById("message").textContent = "You have logged out.";
+                  }
     error ? error.message :
     "Login successful! Welcome to OCTO7.";
 }
