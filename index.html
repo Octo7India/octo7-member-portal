@@ -84,7 +84,8 @@ async function register() {
   const { data, error } = await client.auth.signUp({
     email,
     password
-  });
+    options: { emailRedirectTo: "https://octo7india.github.io/octo7-member-portal/" }
+});
 
   document.getElementById("message").textContent =
     error ? error.message :
