@@ -68,6 +68,16 @@ button {
   color: white;
   box-sizing: border-box;
 }
+
+.member-code {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  color: #e5bd68;
+  font-size: 25px;
+  font-weight: bold;
+  line-height: 1.1;
+}
 </style>
 </head>
 
@@ -80,6 +90,28 @@ button {
 
   <div class="card">
     <h2>Welcome Back</h2>
+
+    <h3>New Member Registration</h3>
+
+    <input
+      id="fullName"
+      type="text"
+      placeholder="Full Name"
+      autocomplete="name"
+    >
+
+    <input
+      id="phone"
+      type="tel"
+      placeholder="Phone Number"
+      autocomplete="tel"
+    >
+
+    <input
+      id="sponsorId"
+      type="text"
+      placeholder="Sponsor Member ID (Example: 1)"
+    >
 
     <input
       id="email"
@@ -98,6 +130,10 @@ button {
     <button type="button" onclick="register()">
       CREATE ACCOUNT
     </button>
+
+    <hr>
+
+    <h3>Existing Member Login</h3>
 
     <button type="button" onclick="login()">
       MEMBER LOGIN
@@ -152,7 +188,6 @@ const client = window.supabase.createClient(
 
 function showDashboard(user) {
   document.getElementById("loginSection").style.display = "none";
-
   document.getElementById("dashboard").style.display = "block";
 
   document.getElementById("memberEmail").textContent =
@@ -162,12 +197,21 @@ function showDashboard(user) {
 
 function showLogin() {
   document.getElementById("dashboard").style.display = "none";
-
   document.getElementById("loginSection").style.display = "block";
 }
 
 
 async function register() {
+
+  const fullName =
+    document.getElementById("fullName").value.trim();
+
+  const phone =
+    document.getElementById("phone").value.trim();
+
+  const sponsorId =
+    document.getElementById("sponsorId").value.trim();
+
   const email =
     document.getElementById("email").value.trim();
 
@@ -177,8 +221,8 @@ async function register() {
   const message =
     document.getElementById("message");
 
-  if (!email || !password) {
-    message.textContent = "Please enter email and password.";
+  if (!fullName || !phone || !sponsorId || !email || !password) {
+    message.textContent = "Please complete all registration fields.";
     return;
   }
 
@@ -191,13 +235,26 @@ async function register() {
   message.textContent = "Creating your account...";
 
   try {
+
     const { data, error } = await client.auth.signUp({
+
       email: email,
+
       password: password,
+
       options: {
+
         emailRedirectTo:
-          "https://octo7india.github.io/octo7-member-portal/"
+          "https://octo7india.github.io/octo7-member-portal/",
+
+        data: {
+          full_name: fullName,
+          phone: phone,
+          sponsor_id: sponsorId
+        }
+
       }
+
     });
 
     if (error) {
@@ -210,16 +267,18 @@ async function register() {
       showDashboard(data.user);
     } else {
       message.textContent =
-        "Registration successful. Please check your email if confirmation is required.";
+        "Registration submitted. Please check your email for confirmation.";
     }
 
   } catch (error) {
     message.textContent = "Error: " + error.message;
   }
+
 }
 
 
 async function login() {
+
   const email =
     document.getElementById("email").value.trim();
 
@@ -237,10 +296,13 @@ async function login() {
   message.textContent = "Logging in...";
 
   try {
+
     const { data, error } =
       await client.auth.signInWithPassword({
+
         email: email,
         password: password
+
       });
 
     if (error) {
@@ -253,11 +315,14 @@ async function login() {
   } catch (error) {
     message.textContent = "Error: " + error.message;
   }
+
 }
 
 
 async function logout() {
+
   try {
+
     const { error } = await client.auth.signOut({
       scope: "local"
     });
@@ -275,11 +340,14 @@ async function logout() {
   } catch (error) {
     alert(error.message);
   }
+
 }
 
 
 async function checkExistingSession() {
+
   try {
+
     const { data, error } = await client.auth.getSession();
 
     if (error) {
@@ -296,6 +364,7 @@ async function checkExistingSession() {
     document.getElementById("message").textContent =
       "Error: " + error.message;
   }
+
 }
 
 
