@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OCTO7 India | Member Portal</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 body {
   margin: 0;
@@ -13,27 +15,33 @@ body {
   color: white;
   text-align: center;
 }
+
 .container {
   max-width: 400px;
   margin: 60px auto;
   padding: 25px;
 }
+
 h1 {
   color: #e5bd68;
   font-size: 38px;
 }
+
 .card {
   background: #1c293b;
   padding: 25px;
   border-radius: 15px;
 }
+
 input {
   width: 90%;
   padding: 13px;
   margin: 9px 0;
   border: 1px solid #777;
   border-radius: 7px;
+  box-sizing: border-box;
 }
+
 button {
   width: 96%;
   padding: 13px;
@@ -44,109 +52,256 @@ button {
   font-weight: bold;
   cursor: pointer;
 }
+
 #message {
   color: #e5bd68;
   overflow-wrap: anywhere;
 }
+
+#dashboard {
+  display: none;
+  max-width: 600px;
+  margin: 30px auto;
+  padding: 20px;
+  background: #1c293b;
+  border-radius: 15px;
+  color: white;
+  box-sizing: border-box;
+}
 </style>
 </head>
+
 <body>
 
-<div class="container">
+<div class="container" id="loginSection">
+
   <h1>OCTO7 India</h1>
   <p>MEMBER PORTAL</p>
+
   <div class="card">
     <h2>Welcome Back</h2>
-    <input id="email" type="email" placeholder="Email address">
-    <input id="password" type="password" placeholder="Password">
 
-    <button onclick="register()">CREATE ACCOUNT</button>
-    <button onclick="login()">MEMBER LOGIN</button>
-    <button onclick="logout()">LOG OUT</button>
+    <input
+      id="email"
+      type="email"
+      placeholder="Email address"
+      autocomplete="email"
+    >
+
+    <input
+      id="password"
+      type="password"
+      placeholder="Password"
+      autocomplete="current-password"
+    >
+
+    <button type="button" onclick="register()">
+      CREATE ACCOUNT
+    </button>
+
+    <button type="button" onclick="login()">
+      MEMBER LOGIN
+    </button>
 
     <p id="message">Welcome to OCTO7</p>
   </div>
 </div>
 
+
+<div id="dashboard">
+
+  <h1>OCTO7 India</h1>
+  <h2>MEMBER DASHBOARD</h2>
+
+  <p>Welcome to your OCTO7 member account.</p>
+
+  <hr>
+
+  <h3>My Profile</h3>
+  <p id="memberEmail"></p>
+
+  <hr>
+
+  <h3>My Genealogy</h3>
+
+  <p>Left Team: Coming soon</p>
+  <p>Right Team: Coming soon</p>
+  <p>My Downline: Coming soon</p>
+  <p>Pending Placements: Coming soon</p>
+
+  <button type="button" onclick="logout()">
+    LOG OUT
+  </button>
+
+</div>
+
+
 <script>
-const SUPABASE_URL = "https://oqggzpbxrlglsqzdkbpy.supabase.co";
-const SUPABASE_KEY = "sb_publishable_yz9i0uLvJVzElz7IhEMyyw_WQj8hDc0";
+
+const SUPABASE_URL =
+  "https://oqggzpbxrlglsqzdkbpy.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_yz9i0uLvJVzElz7IhEMyyw_WQj8hDc0";
 
 const client = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_KEY
 );
 
-async function register() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
 
-  const { data, error } = await client.auth.signUp({
-    email,
-    password,
-    options: { emailRedirectTo: "https://octo7india.github.io/octo7-member-portal/" }
-});
+function showDashboard(user) {
+  document.getElementById("loginSection").style.display = "none";
 
-  document.getElementById("message").textContent =
-    error ? error.message :
-    "Registration submitted. Check your email if confirmation is required.";
+  document.getElementById("dashboard").style.display = "block";
+
+  document.getElementById("memberEmail").textContent =
+    "Email: " + user.email;
 }
 
-async function login() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
 
-  const { data, error } = await client.auth.signInWithPassword({
-    email,
-    password
-  });
+function showLogin() {
+  document.getElementById("dashboard").style.display = "none";
+
+  document.getElementById("loginSection").style.display = "block";
+}
+
+
+async function register() {
+  const email =
+    document.getElementById("email").value.trim();
+
+  const password =
+    document.getElementById("password").value;
+
+  const message =
+    document.getElementById("message");
+
+  if (!email || !password) {
+    message.textContent = "Please enter email and password.";
+    return;
+  }
+
+  if (password.length < 6) {
+    message.textContent =
+      "Password must contain at least 6 characters.";
+    return;
+  }
+
+  message.textContent = "Creating your account...";
+
+  try {
+    const { data, error } = await client.auth.signUp({
+      email: email,
+      password: password,
+      options: {
+        emailRedirectTo:
+          "https://octo7india.github.io/octo7-member-portal/"
+      }
+    });
 
     if (error) {
-  document.getElementById("message").textContent =
-        return;
+      message.textContent = error.message;
+      return;
     }
-    document.querySelector(".container").style.display = "none";
-    document.getElementById("dashboard").style.display = "block";
-    document.getElementById("memberEmail").textContent =
-          "Email: " + data.user.email;
+
+    if (data.session && data.user) {
+      message.textContent = "Account created successfully!";
+      showDashboard(data.user);
+    } else {
+      message.textContent =
+        "Registration successful. Please check your email if confirmation is required.";
+    }
+
+  } catch (error) {
+    message.textContent = "Error: " + error.message;
   }
-  async function logout() {
-      const { error } = await client.auth.signOut();
-
-      if (error) {
-            alert(error.message);
-            return;
-      }
-
-      document.getElementById("dashboard").style.display = "none";
-      document.querySelector(".container").style.display = "block";
-      document.getElementById("message").textContent = "You have logged out.";
-                  }
-    error ? error.message :
-    "Login successful! Welcome to OCTO7.";
 }
+
+
+async function login() {
+  const email =
+    document.getElementById("email").value.trim();
+
+  const password =
+    document.getElementById("password").value;
+
+  const message =
+    document.getElementById("message");
+
+  if (!email || !password) {
+    message.textContent = "Please enter email and password.";
+    return;
+  }
+
+  message.textContent = "Logging in...";
+
+  try {
+    const { data, error } =
+      await client.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+
+    if (error) {
+      message.textContent = error.message;
+      return;
+    }
+
+    showDashboard(data.user);
+
+  } catch (error) {
+    message.textContent = "Error: " + error.message;
+  }
+}
+
 
 async function logout() {
-  const { error } = await client.auth.signOut();
-  document.getElementById("message").textContent =
-    error ? error.message : "You have logged out.";
+  try {
+    const { error } = await client.auth.signOut({
+      scope: "local"
+    });
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    showLogin();
+
+    document.getElementById("message").textContent =
+      "You have logged out.";
+
+  } catch (error) {
+    alert(error.message);
+  }
 }
+
+
+async function checkExistingSession() {
+  try {
+    const { data, error } = await client.auth.getSession();
+
+    if (error) {
+      document.getElementById("message").textContent =
+        error.message;
+      return;
+    }
+
+    if (data.session) {
+      showDashboard(data.session.user);
+    }
+
+  } catch (error) {
+    document.getElementById("message").textContent =
+      "Error: " + error.message;
+  }
+}
+
+
+checkExistingSession();
+
 </script>
-<div id="dashboard" style="display:none; max-width:600px; margin:30px auto; padding:20px; background:#1c293b; border-radius:15px; color:white;">
-  <h1 style="color:#e5bd68;">OCTO7 India</h1>
-  <h2>MEMBER DASHBOARD</h2>
-  <p>Welcome to your OCTO7 member account.</p>
 
-  <hr>
-  <h3>My Profile</h3>
-  <p id="memberEmail"></p>
-
-  <hr>
-  <h3>My Genealogy</h3>
-  <p>Left Team: Coming soon</p>
-  <p>Right Team: Coming soon</p>
-  <p>My Downline: Coming soon</p>
-  <p>Pending Placements: Coming soon</p>
-</div>
 </body>
 </html>
