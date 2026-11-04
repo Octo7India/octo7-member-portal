@@ -1,569 +1,2135 @@
-<!DOCTYPE html>
+-- OCTO7 additive schema. Existing public.members and auth.users are untouched.
+create extension if not exists pgcrypto;
+
+create table if not exists public.octo7_people (
+ id uuid primary key default gen_random_uuid(), full_name text not null,
+ email text not null, phone text, address text, created_at timestamptz not null default now()
+);
+create table if not exists public.octo7_positions (
+ id bigint generated always as identity primary key,
+ member_id text not null unique,
+ person_id uuid not null references public.octo7_people(id),
+ position_type text not null check(position_type in ('main','left_child','right_child')),
+ status text not null default 'pending' check(status in ('pending','active','suspended','closed')),
+ sponsor_id bigint references public.octo7_positions(id),
+ parent_id bigint references public.octo7_positions(id),
+ side text check(side in ('left','right')),
+ first_match_done boolean not null default false,
+ created_at timestamptz not null default now(), activated_at timestamptz,
+ check((parent_id is null and side is null) or (parent_id is not null and side is not null)),
+ unique(person_id,position_type)
+);
+create unique index if not exists octo7_binary_slot_uq
+ on public.octo7_positions(parent_id,side) where parent_id is not null;
+
+create table if not exists public.octo7_credentials (
+ position_id bigint primary key references public.octo7_positions(id) on delete cascade,
+ password_hash text not null, failed_attempts int not null default 0, locked_until timestamptz
+);
+create table if not exists public.octo7_sessions (
+ id uuid primary key default gen_random_uuid(),
+ position_id bigint not null references public.octo7_positions(id) on delete cascade,
+ token_hash text not null unique, expires_at timestamptz not null, revoked_at timestamptz,
+ created_at timestamptz not null default now()
+);
+create table if not exists public.octo7_admins (
+ position_id bigint primary key references public.octo7_positions(id),
+ role text not null check(role in ('super_admin','operations','finance','support'))
+);
+
+create table if not exists public.octo7_products (
+ id bigint generated always as identity primary key, sku text unique,
+ name text not null, category text,
+ price numeric(12,2) not null check(price>=0),
+ bv numeric(12,2) not null default 0 check(bv>=0),
+ active boolean not null default true
+);
+create table if not exists public.octo7_orders (
+ id bigint generated always as identity primary key, order_no text not null unique,
+ position_id bigint not null references public.octo7_positions(id),
+ status text not null default 'pending'
+ check(status in ('pending','verified','cancelled','refunded')),
+ subtotal numeric(12,2) not null, coupon_discount numeric(12,2) not null default 0,
+ total numeric(12,2) not null, total_bv numeric(12,2) not null default 0,
+ created_at timestamptz not null default now(), verified_at timestamptz,
+ verified_by bigint references public.octo7_positions(id)
+);
+create table if not exists public.octo7_order_items (
+ id bigint generated always as identity primary key,
+ order_id bigint not null references public.octo7_orders(id) on delete cascade,
+ product_id bigint not null references public.octo7_products(id),
+ qty int not null check(qty>0),
+ unit_price numeric(12,2) not null, unit_bv numeric(12,2) not null
+);
+
+create table if not exists public.octo7_activation_codes (
+ id bigint generated always as identity primary key,
+ code_hash text not null unique,
+ status text not null default 'unused'
+ check(status in ('unused','redeemed','revoked')),
+ created_by bigint references public.octo7_positions(id),
+ redeemed_by bigint references public.octo7_positions(id),
+ created_at timestamptz not null default now(), redeemed_at timestamptz
+);
+create table if not exists public.octo7_coupons (
+ id bigint generated always as identity primary key,
+ position_id bigint not null unique references public.octo7_positions(id),
+ face_value numeric(10,2) not null default 999 check(face_value=999),
+ per_purchase numeric(10,2) not null default 99.90 check(per_purchase=99.90),
+ max_uses int not null default 10 check(max_uses=10),
+ used_count int not null default 0 check(used_count between 0 and 10),
+ created_at timestamptz not null default now()
+);
+create table if not exists public.octo7_coupon_uses (
+ id bigint generated always as identity primary key,
+ coupon_id bigint not null references public.octo7_coupons(id),
+ order_id bigint not null unique references public.octo7_orders(id),
+ amount numeric(10,2) not null default 99.90 check(amount=99.90),
+ created_at timestamptz not null default now()
+);
+
+create table if not exists public.octo7_bv_ledger (
+ id bigint generated always as identity primary key,
+ position_id bigint not null references public.octo7_positions(id),
+ leg text not null check(leg in ('left','right')),
+ source_order_id bigint references public.octo7_orders(id),
+ source_position_id bigint references public.octo7_positions(id),
+ amount numeric(14,2) not null,
+ entry_kind text not null check(entry_kind in ('credit','adjustment','reversal')),
+ created_at timestamptz not null default now()
+);
+create table if not exists public.octo7_match_events (
+ id bigint generated always as identity primary key,
+ position_id bigint not null references public.octo7_positions(id),
+ left_used numeric(14,2) not null, right_used numeric(14,2) not null,
+ gross numeric(14,2) not null, payable numeric(14,2) not null,
+ flushed numeric(14,2) not null default 0, ratio text not null,
+ business_date date not null, created_at timestamptz not null default now()
+);
+create table if not exists public.octo7_daily_caps (
+ position_id bigint not null references public.octo7_positions(id),
+ business_date date not null,
+ paid numeric(12,2) not null default 0 check(paid between 0 and 5000),
+ primary key(position_id,business_date)
+);
+create table if not exists public.octo7_wallet_entries (
+ id bigint generated always as identity primary key,
+ position_id bigint not null references public.octo7_positions(id),
+ kind text not null, amount numeric(14,2) not null,
+ reference text, created_at timestamptz not null default now()
+);
+create table if not exists public.octo7_transfers (
+ id bigint generated always as identity primary key,
+ from_position bigint not null references public.octo7_positions(id),
+ to_position bigint not null references public.octo7_positions(id),
+ amount numeric(14,2) not null check(amount>=500),
+ status text not null default 'pending'
+ check(status in ('pending','completed','rejected')),
+ created_at timestamptz not null default now(), processed_at timestamptz
+);
+
+create table if not exists public.octo7_bank_accounts (
+ id bigint generated always as identity primary key,
+ person_id uuid not null references public.octo7_people(id),
+ holder_name text not null, bank_name text not null,
+ account_number text not null, ifsc text not null, branch text,
+ status text not null default 'pending'
+ check(status in ('pending','verified','rejected')),
+ created_at timestamptz not null default now()
+);
+create table if not exists public.octo7_withdrawals (
+ id bigint generated always as identity primary key,
+ position_id bigint not null references public.octo7_positions(id),
+ bank_id bigint not null references public.octo7_bank_accounts(id),
+ amount numeric(14,2) not null check(amount>=500),
+ status text not null default 'pending'
+ check(status in ('pending','approved','processing','paid','rejected')),
+ payment_reference text, reason text,
+ created_at timestamptz not null default now(),
+ updated_at timestamptz not null default now()
+);
+
+create table if not exists public.octo7_tickets (
+ id bigint generated always as identity primary key,
+ position_id bigint not null references public.octo7_positions(id),
+ subject text not null,
+ status text not null default 'open'
+ check(status in ('open','in_progress','resolved','closed')),
+ created_at timestamptz not null default now()
+);
+create table if not exists public.octo7_ticket_messages (
+ id bigint generated always as identity primary key,
+ ticket_id bigint not null references public.octo7_tickets(id) on delete cascade,
+ sender_position bigint references public.octo7_positions(id),
+ sender_role text not null check(sender_role in ('member','admin','assistant')),
+ body text not null, created_at timestamptz not null default now()
+);
+create table if not exists public.octo7_audit (
+ id bigint generated always as identity primary key,
+ actor_position bigint references public.octo7_positions(id),
+ action text not null, details jsonb not null default '{}'::jsonb,
+ created_at timestamptz not null default now()
+);
+
+-- BV available balances are derived from immutable ledger entries.
+create or replace function public.octo7_leg_available(p_position bigint,p_leg text)
+returns numeric language sql stable security definer set search_path=public as $$
+ select coalesce(sum(amount),0)
+ from public.octo7_bv_ledger
+ where position_id=p_position and leg=p_leg;
+$$;
+
+create or replace function public.octo7_is_descendant(p_root bigint,p_target bigint)
+returns boolean language sql stable security definer set search_path=public as $$
+ with recursive d(id) as (
+  select id from public.octo7_positions where parent_id=p_root
+  union all
+  select p.id from public.octo7_positions p join d on p.parent_id=d.id
+ )
+ select p_root=p_target or exists(select 1 from d where id=p_target);
+$$;
+
+create or replace function public.octo7_get_tree(p_root bigint)
+returns jsonb language sql stable security definer set search_path=public as $$
+ with recursive t(id,member_id,parent_id,side,depth) as (
+  select id,member_id,parent_id,side,0
+  from public.octo7_positions where id=p_root
+  union all
+  select p.id,p.member_id,p.parent_id,p.side,t.depth+1
+  from public.octo7_positions p join t on p.parent_id=t.id
+ )
+ select coalesce(
+  jsonb_agg(
+   jsonb_build_object(
+    'member_id',member_id,'parent_id',parent_id,'side',side,'depth',depth
+   ) order by depth,id
+  ),'[]'::jsonb
+ )
+ from t;
+$$;
+
+-- Atomic matching function. Intended to be called by the server Edge Function.
+create or replace function public.octo7_run_matching(p_position bigint)
+returns jsonb language plpgsql security definer set search_path=public as $$
+declare
+ l numeric; r numeric; use_l numeric; use_r numeric;
+ gross numeric; payout_amount numeric; flush numeric;
+ cap_left numeric; today_india date; first_done boolean; ratio_label text;
+begin
+ select first_match_done into first_done
+ from public.octo7_positions
+ where id=p_position and status='active'
+ for update;
+
+ if not found then
+  raise exception 'Member position is not active';
+ end if;
+
+ today_india := (now() at time zone 'Asia/Kolkata')::date;
+ l:=public.octo7_leg_available(p_position,'left');
+ r:=public.octo7_leg_available(p_position,'right');
+
+ if not first_done then
+  if l>=2000 and r>=1000 then
+   use_l:=1000; use_r:=1000; ratio_label:='first_2_to_1';
+  elsif r>=2000 and l>=1000 then
+   use_l:=1000; use_r:=1000; ratio_label:='first_1_to_2';
+  else
+   return jsonb_build_object(
+    'matched',false,'reason','first qualification not reached',
+    'left_available',l,'right_available',r
+   );
+  end if;
+ else
+  use_l:=least(l,r); use_r:=use_l; ratio_label:='1_to_1';
+  if use_l<=0 then
+   return jsonb_build_object('matched',false,'reason','no matching BV');
+  end if;
+ end if;
+
+ gross:=use_l; -- ₹1 per matched BV
+
+ insert into public.octo7_bv_ledger(position_id,leg,amount,entry_kind)
+ values
+ (p_position,'left',-use_l,'adjustment'),
+ (p_position,'right',-use_r,'adjustment');
+
+ insert into public.octo7_daily_caps(position_id,business_date,paid)
+ values(p_position,today_india,0)
+ on conflict do nothing;
+
+ select greatest(0,5000-paid)
+ into cap_left
+ from public.octo7_daily_caps
+ where position_id=p_position and business_date=today_india
+ for update;
+
+ payout_amount:=least(gross,cap_left);
+ flush:=gross-payout_amount;
+
+ update public.octo7_daily_caps
+ set paid=octo7_daily_caps.paid+payout_amount
+ where position_id=p_position and business_date=today_india;
+
+ insert into public.octo7_wallet_entries(position_id,kind,amount,reference)
+ values(p_position,'binary_income',payout_amount,'matching');
+
+ insert into public.octo7_match_events(
+  position_id,left_used,right_used,gross,payable,flushed,ratio,business_date
+ )
+ values(
+  p_position,use_l,use_r,gross,payout_amount,flush,ratio_label,today_india
+ );
+
+ if not first_done then
+  update public.octo7_positions
+  set first_match_done=true
+  where id=p_position;
+ end if;
+
+ return jsonb_build_object(
+  'matched',true,'left_used',use_l,'right_used',use_r,
+  'gross',gross,'paid',payout_amount,'flushed',flush,
+  'ratio',ratio_label,'business_date',today_india
+ );
+end $$;
+
+-- Enable RLS on all OCTO7 tables. Access is intended through the server API.
+do $$
+declare t text;
+begin
+ foreach t in array array[
+  'octo7_people','octo7_positions','octo7_credentials','octo7_sessions',
+  'octo7_admins','octo7_products','octo7_orders','octo7_order_items',
+  'octo7_activation_codes','octo7_coupons','octo7_coupon_uses',
+  'octo7_bv_ledger','octo7_match_events','octo7_daily_caps',
+  'octo7_wallet_entries','octo7_transfers','octo7_bank_accounts',
+  'octo7_withdrawals','octo7_tickets','octo7_ticket_messages','octo7_audit'
+ ]
+ loop
+  execute format('alter table public.%I enable row level security',t);
+ end loop;
+end $$;
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { hash, compare } from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts';
+
+const db = createClient(
+  Deno.env.get('SUPABASE_URL')!,
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+);
+
+const SESSION_SECRET = Deno.env.get('OCTO7_SESSION_SECRET') || '';
+const SETUP_KEY = Deno.env.get('OCTO7_ADMIN_SETUP_KEY') || '';
+
+const cors = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS'
+};
+
+const out = (x: unknown, s = 200) =>
+  new Response(JSON.stringify(x), {
+    status: s,
+    headers: { ...cors, 'Content-Type': 'application/json' }
+  });
+
+const digest = async (s: string) => {
+  const b = await crypto.subtle.digest(
+    'SHA-256',
+    new TextEncoder().encode(SESSION_SECRET + s)
+  );
+  return [...new Uint8Array(b)]
+    .map(x => x.toString(16).padStart(2, '0'))
+    .join('');
+};
+
+const token = () => {
+  const b = crypto.getRandomValues(new Uint8Array(32));
+  return btoa(String.fromCharCode(...b))
+    .replaceAll('+', '-')
+    .replaceAll('/', '_')
+    .replaceAll('=', '');
+};
+
+const money = (n: number) =>
+  Math.round((n + Number.EPSILON) * 100) / 100;
+
+async function audit(
+  actor: number | null,
+  action: string,
+  details = {}
+) {
+  await db.from('octo7_audit').insert({
+    actor_position: actor,
+    action,
+    details
+  });
+}
+
+async function auth(req: Request) {
+  const raw = (req.headers.get('authorization') || '')
+    .replace(/^Bearer\s+/i, '');
+
+  if (!raw) return null;
+
+  const { data: s } = await db
+    .from('octo7_sessions')
+    .select('*')
+    .eq('token_hash', await digest(raw))
+    .is('revoked_at', null)
+    .maybeSingle();
+
+  if (!s || new Date(s.expires_at) < new Date()) return null;
+
+  const { data: p } = await db
+    .from('octo7_positions')
+    .select('*')
+    .eq('id', s.position_id)
+    .single();
+
+  if (!p || p.status === 'suspended' || p.status === 'closed') {
+    return null;
+  }
+
+  return { raw, session: s, p };
+}
+
+async function admin(
+  pid: number,
+  roles = ['super_admin', 'operations', 'finance', 'support']
+) {
+  const { data } = await db
+    .from('octo7_admins')
+    .select('role')
+    .eq('position_id', pid)
+    .maybeSingle();
+
+  if (!data || !roles.includes(data.role)) {
+    throw Error('Administrator permission required');
+  }
+}
+
+async function balance(pid: number) {
+  const { data, error } = await db
+    .from('octo7_wallet_entries')
+    .select('amount')
+    .eq('position_id', pid);
+
+  if (error) throw error;
+
+  return money(
+    (data || []).reduce(
+      (a: any, r: any) => a + Number(r.amount),
+      0
+    )
+  );
+}
+
+async function run(action: string, b: any, c: any) {
+  const pid = c?.p?.id;
+
+  // MEMBER REGISTRATION
+  if (action === 'register_person') {
+    const {
+      full_name,
+      email,
+      phone,
+      password,
+      sponsor_member_id,
+      position_type = 'main'
+    } = b;
+
+    if (!full_name || !email || !password || password.length < 10) {
+      throw Error(
+        'Name, email and password of at least 10 characters are required'
+      );
+    }
+
+    if (!['main', 'left_child', 'right_child'].includes(position_type)) {
+      throw Error('Invalid position type');
+    }
+
+    let sponsor = null;
+
+    if (sponsor_member_id) {
+      const { data, error } = await db
+        .from('octo7_positions')
+        .select('id')
+        .eq('member_id', sponsor_member_id)
+        .single();
+
+      if (error) throw Error('Sponsor Member ID not found');
+
+      sponsor = data.id;
+    }
+
+    const { data: person, error: pe } = await db
+      .from('octo7_people')
+      .insert({ full_name, email, phone })
+      .select()
+      .single();
+
+    if (pe) throw pe;
+
+    const member_id =
+      'O7' +
+      crypto.randomUUID().replaceAll('-', '').slice(0, 10).toUpperCase();
+
+    const { data: p, error: posErr } = await db
+      .from('octo7_positions')
+      .insert({
+        member_id,
+        person_id: person.id,
+        position_type,
+        sponsor_id: sponsor
+      })
+      .select()
+      .single();
+
+    if (posErr) throw posErr;
+
+    const { error: ce } = await db
+      .from('octo7_credentials')
+      .insert({
+        position_id: p.id,
+        password_hash: await hash(password)
+      });
+
+    if (ce) throw ce;
+
+    await audit(p.id, 'member_registered', { member_id });
+
+    return {
+      member_id,
+      status: 'pending',
+      message: 'Registration submitted. Activation is pending.'
+    };
+  }
+
+  // MEMBER LOGIN
+  if (action === 'login') {
+    const { data: p } = await db
+      .from('octo7_positions')
+      .select('*')
+      .eq('member_id', b.member_id)
+      .maybeSingle();
+
+    if (!p) throw Error('Invalid Member ID or password');
+
+    const { data: cr } = await db
+      .from('octo7_credentials')
+      .select('*')
+      .eq('position_id', p.id)
+      .single();
+
+    if (
+      !cr ||
+      (cr.locked_until && new Date(cr.locked_until) > new Date())
+    ) {
+      throw Error('Invalid credentials or account temporarily locked');
+    }
+
+    if (!await compare(b.password || '', cr.password_hash)) {
+      const n = cr.failed_attempts + 1;
+
+      await db
+        .from('octo7_credentials')
+        .update({
+          failed_attempts: n,
+          locked_until:
+            n >= 8
+              ? new Date(Date.now() + 900000).toISOString()
+              : null
+        })
+        .eq('position_id', p.id);
+
+      throw Error('Invalid Member ID or password');
+    }
+
+    await db
+      .from('octo7_credentials')
+      .update({
+        failed_attempts: 0,
+        locked_until: null
+      })
+      .eq('position_id', p.id);
+
+    const t = token();
+
+    const { error } = await db
+      .from('octo7_sessions')
+      .insert({
+        position_id: p.id,
+        token_hash: await digest(t),
+        expires_at: new Date(
+          Date.now() + 14 * 86400000
+        ).toISOString()
+      });
+
+    if (error) throw error;
+
+    return {
+      token: t,
+      member: {
+        member_id: p.member_id,
+        status: p.status,
+        position_type: p.position_type
+      }
+    };
+  }
+
+  // FIRST ADMIN SETUP
+  if (action === 'setup_first_admin') {
+    if (!SETUP_KEY || b.setup_key !== SETUP_KEY) {
+      throw Error('Invalid setup key');
+    }
+
+    const { data: p, error } = await db
+      .from('octo7_positions')
+      .select('id')
+      .eq('member_id', b.member_id)
+      .single();
+
+    if (error) throw error;
+
+    const { count } = await db
+      .from('octo7_admins')
+      .select('*', { count: 'exact', head: true });
+
+    if ((count || 0) > 0) {
+      throw Error('Admin already configured');
+    }
+
+    const { error: e } = await db
+      .from('octo7_admins')
+      .insert({
+        position_id: p.id,
+        role: 'super_admin'
+      });
+
+    if (e) throw e;
+
+    return { success: true };
+  }
+
+  // PRODUCTS
+  if (action === 'get_products') {
+    const { data, error } = await db
+      .from('octo7_products')
+      .select('id,sku,name,category,price,bv')
+      .eq('active', true);
+
+    if (error) throw error;
+
+    return { products: data };
+  }
+
+  if (!c) throw Error('Please log in');
+
+  // LOGOUT
+  if (action === 'logout') {
+    await db
+      .from('octo7_sessions')
+      .update({ revoked_at: new Date().toISOString() })
+      .eq('id', c.session.id);
+
+    return { success: true };
+  }
+
+  // MEMBER DASHBOARD
+  if (action === 'me') {
+    const { data: person, error } = await db
+      .from('octo7_people')
+      .select('id,full_name,email,phone,address')
+      .eq('id', c.p.person_id)
+      .single();
+
+    if (error) throw error;
+
+    const { data: coupon } = await db
+      .from('octo7_coupons')
+      .select('*')
+      .eq('position_id', pid)
+      .maybeSingle();
+
+    return {
+      member: c.p,
+      profile: person,
+      wallet_balance: await balance(pid),
+      coupon
+    };
+  }
+
+  // GENEALOGY
+  if (action === 'my_genealogy') {
+    const { data, error } = await db.rpc(
+      'octo7_get_tree',
+      { p_root: pid }
+    );
+
+    if (error) throw error;
+
+    return { tree: data };
+  }
+
+  // MANUAL PLACEMENT
+  if (action === 'place_member') {
+    const { data: child, error: ce } = await db
+      .from('octo7_positions')
+      .select('*')
+      .eq('member_id', b.member_id)
+      .single();
+
+    if (ce) throw ce;
+
+    const { data: parent, error: pe } = await db
+      .from('octo7_positions')
+      .select('*')
+      .eq('member_id', b.parent_member_id)
+      .single();
+
+    if (pe) throw pe;
+
+    if (!['left', 'right'].includes(b.side)) {
+      throw Error('Choose left or right');
+    }
+
+    if (child.sponsor_id !== pid) {
+      await admin(pid);
+    }
+
+    const { data: isDown, error } = await db.rpc(
+      'octo7_is_descendant',
+      {
+        p_root: pid,
+        p_target: parent.id
+      }
+    );
+
+    if (error) throw error;
+
+    if (!isDown) {
+      throw Error('Placement parent must be in your downline');
+    }
+
+    const { data: slot } = await db
+      .from('octo7_positions')
+      .select('id')
+      .eq('parent_id', parent.id)
+      .eq('side', b.side)
+      .maybeSingle();
+
+    if (slot && slot.id !== child.id) {
+      throw Error('That binary slot is occupied');
+    }
+
+    const { error: updateError } = await db
+      .from('octo7_positions')
+      .update({
+        parent_id: parent.id,
+        side: b.side
+      })
+      .eq('id', child.id);
+
+    if (updateError) throw updateError;
+
+    await audit(pid, 'member_placed', b);
+
+    return { success: true };
+  }
+
+  // CREATE ORDER
+  if (action === 'create_order') {
+    if (!Array.isArray(b.items) || !b.items.length) {
+      throw Error('Add order items');
+    }
+
+    let subtotal = 0;
+    let bv = 0;
+    const rows = [];
+
+    for (const it of b.items) {
+      const { data: p, error } = await db
+        .from('octo7_products')
+        .select('*')
+        .eq('id', it.product_id)
+        .eq('active', true)
+        .single();
+
+      if (error) throw error;
+
+      const q = Math.max(1, Math.floor(Number(it.qty)));
+
+      subtotal += Number(p.price) * q;
+      bv += Number(p.bv) * q;
+
+      rows.push({
+        product_id: p.id,
+        qty: q,
+        unit_price: p.price,
+        unit_bv: p.bv
+      });
+    }
+
+    subtotal = money(subtotal);
+
+    let discount = 0;
+    let coupon = null;
+
+    if (b.use_coupon) {
+      const { data } = await db
+        .from('octo7_coupons')
+        .select('*')
+        .eq('position_id', pid)
+        .maybeSingle();
+
+      if (data && data.used_count < 10) {
+        coupon = data;
+        discount = 99.90;
+      }
+    }
+
+    const order_no =
+      'O7-' + crypto.randomUUID().slice(0, 12).toUpperCase();
+
+    const { data: o, error } = await db
+      .from('octo7_orders')
+      .insert({
+        order_no,
+        position_id: pid,
+        subtotal,
+        coupon_discount: discount,
+        total: Math.max(0, money(subtotal - discount)),
+        total_bv: bv
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    const { error: ie } = await db
+      .from('octo7_order_items')
+      .insert(
+        rows.map(x => ({ ...x, order_id: o.id }))
+      );
+
+    if (ie) throw ie;
+
+    if (coupon) {
+      const { error: ue } = await db
+        .from('octo7_coupon_uses')
+        .insert({
+          coupon_id: coupon.id,
+          order_id: o.id
+        });
+
+      if (ue) throw ue;
+
+      const { error: cu } = await db
+        .from('octo7_coupons')
+        .update({
+          used_count: coupon.used_count + 1
+        })
+        .eq('id', coupon.id)
+        .eq('used_count', coupon.used_count);
+
+      if (cu) throw cu;
+    }
+
+    return { order: o };
+  }
+
+  // CHILD ID TO MAIN ID TRANSFER REQUEST
+  if (action === 'request_transfer') {
+    const amt = money(Number(b.amount));
+
+    if (amt < 500) {
+      throw Error('Minimum transfer is ₹500');
+    }
+
+    const { data: to } = await db
+      .from('octo7_positions')
+      .select('*')
+      .eq('member_id', b.to_member_id)
+      .maybeSingle();
+
+    if (
+      !to ||
+      to.person_id !== c.p.person_id ||
+      to.position_type !== 'main'
+    ) {
+      throw Error('Destination must be your own Main ID');
+    }
+
+    if (await balance(pid) < amt) {
+      throw Error('Insufficient balance');
+    }
+
+    const { data, error } = await db
+      .from('octo7_transfers')
+      .insert({
+        from_position: pid,
+        to_position: to.id,
+        amount: amt
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return { transfer: data };
+  }
+
+  // WITHDRAWAL REQUEST
+  if (action === 'request_withdrawal') {
+    const amt = money(Number(b.amount));
+
+    if (amt < 500) {
+      throw Error('Minimum withdrawal is ₹500');
+    }
+
+    if (await balance(pid) < amt) {
+      throw Error('Insufficient balance');
+    }
+
+    const { data: bank } = await db
+      .from('octo7_bank_accounts')
+      .select('id')
+      .eq('id', b.bank_id)
+      .eq('person_id', c.p.person_id)
+      .eq('status', 'verified')
+      .maybeSingle();
+
+    if (!bank) {
+      throw Error('Choose a verified bank account');
+    }
+
+    const { data, error } = await db
+      .from('octo7_withdrawals')
+      .insert({
+        position_id: pid,
+        bank_id: bank.id,
+        amount: amt
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return { withdrawal: data };
+  }
+
+  // BANK DETAILS
+  if (action === 'save_bank_account') {
+    const { data, error } = await db
+      .from('octo7_bank_accounts')
+      .insert({
+        person_id: c.p.person_id,
+        holder_name: b.holder_name,
+        bank_name: b.bank_name,
+        account_number: b.account_number,
+        ifsc: b.ifsc,
+        branch: b.branch
+      })
+      .select('id,status')
+      .single();
+
+    if (error) throw error;
+
+    return { bank_account: data };
+  }
+
+  // SUPPORT TICKET
+  if (action === 'create_support_ticket') {
+    const { data, error } = await db
+      .from('octo7_tickets')
+      .insert({
+        position_id: pid,
+        subject: b.subject
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    const { error: e } = await db
+      .from('octo7_ticket_messages')
+      .insert({
+        ticket_id: data.id,
+        sender_position: pid,
+        sender_role: 'member',
+        body: b.message || b.subject
+      });
+
+    if (e) throw e;
+
+    return { ticket: data };
+  }
+
+  // MEMBER SUPPORT REQUESTS
+  if (action === 'my_support_tickets') {
+    const { data, error } = await db
+      .from('octo7_tickets')
+      .select('*,octo7_ticket_messages(*)')
+      .eq('position_id', pid);
+
+    if (error) throw error;
+
+    return { tickets: data };
+  }
+
+  // ADMIN ROUTES
+  await admin(pid);
+
+  // CREATE ACTIVATION CODE
+  if (action === 'admin_create_activation_code') {
+    const code = token().slice(0, 20).toUpperCase();
+
+    const { error } = await db
+      .from('octo7_activation_codes')
+      .insert({
+        code_hash: await digest(code),
+        created_by: pid
+      });
+
+    if (error) throw error;
+
+    return { activation_code: code };
+  }
+
+  // ACTIVATE MEMBER
+  if (action === 'admin_activate_member') {
+    const { data: p, error: pe } = await db
+      .from('octo7_positions')
+      .select('*')
+      .eq('member_id', b.member_id)
+      .single();
+
+    if (pe) throw pe;
+
+    const { data: code } = await db
+      .from('octo7_activation_codes')
+      .select('*')
+      .eq('code_hash', await digest(b.activation_code))
+      .eq('status', 'unused')
+      .maybeSingle();
+
+    if (!code) {
+      throw Error('Activation code invalid or already used');
+    }
+
+    const {
+      data: redeemed,
+      error: re
+    } = await db
+      .from('octo7_activation_codes')
+      .update({
+        status: 'redeemed',
+        redeemed_by: p.id,
+        redeemed_at: new Date().toISOString()
+      })
+      .eq('id', code.id)
+      .eq('status', 'unused')
+      .select()
+      .maybeSingle();
+
+    if (re || !redeemed) {
+      throw Error('Activation code was already redeemed');
+    }
+
+    const { error: up } = await db
+      .from('octo7_positions')
+      .update({
+        status: 'active',
+        activated_at: new Date().toISOString()
+      })
+      .eq('id', p.id);
+
+    if (up) throw up;
+
+    const { error: cp } = await db
+      .from('octo7_coupons')
+      .insert({
+        position_id: p.id,
+        face_value: 999,
+        per_purchase: 99.90,
+        max_uses: 10
+      });
+
+    if (cp) throw cp;
+
+    await audit(pid, 'member_activated', {
+      member_id: b.member_id
+    });
+
+    return {
+      success: true,
+      coupon: '₹999; ₹99.90 × 10'
+    };
+  }
+
+  // CREATE PRODUCT
+  if (action === 'admin_create_product') {
+    const { data, error } = await db
+      .from('octo7_products')
+      .insert({
+        sku: b.sku || null,
+        name: b.name,
+        category: b.category,
+        price: b.price,
+        bv: b.bv,
+        active: true
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return { product: data };
+  }
+
+  // VERIFY ORDER
+  if (action === 'admin_verify_order') {
+    const { data: o, error } = await db
+      .from('octo7_orders')
+      .select('*')
+      .eq('id', b.order_id)
+      .eq('status', 'pending')
+      .single();
+
+    if (error) throw error;
+
+    const { error: u } = await db
+      .from('octo7_orders')
+      .update({
+        status: 'verified',
+        verified_at: new Date().toISOString(),
+        verified_by: pid
+      })
+      .eq('id', o.id);
+
+    if (u) throw u;
+
+    // PLACEHOLDER:
+    // This credits only the direct placement parent.
+    // Full upline BV allocation must be implemented and tested
+    // against OCTO7's approved compensation rules before launch.
+
+    const { data: buyer } = await db
+      .from('octo7_positions')
+      .select('parent_id,side')
+      .eq('id', o.position_id)
+      .single();
+
+    if (buyer?.parent_id && buyer.side) {
+      const { error: v } = await db
+        .from('octo7_bv_ledger')
+        .insert({
+          position_id: buyer.parent_id,
+          leg: buyer.side,
+          source_order_id: o.id,
+          source_position_id: o.position_id,
+          amount: o.total_bv,
+          entry_kind: 'credit'
+        });
+
+      if (v) throw v;
+
+      await db.rpc('octo7_run_matching', {
+        p_position: buyer.parent_id
+      });
+    }
+
+    await audit(pid, 'order_verified', {
+      order_id: o.id
+    });
+
+    return { success: true };
+  }
+
+  // RUN MATCHING
+  if (action === 'admin_match_member') {
+    const { data: p, error } = await db
+      .from('octo7_positions')
+      .select('id')
+      .eq('member_id', b.member_id)
+      .single();
+
+    if (error) throw error;
+
+    const { data: r, error: e } = await db.rpc(
+      'octo7_run_matching',
+      { p_position: p.id }
+    );
+
+    if (e) throw e;
+
+    return r;
+  }
+
+  // ADMIN MEMBER LIST
+  if (action === 'admin_list_members') {
+    const { data, error } = await db
+      .from('octo7_positions')
+      .select(
+        'id,member_id,person_id,position_type,status,sponsor_id,parent_id,side,created_at'
+      )
+      .order('id');
+
+    if (error) throw error;
+
+    return { members: data };
+  }
+
+  // PROCESS TRANSFER
+  if (action === 'admin_process_transfer') {
+    const {
+      data: t,
+      error
+    } = await db
+      .from('octo7_transfers')
+      .select('*')
+      .eq('id', b.transfer_id)
+      .eq('status', 'pending')
+      .single();
+
+    if (error) throw error;
+
+    if (b.approve) {
+      if (await balance(t.from_position) < Number(t.amount)) {
+        throw Error('Insufficient balance');
+      }
+
+      const { error: e } = await db
+        .from('octo7_wallet_entries')
+        .insert([
+          {
+            position_id: t.from_position,
+            kind: 'transfer_out',
+            amount: -Number(t.amount),
+            reference: 'transfer:' + t.id
+          },
+          {
+            position_id: t.to_position,
+            kind: 'transfer_in',
+            amount: Number(t.amount),
+            reference: 'transfer:' + t.id
+          }
+        ]);
+
+      if (e) throw e;
+    }
+
+    const { error: u } = await db
+      .from('octo7_transfers')
+      .update({
+        status: b.approve ? 'completed' : 'rejected',
+        processed_at: new Date().toISOString()
+      })
+      .eq('id', t.id);
+
+    if (u) throw u;
+
+    return { success: true };
+  }
+
+  // PROCESS WITHDRAWAL
+  if (action === 'admin_process_withdrawal') {
+    const allowed = [
+      'approved',
+      'processing',
+      'paid',
+      'rejected'
+    ];
+
+    if (!allowed.includes(b.status)) {
+      throw Error('Invalid status');
+    }
+
+    const { data: w, error } = await db
+      .from('octo7_withdrawals')
+      .select('*')
+      .eq('id', b.withdrawal_id)
+      .single();
+
+    if (error) throw error;
+
+    if (['paid', 'rejected'].includes(w.status)) {
+      throw Error('Withdrawal is closed');
+    }
+
+    if (b.status === 'paid') {
+      if (await balance(w.position_id) < Number(w.amount)) {
+        throw Error('Insufficient wallet balance');
+      }
+
+      const { error: e } = await db
+        .from('octo7_wallet_entries')
+        .insert({
+          position_id: w.position_id,
+          kind: 'withdrawal_paid',
+          amount: -Number(w.amount),
+          reference: 'withdrawal:' + w.id
+        });
+
+      if (e) throw e;
+    }
+
+    const { error: u } = await db
+      .from('octo7_withdrawals')
+      .update({
+        status: b.status,
+        payment_reference: b.payment_reference || null,
+        reason: b.reason || null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', w.id);
+
+    if (u) throw u;
+
+    return { success: true };
+  }
+
+  // ADMIN SUPPORT REPLY
+  if (action === 'admin_update_ticket') {
+    const { error } = await db
+      .from('octo7_tickets')
+      .update({ status: b.status })
+      .eq('id', b.ticket_id);
+
+    if (error) throw error;
+
+    if (b.reply) {
+      const { error: e } = await db
+        .from('octo7_ticket_messages')
+        .insert({
+          ticket_id: b.ticket_id,
+          sender_position: pid,
+          sender_role: 'admin',
+          body: b.reply
+        });
+
+      if (e) throw e;
+    }
+
+    return { success: true };
+  }
+
+  throw Error('Unknown action');
+}
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: cors });
+  }
+
+  if (req.method !== 'POST') {
+    return out({ error: 'POST required' }, 405);
+  }
+
+  try {
+    const b = await req.json();
+
+    if (!b.action) {
+      return out({ error: 'action required' }, 400);
+    }
+
+    const publicActions = [
+      'register_person',
+      'login',
+      'setup_first_admin',
+      'get_products'
+    ];
+
+    const c = publicActions.includes(b.action)
+      ? null
+      : await auth(req);
+
+    const result = await run(b.action, b, c);
+
+    return out(result);
+  } catch (e: any) {
+    console.error(e);
+    return out({
+      error: e?.message || 'Request failed'
+    }, 400);
+  }
+});<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>OCTO7 India | Member Portal</title>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OCTO7 India Member Portal</title>
 
 <style>
+:root {
+  --navy:#071426;
+  --panel:#10243b;
+  --gold:#d7b66b;
+  --white:#f5f1e8;
+  --muted:#b8c4d1;
+}
+
 * {
-  box-sizing: border-box;
+  box-sizing:border-box;
 }
 
 body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #101827;
-  color: white;
-  text-align: center;
+  margin:0;
+  background:linear-gradient(135deg,#06101f,#12304a);
+  color:var(--white);
+  font:16px Arial;
 }
 
-.container {
-  max-width: 430px;
-  margin: 40px auto;
-  padding: 20px;
+header {
+  text-align:center;
+  padding:24px;
+  border-bottom:1px solid #53657a;
 }
 
-h1 {
-  color: #e5bd68;
-  font-size: 36px;
+header h1 {
+  margin:0;
+  color:var(--gold);
+  letter-spacing:5px;
 }
 
-.card, #dashboard {
-  background: #1c293b;
-  padding: 25px;
-  border-radius: 15px;
+main {
+  max-width:1100px;
+  margin:22px auto;
+  padding:14px;
 }
 
-input {
-  width: 95%;
-  padding: 13px;
-  margin: 9px 0;
-  border: 1px solid #777;
-  border-radius: 7px;
+.card {
+  background:var(--panel);
+  border:1px solid #40556d;
+  border-radius:14px;
+  padding:18px;
+  margin:12px 0;
+}
+
+.grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:12px;
+}
+
+input,select,textarea,button {
+  display:block;
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  border-radius:8px;
+  border:1px solid #53657a;
+  background:#08192b;
+  color:white;
 }
 
 button {
-  width: 95%;
-  padding: 13px;
-  margin: 8px 0;
-  background: #d6ad55;
-  border: none;
-  border-radius: 7px;
-  font-weight: bold;
-  cursor: pointer;
+  background:var(--gold);
+  color:#111;
+  font-weight:bold;
+  cursor:pointer;
+  border:0;
 }
 
-#message {
-  color: #e5bd68;
-  overflow-wrap: anywhere;
+.secondary {
+  background:#344c66;
+  color:white;
 }
 
-#dashboard {
-  display: none;
-  max-width: 750px;
-  margin: 25px auto;
-  padding: 20px;
+.hidden {
+  display:none;
 }
 
-.stats {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin: 20px 0;
+.muted {
+  color:var(--muted);
 }
 
-.stat-box {
-  background: #101827;
-  padding: 18px 8px;
-  border-radius: 10px;
-  border: 1px solid #d6ad55;
+.node {
+  padding:8px;
+  margin:6px;
+  border:1px solid #52677e;
+  border-radius:8px;
 }
-
-.stat-box h2 {
-  color: #e5bd68;
-  margin: 8px;
-}
-
-#binaryTree {
-  text-align: left;
-  padding: 15px;
-  overflow-x: auto;
-}
-
-.tree-node {
-  margin: 10px 0 10px 15px;
-  padding: 12px;
-  background: #101827;
-  border-left: 3px solid #d6ad55;
-  border-radius: 7px;
-}
-
-.tree-node strong {
-  color: #e5bd68;
-}
-
-.small {
-  color: #ccc;
-  font-size: 13px;
-}
-
 </style>
 </head>
 
 <body>
 
-<div class="container" id="loginSection">
+<header>
+  <h1>OCTO7 INDIA</h1>
+  <div>MEMBER & BUSINESS PORTAL</div>
+</header>
 
-  <h1>OCTO7 India</h1>
-  <p>MEMBER PORTAL</p>
+<main>
+
+<section id="auth">
+
+  <div class="grid">
+
+    <div class="card">
+      <h2>Member Login</h2>
+
+      <input id="loginId" placeholder="Member ID">
+
+      <input
+        id="loginPassword"
+        type="password"
+        placeholder="Password"
+      >
+
+      <button onclick="login()">LOGIN</button>
+    </div>
+
+    <div class="card">
+      <h2>Register</h2>
+
+      <input id="fullName" placeholder="Full name">
+
+      <input
+        id="email"
+        type="email"
+        placeholder="Email"
+      >
+
+      <input id="phone" placeholder="Phone">
+
+      <input
+        id="password"
+        type="password"
+        placeholder="Password (10+ characters)"
+      >
+
+      <select id="positionType">
+        <option value="main">Main ID</option>
+        <option value="left_child">Left Child ID</option>
+        <option value="right_child">Right Child ID</option>
+      </select>
+
+      <input
+        id="sponsorId"
+        placeholder="Sponsor Member ID (optional)"
+      >
+
+      <button onclick="registerMember()">
+        CREATE MEMBER ID
+      </button>
+    </div>
+
+  </div>
+</section>
+
+
+<section id="portal" class="hidden">
 
   <div class="card">
 
-    <h2>Welcome Back</h2>
+    <button
+      class="secondary"
+      style="max-width:160px;float:right"
+      onclick="logout()"
+    >
+      LOG OUT
+    </button>
 
-    <h3>New Member Registration</h3>
+    <h2 id="welcome">Member Dashboard</h2>
 
-    <input id="fullName" placeholder="Full Name">
+    <p id="memberInfo" class="muted"></p>
 
-    <input id="phone" type="tel" placeholder="Phone Number">
+    <div id="profileInfo"></div>
 
-    <input id="sponsorId" placeholder="Sponsor Member ID">
+  </div>
 
-    <input id="email" type="email" placeholder="Email Address">
 
-    <input id="password" type="password" placeholder="Password">
+  <div class="grid">
 
-    <button onclick="register()">CREATE ACCOUNT</button>
+    <div class="card">
+      <h3>Genealogy</h3>
 
-    <hr>
+      <button onclick="tree()">REFRESH TREE</button>
 
-    <h3>Existing Member Login</h3>
+      <div id="treeView"></div>
+    </div>
 
-    <button onclick="login()">MEMBER LOGIN</button>
 
-    <p id="message">Welcome to OCTO7 India</p>
+    <div class="card">
+      <h3>Products</h3>
 
+      <button onclick="products()">LOAD PRODUCTS</button>
+
+      <div id="productList"></div>
+    </div>
+
+
+    <div class="card">
+      <h3>Support</h3>
+
+      <input
+        id="ticketTitle"
+        placeholder="Subject"
+      >
+
+      <textarea
+        id="ticketBody"
+        placeholder="Message"
+      ></textarea>
+
+      <button onclick="support()">SUBMIT TICKET</button>
+    </div>
+
+  </div>
+
+
+  <div class="card">
+
+    <h3>Place a member</h3>
+
+    <input
+      id="placeChild"
+      placeholder="Member ID to place"
+    >
+
+    <input
+      id="placeParent"
+      placeholder="Parent Member ID"
+    >
+
+    <select id="placeSide">
+      <option value="left">Left</option>
+      <option value="right">Right</option>
+    </select>
+
+    <button onclick="place()">SAVE PLACEMENT</button>
+
+  </div>
+
+
+  <div class="card">
+
+    <h3>Place an order</h3>
+
+    <input
+      id="orderProduct"
+      type="number"
+      placeholder="Product ID"
+    >
+
+    <input
+      id="orderQty"
+      type="number"
+      value="1"
+      min="1"
+    >
+
+    <label>
+      <input
+        id="couponUse"
+        type="checkbox"
+        style="display:inline;width:auto"
+      >
+      Use ₹99.90 coupon redemption
+    </label>
+
+    <button onclick="order()">SUBMIT ORDER</button>
+
+  </div>
+
+
+  <div class="grid">
+
+    <div class="card">
+      <h3>Transfer child income to Main ID</h3>
+
+      <input
+        id="mainId"
+        placeholder="Your Main Member ID"
+      >
+
+      <input
+        id="transferValue"
+        type="number"
+        placeholder="Amount (minimum ₹500)"
+      >
+
+      <button onclick="transfer()">REQUEST TRANSFER</button>
+    </div>
+
+
+    <div class="card">
+      <h3>Bank details</h3>
+
+      <input id="holder" placeholder="Account holder name">
+
+      <input id="bankName" placeholder="Bank name">
+
+      <input id="account" placeholder="Account number">
+
+      <input id="ifsc" placeholder="IFSC">
+
+      <input id="branch" placeholder="Branch">
+
+      <button onclick="bankSave()">SUBMIT BANK DETAILS</button>
+    </div>
+
+
+    <div class="card">
+      <h3>Withdrawal</h3>
+
+      <input
+        id="bankId"
+        type="number"
+        placeholder="Verified bank account ID"
+      >
+
+      <input
+        id="withdrawValue"
+        type="number"
+        placeholder="Amount (minimum ₹500)"
+      >
+
+      <button onclick="withdraw()">REQUEST WITHDRAWAL</button>
+    </div>
+
+  </div>
+
+</section>
+
+
+<div class="card">
+  <div id="status" class="muted">
+    Welcome to OCTO7 India.
   </div>
 </div>
 
-
-<div id="dashboard">
-
-  <h1>OCTO7 India</h1>
-
-  <h2>MEMBER DASHBOARD</h2>
-
-  <p id="memberEmail"></p>
-
-  <p id="memberName"></p>
-
-  <p id="memberCode"></p>
-
-  <hr>
-
-  <h2>MY TEAM PERFORMANCE</h2>
-
-  <div class="stats">
-
-    <div class="stat-box">
-      <p>LEFT TEAM</p>
-      <h2 id="leftCount">0</h2>
-    </div>
-
-    <div class="stat-box">
-      <p>RIGHT TEAM</p>
-      <h2 id="rightCount">0</h2>
-    </div>
-
-    <div class="stat-box">
-      <p>TOTAL DOWNLINE</p>
-      <h2 id="totalCount">0</h2>
-    </div>
-
-    <div class="stat-box">
-      <p>MY LEVEL</p>
-      <h2>0</h2>
-    </div>
-
-  </div>
-
-  <hr>
-
-  <h2>MY BINARY GENEALOGY</h2>
-
-  <div id="binaryTree">
-    Loading genealogy...
-  </div>
-
-  <p id="genealogyMessage"></p>
-
-  <hr>
-
-  <button onclick="loadGenealogy()">REFRESH GENEALOGY</button>
-
-  <button onclick="logout()">LOG OUT</button>
-
-</div>
+</main>
 
 
 <script>
 
-const SUPABASE_URL =
-"https://oqggzpbxrlglsqzdkbpy.supabase.co";
+// Replace with your Supabase project URL.
+const API =
+  'https://oqggzpbxrlglsqzdkbpy.supabase.co/functions/v1/octo7-api';
 
-const SUPABASE_KEY =
-"sb_publishable_yz9i0uLvJVzElz7IhEMyyw_WQj8hDc0";
+let sessionToken =
+  localStorage.getItem('octo7_session') || '';
 
-const client = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+let current = null;
 
 
-function showDashboard(user) {
+async function api(action,data={}) {
 
-  document.getElementById("loginSection").style.display = "none";
+  const r = await fetch(API,{
+    method:'POST',
 
-  document.getElementById("dashboard").style.display = "block";
+    headers:{
+      'Content-Type':'application/json',
 
-  document.getElementById("memberEmail").textContent =
-    "Email: " + user.email;
+      ...(sessionToken
+        ? {Authorization:'Bearer '+sessionToken}
+        : {})
+    },
 
-  loadGenealogy();
+    body:JSON.stringify({
+      action,
+      ...data
+    })
+  });
 
+  const j = await r.json();
+
+  if(!r.ok) {
+    throw Error(j.error || 'Request failed');
+  }
+
+  return j;
 }
 
 
-function showLogin() {
-
-  document.getElementById("dashboard").style.display = "none";
-
-  document.getElementById("loginSection").style.display = "block";
-
+function say(s) {
+  document.getElementById('status').textContent = s;
 }
 
 
-async function register() {
-
-  const fullName =
-    document.getElementById("fullName").value.trim();
-
-  const phone =
-    document.getElementById("phone").value.trim();
-
-  const sponsorId =
-    document.getElementById("sponsorId").value.trim();
-
-  const email =
-    document.getElementById("email").value.trim();
-
-  const password =
-    document.getElementById("password").value;
-
-  const message =
-    document.getElementById("message");
-
-  if (!fullName || !phone || !sponsorId || !email || !password) {
-
-    message.textContent = "Please complete all fields.";
-
-    return;
-
-  }
-
-  if (password.length < 6) {
-
-    message.textContent = "Password must contain at least 6 characters.";
-
-    return;
-
-  }
-
-  message.textContent = "Creating account...";
+// REGISTRATION
+async function registerMember() {
 
   try {
 
-    const { data, error } = await client.auth.signUp({
+    const r = await api('register_person',{
 
-      email: email,
+      full_name:document.getElementById('fullName').value,
 
-      password: password,
+      email:document.getElementById('email').value,
 
-      options: {
+      phone:document.getElementById('phone').value,
 
-        emailRedirectTo:
-          "https://octo7india.github.io/octo7-member-portal/",
+      password:document.getElementById('password').value,
 
-        data: {
+      position_type:
+        document.getElementById('positionType').value,
 
-          full_name: fullName,
-
-          phone: phone,
-
-          sponsor_id: sponsorId
-
-        }
-
-      }
+      sponsor_member_id:
+        document.getElementById('sponsorId').value || null
 
     });
 
-    if (error) {
+    say(
+      'Registration submitted. Your Member ID: ' +
+      r.member_id +
+      '. Activation is pending.'
+    );
 
-      message.textContent = error.message;
+  } catch(e) {
 
-      return;
-
-    }
-
-    if (data.session) {
-
-      showDashboard(data.user);
-
-    } else {
-
-      message.textContent =
-        "Registration successful. Please confirm your email and login.";
-
-    }
-
-  } catch (error) {
-
-    message.textContent = error.message;
+    say(e.message);
 
   }
-
 }
 
 
+// LOGIN
 async function login() {
-
-  const email =
-    document.getElementById("email").value.trim();
-
-  const password =
-    document.getElementById("password").value;
-
-  const message =
-    document.getElementById("message");
-
-  if (!email || !password) {
-
-    message.textContent = "Enter email and password.";
-
-    return;
-
-  }
-
-  message.textContent = "Logging in...";
 
   try {
 
-    const { data, error } =
-      await client.auth.signInWithPassword({
+    const r = await api('login',{
 
-        email: email,
+      member_id:
+        document.getElementById('loginId').value,
 
-        password: password
+      password:
+        document.getElementById('loginPassword').value
 
-      });
+    });
 
-    if (error) {
+    sessionToken = r.token;
 
-      message.textContent = error.message;
+    localStorage.setItem(
+      'octo7_session',
+      sessionToken
+    );
 
-      return;
+    document.getElementById('auth')
+      .classList.add('hidden');
 
-    }
+    document.getElementById('portal')
+      .classList.remove('hidden');
 
-    showDashboard(data.user);
+    await me();
 
-  } catch (error) {
+    say('Login successful.');
 
-    message.textContent = error.message;
+  } catch(e) {
+
+    say(e.message);
 
   }
-
 }
 
 
-async function loadGenealogy() {
-
-  const tree =
-    document.getElementById("binaryTree");
-
-  const message =
-    document.getElementById("genealogyMessage");
-
-  tree.textContent = "Loading genealogy...";
-
-  message.textContent = "";
-
-  const { data, error } =
-    await client.rpc("get_my_genealogy");
-
-  if (error) {
-
-    tree.textContent = "Genealogy error: " + error.message;
-
-    return;
-
-  }
-
-  if (!data || data.length === 0) {
-
-    tree.textContent =
-      "Member record not found. Please contact administrator.";
-
-    return;
-
-  }
-
-  const root = data.find(member => Number(member.depth) === 0);
-
-  if (!root) {
-
-    tree.textContent = "Root member not found.";
-
-    return;
-
-  }
-
-  const children = data.filter(
-    member => member.placement_parent_id !== null
-  );
-
-  const leftCount = children.filter(
-    member => member.depth === 1 &&
-    member.placement_side === "left"
-  ).length;
-
-  const rightCount = children.filter(
-    member => member.depth === 1 &&
-    member.placement_side === "right"
-  ).length;
-
-  document.getElementById("leftCount").textContent =
-    leftCount;
-
-  document.getElementById("rightCount").textContent =
-    rightCount;
-
-  document.getElementById("totalCount").textContent =
-    data.length - 1;
-
-  document.getElementById("memberName").textContent =
-    "Member: " + (root.full_name || "");
-
-  document.getElementById("memberCode").textContent =
-    "Member ID: " + (root.member_id || "");
-
-  tree.replaceChildren();
-
-  const sorted = [...data].sort(
-    (a, b) => a.depth - b.depth
-  );
-
-  sorted.forEach(member => {
-
-    const node = document.createElement("div");
-
-    node.className = "tree-node";
-
-    node.style.marginLeft =
-      Math.min(Number(member.depth) * 18, 180) + "px";
-
-    const name = document.createElement("strong");
-
-    name.textContent =
-      member.full_name || "Member";
-
-    const details = document.createElement("div");
-
-    details.className = "small";
-
-    details.textContent =
-      "ID: " + (member.member_id || "") +
-      " | Position: " +
-      (Number(member.depth) === 0
-        ? "ROOT"
-        : (member.placement_side || ""));
-
-    node.appendChild(name);
-
-    node.appendChild(details);
-
-    tree.appendChild(node);
-
-  });
-
-  message.textContent = "Genealogy updated successfully.";
-
-}
-
-
+// LOGOUT
 async function logout() {
 
-  const { error } = await client.auth.signOut({
-    scope: "local"
-  });
+  try {
+    await api('logout');
+  } catch(e) {}
 
-  if (error) {
+  sessionToken = '';
 
-    alert(error.message);
+  localStorage.removeItem('octo7_session');
 
-    return;
+  document.getElementById('portal')
+    .classList.add('hidden');
 
-  }
+  document.getElementById('auth')
+    .classList.remove('hidden');
 
-  showLogin();
-
-  document.getElementById("message").textContent =
-    "You have logged out.";
-
-}
-
-
-async function checkExistingSession() {
-
-  const { data, error } =
-    await client.auth.getSession();
-
-  if (error) {
-
-    document.getElementById("message").textContent =
-      error.message;
-
-    return;
-
-  }
-
-  if (data.session) {
-
-    showDashboard(data.session.user);
-
-  }
+  say('Logged out.');
 
 }
 
 
-client.auth.onAuthStateChange((event, session) => {
+// DASHBOARD
+async function me() {
 
-  if (event === "SIGNED_IN" && session) {
+  try {
 
-    showDashboard(session.user);
+    const r = await api('me');
+
+    current = r;
+
+    document.getElementById('welcome').textContent =
+      'Welcome, ' + r.profile.full_name;
+
+    document.getElementById('memberInfo').textContent =
+      'Member ID: ' + r.member.member_id +
+      ' | Status: ' + r.member.status +
+      ' | Position: ' + r.member.position_type;
+
+    document.getElementById('profileInfo').textContent =
+      'Wallet balance: ₹' + r.wallet_balance +
+      ' | Coupon uses: ' +
+      (r.coupon ? r.coupon.used_count + '/10' : 'Not issued');
+
+  } catch(e) {
+
+    say(e.message);
 
   }
+}
 
-});
 
-checkExistingSession();
+// GENEALOGY
+async function tree() {
+
+  try {
+
+    const r = await api('my_genealogy');
+
+    document.getElementById('treeView').innerHTML =
+      (r.tree || []).map(n =>
+
+        `<div class="node"
+          style="margin-left:${Math.min(n.depth,10)*18}px">
+          OCTO7 ${n.member_id} — ${n.side || 'Root'}
+        </div>`
+
+      ).join('') || 'No placed members';
+
+  } catch(e) {
+
+    say(e.message);
+
+  }
+}
+
+
+// PRODUCTS
+async function products() {
+
+  try {
+
+    const r = await api('get_products');
+
+    document.getElementById('productList').innerHTML =
+      (r.products || []).map(p =>
+
+        `<div>
+          ${p.id}. ${p.name} — ₹${p.price} | ${p.bv} BV
+        </div>`
+
+      ).join('') || 'No products available';
+
+  } catch(e) {
+
+    say(e.message);
+
+  }
+}
+
+
+// PLACEMENT
+async function place() {
+
+  try {
+
+    await api('place_member',{
+
+      member_id:
+        document.getElementById('placeChild').value,
+
+      parent_member_id:
+        document.getElementById('placeParent').value,
+
+      side:
+        document.getElementById('placeSide').value
+
+    });
+
+    say('Placement saved.');
+
+  } catch(e) {
+
+    say(e.message);
+
+  }
+}
+
+
+// ORDER
+async function order() {
+
+  try {
+
+    const r = await api('create_order',{
+
+      items:[{
+        product_id:
+          Number(document.getElementById('orderProduct').value),
+
+        qty:
+          Number(document.getElementById('orderQty').value)
+      }],
+
+      use_coupon:
+        document.getElementById('couponUse').checked
+
+    });
+
+    say(
+      'Order ' +
+      r.order.order_no +
+      ' submitted for verification.'
+    );
+
+  } catch(e) {
+
+    say(e.message);
+
+  }
+}
+
+
+// TRANSFER
+async function transfer() {
+
+  try {
+
+    const r = await api('request_transfer',{
+
+      to_member_id:
+        document.getElementById('mainId').value,
+
+      amount:
+        Number(document.getElementById('transferValue').value)
+
+    });
+
+    say(
+      'Transfer request #' +
+      r.transfer.id +
+      ' submitted.'
+    );
+
+  } catch(e) {
+
+    say(e.message);
+
+  }
+}
+
+
+// BANK DETAILS
+async function bankSave() {
+
+  try {
+
+    const r = await api('save_bank_account',{
+
+      holder_name:
+        document.getElementById('holder').value,
+
+      bank_name:
+        document.getElementById('bankName').value,
+
+      account_number:
+        document.getElementById('account').value,
+
+      ifsc:
+        document.getElementById('ifsc').value,
+
+      branch:
+        document.getElementById('branch').value
+
+    });
+
+    say(
+      'Bank details submitted. Account ID: ' +
+      r.bank_account.id +
+      '. Pending verification.'
+    );
+
+  } catch(e) {
+
+    say(e.message);
+
+  }
+}
+
+
+// WITHDRAWAL
+async function withdraw() {
+
+  try {
+
+    const r = await api('request_withdrawal',{
+
+      bank_id:
+        Number(document.getElementById('bankId').value),
+
+      amount:
+        Number(document.getElementById('withdrawValue').value)
+
+    });
+
+    say(
+      'Withdrawal request #' +
+      r.withdrawal.id +
+      ' submitted.'
+    );
+
+  } catch(e) {
+
+    say(e.message);
+
+  }
+}
+
+
+// SUPPORT
+async function support() {
+
+  try {
+
+    const r = await api('create_support_ticket',{
+
+      subject:
+        document.getElementById('ticketTitle').value,
+
+      message:
+        document.getElementById('ticketBody').value
+
+    });
+
+    say(
+      'Support ticket #' +
+      r.ticket.id +
+      ' created.'
+    );
+
+  } catch(e) {
+
+    say(e.message);
+
+  }
+}
+
+
+// RESTORE SESSION
+if(sessionToken) {
+
+  document.getElementById('auth')
+    .classList.add('hidden');
+
+  document.getElementById('portal')
+    .classList.remove('hidden');
+
+  me().catch(logout);
+
+}
 
 </script>
 
 </body>
-</html>
+                                         </html>
+        
