@@ -3,11 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <title>OCTO7 India | Member Portal</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   font-family: Arial, sans-serif;
@@ -17,33 +22,32 @@ body {
 }
 
 .container {
-  max-width: 400px;
-  margin: 60px auto;
-  padding: 25px;
+  max-width: 430px;
+  margin: 40px auto;
+  padding: 20px;
 }
 
 h1 {
   color: #e5bd68;
-  font-size: 38px;
+  font-size: 36px;
 }
 
-.card {
+.card, #dashboard {
   background: #1c293b;
   padding: 25px;
   border-radius: 15px;
 }
 
 input {
-  width: 90%;
+  width: 95%;
   padding: 13px;
   margin: 9px 0;
   border: 1px solid #777;
   border-radius: 7px;
-  box-sizing: border-box;
 }
 
 button {
-  width: 96%;
+  width: 95%;
   padding: 13px;
   margin: 8px 0;
   background: #d6ad55;
@@ -60,24 +64,53 @@ button {
 
 #dashboard {
   display: none;
-  max-width: 600px;
-  margin: 30px auto;
+  max-width: 750px;
+  margin: 25px auto;
   padding: 20px;
-  background: #1c293b;
-  border-radius: 15px;
-  color: white;
-  box-sizing: border-box;
 }
 
-.member-code {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-end;
-  color: #e5bd68;
-  font-size: 25px;
-  font-weight: bold;
-  line-height: 1.1;
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin: 20px 0;
 }
+
+.stat-box {
+  background: #101827;
+  padding: 18px 8px;
+  border-radius: 10px;
+  border: 1px solid #d6ad55;
+}
+
+.stat-box h2 {
+  color: #e5bd68;
+  margin: 8px;
+}
+
+#binaryTree {
+  text-align: left;
+  padding: 15px;
+  overflow-x: auto;
+}
+
+.tree-node {
+  margin: 10px 0 10px 15px;
+  padding: 12px;
+  background: #101827;
+  border-left: 3px solid #d6ad55;
+  border-radius: 7px;
+}
+
+.tree-node strong {
+  color: #e5bd68;
+}
+
+.small {
+  color: #ccc;
+  font-size: 13px;
+}
+
 </style>
 </head>
 
@@ -89,57 +122,31 @@ button {
   <p>MEMBER PORTAL</p>
 
   <div class="card">
+
     <h2>Welcome Back</h2>
 
     <h3>New Member Registration</h3>
 
-    <input
-      id="fullName"
-      type="text"
-      placeholder="Full Name"
-      autocomplete="name"
-    >
+    <input id="fullName" placeholder="Full Name">
 
-    <input
-      id="phone"
-      type="tel"
-      placeholder="Phone Number"
-      autocomplete="tel"
-    >
+    <input id="phone" type="tel" placeholder="Phone Number">
 
-    <input
-      id="sponsorId"
-      type="text"
-      placeholder="Sponsor Member ID (Example: 1)"
-    >
+    <input id="sponsorId" placeholder="Sponsor Member ID">
 
-    <input
-      id="email"
-      type="email"
-      placeholder="Email address"
-      autocomplete="email"
-    >
+    <input id="email" type="email" placeholder="Email Address">
 
-    <input
-      id="password"
-      type="password"
-      placeholder="Password"
-      autocomplete="current-password"
-    >
+    <input id="password" type="password" placeholder="Password">
 
-    <button type="button" onclick="register()">
-      CREATE ACCOUNT
-    </button>
+    <button onclick="register()">CREATE ACCOUNT</button>
 
     <hr>
 
     <h3>Existing Member Login</h3>
 
-    <button type="button" onclick="login()">
-      MEMBER LOGIN
-    </button>
+    <button onclick="login()">MEMBER LOGIN</button>
 
-    <p id="message">Welcome to OCTO7</p>
+    <p id="message">Welcome to OCTO7 India</p>
+
   </div>
 </div>
 
@@ -147,27 +154,58 @@ button {
 <div id="dashboard">
 
   <h1>OCTO7 India</h1>
+
   <h2>MEMBER DASHBOARD</h2>
 
-  <p>Welcome to your OCTO7 member account.</p>
-
-  <hr>
-
-  <h3>My Profile</h3>
   <p id="memberEmail"></p>
 
+  <p id="memberName"></p>
+
+  <p id="memberCode"></p>
+
   <hr>
 
-  <h3>My Genealogy</h3>
+  <h2>MY TEAM PERFORMANCE</h2>
 
-  <p>Left Team: Coming soon</p>
-  <p>Right Team: Coming soon</p>
-  <p>My Downline: Coming soon</p>
-  <p>Pending Placements: Coming soon</p>
+  <div class="stats">
 
-  <button type="button" onclick="logout()">
-    LOG OUT
-  </button>
+    <div class="stat-box">
+      <p>LEFT TEAM</p>
+      <h2 id="leftCount">0</h2>
+    </div>
+
+    <div class="stat-box">
+      <p>RIGHT TEAM</p>
+      <h2 id="rightCount">0</h2>
+    </div>
+
+    <div class="stat-box">
+      <p>TOTAL DOWNLINE</p>
+      <h2 id="totalCount">0</h2>
+    </div>
+
+    <div class="stat-box">
+      <p>MY LEVEL</p>
+      <h2>0</h2>
+    </div>
+
+  </div>
+
+  <hr>
+
+  <h2>MY BINARY GENEALOGY</h2>
+
+  <div id="binaryTree">
+    Loading genealogy...
+  </div>
+
+  <p id="genealogyMessage"></p>
+
+  <hr>
+
+  <button onclick="loadGenealogy()">REFRESH GENEALOGY</button>
+
+  <button onclick="logout()">LOG OUT</button>
 
 </div>
 
@@ -175,10 +213,10 @@ button {
 <script>
 
 const SUPABASE_URL =
-  "https://oqggzpbxrlglsqzdkbpy.supabase.co";
+"https://oqggzpbxrlglsqzdkbpy.supabase.co";
 
 const SUPABASE_KEY =
-  "sb_publishable_yz9i0uLvJVzElz7IhEMyyw_WQj8hDc0";
+"sb_publishable_yz9i0uLvJVzElz7IhEMyyw_WQj8hDc0";
 
 const client = window.supabase.createClient(
   SUPABASE_URL,
@@ -187,17 +225,25 @@ const client = window.supabase.createClient(
 
 
 function showDashboard(user) {
+
   document.getElementById("loginSection").style.display = "none";
+
   document.getElementById("dashboard").style.display = "block";
 
   document.getElementById("memberEmail").textContent =
     "Email: " + user.email;
+
+  loadGenealogy();
+
 }
 
 
 function showLogin() {
+
   document.getElementById("dashboard").style.display = "none";
+
   document.getElementById("loginSection").style.display = "block";
+
 }
 
 
@@ -222,17 +268,22 @@ async function register() {
     document.getElementById("message");
 
   if (!fullName || !phone || !sponsorId || !email || !password) {
-    message.textContent = "Please complete all registration fields.";
+
+    message.textContent = "Please complete all fields.";
+
     return;
+
   }
 
   if (password.length < 6) {
-    message.textContent =
-      "Password must contain at least 6 characters.";
+
+    message.textContent = "Password must contain at least 6 characters.";
+
     return;
+
   }
 
-  message.textContent = "Creating your account...";
+  message.textContent = "Creating account...";
 
   try {
 
@@ -248,9 +299,13 @@ async function register() {
           "https://octo7india.github.io/octo7-member-portal/",
 
         data: {
+
           full_name: fullName,
+
           phone: phone,
+
           sponsor_id: sponsorId
+
         }
 
       }
@@ -258,20 +313,28 @@ async function register() {
     });
 
     if (error) {
+
       message.textContent = error.message;
+
       return;
+
     }
 
-    if (data.session && data.user) {
-      message.textContent = "Account created successfully!";
+    if (data.session) {
+
       showDashboard(data.user);
+
     } else {
+
       message.textContent =
-        "Registration submitted. Please check your email for confirmation.";
+        "Registration successful. Please confirm your email and login.";
+
     }
 
   } catch (error) {
-    message.textContent = "Error: " + error.message;
+
+    message.textContent = error.message;
+
   }
 
 }
@@ -289,8 +352,11 @@ async function login() {
     document.getElementById("message");
 
   if (!email || !password) {
-    message.textContent = "Please enter email and password.";
+
+    message.textContent = "Enter email and password.";
+
     return;
+
   }
 
   message.textContent = "Logging in...";
@@ -301,72 +367,199 @@ async function login() {
       await client.auth.signInWithPassword({
 
         email: email,
+
         password: password
 
       });
 
     if (error) {
+
       message.textContent = error.message;
+
       return;
+
     }
 
     showDashboard(data.user);
 
   } catch (error) {
-    message.textContent = "Error: " + error.message;
+
+    message.textContent = error.message;
+
   }
+
+}
+
+
+async function loadGenealogy() {
+
+  const tree =
+    document.getElementById("binaryTree");
+
+  const message =
+    document.getElementById("genealogyMessage");
+
+  tree.textContent = "Loading genealogy...";
+
+  message.textContent = "";
+
+  const { data, error } =
+    await client.rpc("get_my_genealogy");
+
+  if (error) {
+
+    tree.textContent = "Genealogy error: " + error.message;
+
+    return;
+
+  }
+
+  if (!data || data.length === 0) {
+
+    tree.textContent =
+      "Member record not found. Please contact administrator.";
+
+    return;
+
+  }
+
+  const root = data.find(member => Number(member.depth) === 0);
+
+  if (!root) {
+
+    tree.textContent = "Root member not found.";
+
+    return;
+
+  }
+
+  const children = data.filter(
+    member => member.placement_parent_id !== null
+  );
+
+  const leftCount = children.filter(
+    member => member.depth === 1 &&
+    member.placement_side === "left"
+  ).length;
+
+  const rightCount = children.filter(
+    member => member.depth === 1 &&
+    member.placement_side === "right"
+  ).length;
+
+  document.getElementById("leftCount").textContent =
+    leftCount;
+
+  document.getElementById("rightCount").textContent =
+    rightCount;
+
+  document.getElementById("totalCount").textContent =
+    data.length - 1;
+
+  document.getElementById("memberName").textContent =
+    "Member: " + (root.full_name || "");
+
+  document.getElementById("memberCode").textContent =
+    "Member ID: " + (root.member_id || "");
+
+  tree.replaceChildren();
+
+  const sorted = [...data].sort(
+    (a, b) => a.depth - b.depth
+  );
+
+  sorted.forEach(member => {
+
+    const node = document.createElement("div");
+
+    node.className = "tree-node";
+
+    node.style.marginLeft =
+      Math.min(Number(member.depth) * 18, 180) + "px";
+
+    const name = document.createElement("strong");
+
+    name.textContent =
+      member.full_name || "Member";
+
+    const details = document.createElement("div");
+
+    details.className = "small";
+
+    details.textContent =
+      "ID: " + (member.member_id || "") +
+      " | Position: " +
+      (Number(member.depth) === 0
+        ? "ROOT"
+        : (member.placement_side || ""));
+
+    node.appendChild(name);
+
+    node.appendChild(details);
+
+    tree.appendChild(node);
+
+  });
+
+  message.textContent = "Genealogy updated successfully.";
 
 }
 
 
 async function logout() {
 
-  try {
+  const { error } = await client.auth.signOut({
+    scope: "local"
+  });
 
-    const { error } = await client.auth.signOut({
-      scope: "local"
-    });
+  if (error) {
 
-    if (error) {
-      alert(error.message);
-      return;
-    }
-
-    showLogin();
-
-    document.getElementById("message").textContent =
-      "You have logged out.";
-
-  } catch (error) {
     alert(error.message);
+
+    return;
+
   }
+
+  showLogin();
+
+  document.getElementById("message").textContent =
+    "You have logged out.";
 
 }
 
 
 async function checkExistingSession() {
 
-  try {
+  const { data, error } =
+    await client.auth.getSession();
 
-    const { data, error } = await client.auth.getSession();
+  if (error) {
 
-    if (error) {
-      document.getElementById("message").textContent =
-        error.message;
-      return;
-    }
-
-    if (data.session) {
-      showDashboard(data.session.user);
-    }
-
-  } catch (error) {
     document.getElementById("message").textContent =
-      "Error: " + error.message;
+      error.message;
+
+    return;
+
+  }
+
+  if (data.session) {
+
+    showDashboard(data.session.user);
+
   }
 
 }
 
+
+client.auth.onAuthStateChange((event, session) => {
+
+  if (event === "SIGNED_IN" && session) {
+
+    showDashboard(session.user);
+
+  }
+
+});
 
 checkExistingSession();
 
