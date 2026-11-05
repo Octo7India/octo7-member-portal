@@ -1,778 +1,803 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OCTO7 India Member Portal</title>
 
 <style>
 :root {
-  --navy:#071426;
-  --panel:#10243b;
-  --gold:#d7b66b;
-  --white:#f5f1e8;
-  --muted:#b8c4d1;
+  --navy:#07172f;
+  --navy2:#10294b;
+  --gold:#d5ad55;
+  --light:#f4f6fa;
+  --white:#fff;
+  --text:#17243a;
+  --muted:#718096;
+  --border:#e3e8ef;
+  --green:#16834b;
+  --red:#c0392b;
 }
-
-* {
-  box-sizing:border-box;
-}
-
-body {
+*{box-sizing:border-box}
+body{
   margin:0;
-  background:linear-gradient(135deg,#06101f,#12304a);
-  color:var(--white);
-  font:16px Arial;
+  font-family:Arial,Helvetica,sans-serif;
+  background:var(--light);
+  color:var(--text);
 }
-
-header {
-  text-align:center;
-  padding:24px;
-  border-bottom:1px solid #53657a;
+header{
+  background:linear-gradient(120deg,var(--navy),var(--navy2));
+  color:white;
+  padding:22px 18px;
+  border-bottom:3px solid var(--gold);
 }
-
-header h1 {
-  margin:0;
+.brand{
+  font-size:25px;
+  font-weight:bold;
+  letter-spacing:3px;
   color:var(--gold);
-  letter-spacing:5px;
 }
-
-main {
+.brand-sub{
+  font-size:11px;
+  letter-spacing:3px;
+  margin-top:5px;
+}
+.container{
   max-width:1100px;
-  margin:22px auto;
-  padding:14px;
-}
-
-.card {
-  background:var(--panel);
-  border:1px solid #40556d;
-  border-radius:14px;
+  margin:auto;
   padding:18px;
-  margin:12px 0;
 }
-
-.grid {
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-  gap:12px;
+.card{
+  background:white;
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:18px;
+  margin-bottom:16px;
+  box-shadow:0 3px 12px rgba(0,0,0,.04);
 }
-
-input,select,textarea,button {
-  display:block;
+h2,h3{color:var(--navy)}
+h2{margin-top:0}
+input,select,textarea{
   width:100%;
   padding:12px;
-  margin:8px 0;
-  border-radius:8px;
-  border:1px solid #53657a;
-  background:#08192b;
-  color:white;
+  margin:7px 0 13px;
+  border:1px solid #ccd4df;
+  border-radius:7px;
+  font-size:15px;
 }
-
-button {
-  background:var(--gold);
-  color:#111;
-  font-weight:bold;
-  cursor:pointer;
+textarea{min-height:90px}
+button{
+  background:var(--navy);
+  color:white;
   border:0;
+  padding:12px 17px;
+  border-radius:7px;
+  cursor:pointer;
+  font-weight:bold;
 }
-
-.secondary {
-  background:#344c66;
+button:hover{opacity:.9}
+.gold-btn{
+  background:var(--gold);
+  color:var(--navy);
+}
+.secondary-btn{
+  background:#e9eef5;
+  color:var(--navy);
+}
+.hidden{display:none!important}
+.message{
+  padding:12px;
+  border-radius:7px;
+  margin:12px 0;
+  background:#edf3fb;
+  color:var(--navy);
+  overflow-wrap:anywhere;
+}
+.menu{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
+  gap:9px;
+  margin-bottom:18px;
+}
+.menu button{
+  background:white;
+  color:var(--navy);
+  border:1px solid var(--border);
+  text-align:left;
+  min-height:52px;
+}
+.menu button.active{
+  background:var(--navy);
   color:white;
+  border-color:var(--gold);
 }
-
-.hidden {
-  display:none;
+.stat-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:12px;
 }
-
-.muted {
+.stat{
+  background:#f7f9fc;
+  padding:16px;
+  border-radius:9px;
+  border-left:3px solid var(--gold);
+}
+.stat-label{
+  color:var(--muted);
+  font-size:13px;
+}
+.stat-value{
+  font-size:21px;
+  font-weight:bold;
+  margin-top:8px;
+  color:var(--navy);
+}
+.section-title{
+  border-bottom:1px solid var(--border);
+  padding-bottom:12px;
+}
+.small{
+  font-size:13px;
   color:var(--muted);
 }
-
-.node {
-  padding:8px;
-  margin:6px;
-  border:1px solid #52677e;
-  border-radius:8px;
+footer{
+  text-align:center;
+  padding:25px;
+  color:var(--muted);
+  font-size:12px;
 }
+.row{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+.data-line{
+  padding:12px 0;
+  border-bottom:1px solid var(--border);
+}
+.data-line strong{float:right}
+.status-pending{color:#a36a00}
 </style>
 </head>
 
 <body>
 
 <header>
-  <h1>OCTO7 INDIA</h1>
-  <div>MEMBER & BUSINESS PORTAL</div>
+  <div class="brand">OCTO7 INDIA</div>
+  <div class="brand-sub">MEMBER PORTAL</div>
 </header>
 
-<main>
+<div class="container">
 
+<!-- LOGIN AND REGISTRATION -->
 <section id="auth">
 
-  <div class="grid">
+  <div class="card">
+    <h2>Member Login</h2>
 
-    <div class="card">
-      <h2>Member Login</h2>
+    <label>Member ID</label>
+    <input id="loginId" placeholder="Enter Member ID">
 
-      <input id="loginId" placeholder="Member ID">
+    <label>Password</label>
+    <input id="loginPassword" type="password" placeholder="Enter Password">
 
-      <input
-        id="loginPassword"
-        type="password"
-        placeholder="Password"
-      >
+    <button onclick="login()">MEMBER LOGIN</button>
 
-      <button onclick="login()">LOGIN</button>
-    </div>
-
-    <div class="card">
-      <h2>Register</h2>
-
-      <input id="fullName" placeholder="Full name">
-
-      <input
-        id="email"
-        type="email"
-        placeholder="Email"
-      >
-
-      <input id="phone" placeholder="Phone">
-
-      <input
-        id="password"
-        type="password"
-        placeholder="Password (10+ characters)"
-      >
-
-      <select id="positionType">
-        <option value="main">Main ID</option>
-        <option value="left_child">Left Child ID</option>
-        <option value="right_child">Right Child ID</option>
-      </select>
-
-      <input
-        id="sponsorId"
-        placeholder="Sponsor Member ID (optional)"
-      >
-
-      <button onclick="registerMember()">
-        CREATE MEMBER ID
-      </button>
-    </div>
-
+    <div id="loginMessage" class="message hidden"></div>
   </div>
+
+  <div class="card">
+    <h2>New Member Registration</h2>
+
+    <label>Full Name</label>
+    <input id="regName" placeholder="Full Name">
+
+    <label>Email Address</label>
+    <input id="regEmail" type="email" placeholder="Email Address">
+
+    <label>Mobile Number</label>
+    <input id="regPhone" placeholder="Mobile Number">
+
+    <label>Password</label>
+    <input id="regPassword" type="password" placeholder="Create Password">
+
+    <label>Position Type</label>
+    <select id="positionType">
+      <option value="main">Main ID</option>
+      <option value="left_child">Left Child</option>
+      <option value="right_child">Right Child</option>
+    </select>
+
+    <label>Sponsor Member ID</label>
+    <input id="sponsorId" placeholder="Sponsor Member ID">
+
+    <button class="gold-btn" onclick="registerMember()">CREATE ACCOUNT</button>
+
+    <div id="registerMessage" class="message hidden"></div>
+  </div>
+
 </section>
 
 
+<!-- MEMBER PORTAL -->
 <section id="portal" class="hidden">
 
   <div class="card">
+    <div class="row" style="align-items:center">
+      <div style="flex:1">
+        <h2 id="welcome">Welcome to OCTO7</h2>
+        <div class="small">Your OCTO7 India Member Dashboard</div>
+      </div>
+      <button onclick="logout()">LOG OUT</button>
+    </div>
+  </div>
 
-    <button
-      class="secondary"
-      style="max-width:160px;float:right"
-      onclick="logout()"
-    >
-      LOG OUT
-    </button>
+  <!-- DASHBOARD HOME -->
+  <section id="dashboardHome" class="page">
 
-    <h2 id="welcome">Member Dashboard</h2>
+    <div class="card">
+      <h2>Member Dashboard</h2>
+      <p>Welcome to your OCTO7 India member account.</p>
+      <div id="memberInfo">Loading member information...</div>
+    </div>
 
-    <p id="memberInfo" class="muted"></p>
+    <div class="card">
+      <h3>Account Overview</h3>
+      <div id="homeOverview" class="stat-grid">
+        <div class="stat">
+          <div class="stat-label">Member Status</div>
+          <div class="stat-value">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Available Balance</div>
+          <div class="stat-value">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">My Coupons</div>
+          <div class="stat-value">—</div>
+        </div>
+      </div>
+    </div>
 
-    <div id="profileInfo"></div>
+  </section>
 
+
+  <!-- MENU -->
+  <div class="card">
+    <h3>Member Menu</h3>
+    <div class="menu">
+
+      <button class="active" onclick="showPage('dashboardHome',this)">Dashboard Home</button>
+      <button onclick="showPage('profilePage',this)">My Profile</button>
+      <button onclick="showPage('genealogyPage',this)">My Genealogy</button>
+      <button onclick="showPage('walletPage',this)">My Wallet</button>
+      <button onclick="showPage('productsPage',this)">My Products</button>
+      <button onclick="showPage('productDetailsPage',this)">Product Details</button>
+      <button onclick="showPage('pinPage',this)">My PIN (Activation Code)</button>
+      <button onclick="showPage('purchasesPage',this)">My Purchases</button>
+      <button onclick="showPage('selfIncomePage',this)">Self Purchase Income</button>
+      <button onclick="showPage('repurchasePage',this)">Repurchase Income</button>
+      <button onclick="showPage('withdrawPage',this)">Withdrawal</button>
+      <button onclick="showPage('withdrawHistoryPage',this)">Withdrawal History</button>
+      <button onclick="showPage('couponsPage',this)">My Coupons</button>
+      <button onclick="showPage('supportPage',this)">Helpline / Support</button>
+      <button onclick="showPage('notificationsPage',this)">Notifications</button>
+
+    </div>
   </div>
 
 
-  <div class="grid">
-
+  <!-- MY PROFILE -->
+  <section id="profilePage" class="page hidden">
     <div class="card">
-      <h3>Genealogy</h3>
-
-      <button onclick="tree()">REFRESH TREE</button>
-
-      <div id="treeView"></div>
+      <h2 class="section-title">My Profile</h2>
+      <div id="profileInfo">Loading profile information...</div>
     </div>
+  </section>
 
 
+  <!-- GENEALOGY -->
+  <section id="genealogyPage" class="page hidden">
     <div class="card">
-      <h3>Products</h3>
+      <h2 class="section-title">My Genealogy</h2>
+      <p class="small">View your placement tree and downline members.</p>
+      <button onclick="tree()">REFRESH GENEALOGY</button>
+      <div id="treeResult" class="message">Genealogy data will appear here when loaded.</div>
 
+      <hr>
+
+      <h3>Place a Member</h3>
+      <label>New Member ID</label>
+      <input id="placeMemberId" placeholder="New Member ID">
+
+      <label>Parent Member ID</label>
+      <input id="placeParentId" placeholder="Parent Member ID">
+
+      <label>Placement Side</label>
+      <select id="placeSide">
+        <option value="left">Left</option>
+        <option value="right">Right</option>
+      </select>
+
+      <button onclick="place()">PLACE MEMBER</button>
+    </div>
+  </section>
+
+
+  <!-- WALLET -->
+  <section id="walletPage" class="page hidden">
+    <div class="card">
+      <h2 class="section-title">OCTO7 INDIA – MY WALLET</h2>
+
+      <div class="stat-grid">
+        <div class="stat">
+          <div class="stat-label">L.BV</div>
+          <div class="stat-value" id="leftBV">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">R.BV</div>
+          <div class="stat-value" id="rightBV">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Today's L.BV</div>
+          <div class="stat-value" id="todayLeftBV">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Today's R.BV</div>
+          <div class="stat-value" id="todayRightBV">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Today's Income</div>
+          <div class="stat-value" id="todayIncome">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Available Balance</div>
+          <div class="stat-value" id="availableBalance">—</div>
+        </div>
+      </div>
+
+      <p class="small">Wallet figures will appear when connected to the live wallet data.</p>
+    </div>
+  </section>
+
+
+  <!-- PRODUCTS -->
+  <section id="productsPage" class="page hidden">
+    <div class="card">
+      <h2 class="section-title">My Products</h2>
       <button onclick="products()">LOAD PRODUCTS</button>
-
-      <div id="productList"></div>
+      <div id="productsResult" class="message">Product information will appear here.</div>
     </div>
+  </section>
 
 
+  <!-- PRODUCT DETAILS -->
+  <section id="productDetailsPage" class="page hidden">
     <div class="card">
-      <h3>Support</h3>
-
-      <input
-        id="ticketTitle"
-        placeholder="Subject"
-      >
-
-      <textarea
-        id="ticketBody"
-        placeholder="Message"
-      ></textarea>
-
-      <button onclick="support()">SUBMIT TICKET</button>
+      <h2 class="section-title">Product Details</h2>
+      <p>Product descriptions, prices, images and BV details will appear here when the product catalogue is connected.</p>
+      <div id="productDetailsResult" class="message">Product details are not connected yet.</div>
     </div>
-
-  </div>
-
-
-  <div class="card">
-
-    <h3>Place a member</h3>
-
-    <input
-      id="placeChild"
-      placeholder="Member ID to place"
-    >
-
-    <input
-      id="placeParent"
-      placeholder="Parent Member ID"
-    >
-
-    <select id="placeSide">
-      <option value="left">Left</option>
-      <option value="right">Right</option>
-    </select>
-
-    <button onclick="place()">SAVE PLACEMENT</button>
-
-  </div>
+  </section>
 
 
-  <div class="card">
-
-    <h3>Place an order</h3>
-
-    <input
-      id="orderProduct"
-      type="number"
-      placeholder="Product ID"
-    >
-
-    <input
-      id="orderQty"
-      type="number"
-      value="1"
-      min="1"
-    >
-
-    <label>
-      <input
-        id="couponUse"
-        type="checkbox"
-        style="display:inline;width:auto"
-      >
-      Use ₹99.90 coupon redemption
-    </label>
-
-    <button onclick="order()">SUBMIT ORDER</button>
-
-  </div>
-
-
-  <div class="grid">
-
+  <!-- ACTIVATION PIN -->
+  <section id="pinPage" class="page hidden">
     <div class="card">
-      <h3>Transfer child income to Main ID</h3>
-
-      <input
-        id="mainId"
-        placeholder="Your Main Member ID"
-      >
-
-      <input
-        id="transferValue"
-        type="number"
-        placeholder="Amount (minimum ₹500)"
-      >
-
-      <button onclick="transfer()">REQUEST TRANSFER</button>
+      <h2 class="section-title">My PIN (Activation Code)</h2>
+      <p>View your activation PIN details here.</p>
+      <div id="pinResult" class="message">Activation PIN data is not connected yet.</div>
     </div>
+  </section>
 
 
+  <!-- PURCHASES -->
+  <section id="purchasesPage" class="page hidden">
     <div class="card">
-      <h3>Bank details</h3>
+      <h2 class="section-title">My Purchases</h2>
 
-      <input id="holder" placeholder="Account holder name">
+      <h3>Place an Order</h3>
+      <label>Product ID</label>
+      <input id="orderProductId" placeholder="Product ID">
 
-      <input id="bankName" placeholder="Bank name">
+      <label>Quantity</label>
+      <input id="orderQuantity" type="number" min="1" placeholder="Quantity">
 
-      <input id="account" placeholder="Account number">
+      <button onclick="order()">PLACE ORDER</button>
 
-      <input id="ifsc" placeholder="IFSC">
+      <div id="orderResult" class="message hidden"></div>
 
-      <input id="branch" placeholder="Branch">
-
-      <button onclick="bankSave()">SUBMIT BANK DETAILS</button>
+      <hr>
+      <h3>Purchase Information</h3>
+      <div id="purchaseHistoryResult" class="message">Purchase history is not connected yet.</div>
     </div>
+  </section>
 
 
+  <!-- SELF PURCHASE INCOME -->
+  <section id="selfIncomePage" class="page hidden">
     <div class="card">
-      <h3>Withdrawal</h3>
-
-      <input
-        id="bankId"
-        type="number"
-        placeholder="Verified bank account ID"
-      >
-
-      <input
-        id="withdrawValue"
-        type="number"
-        placeholder="Amount (minimum ₹500)"
-      >
-
-      <button onclick="withdraw()">REQUEST WITHDRAWAL</button>
+      <h2 class="section-title">Self Purchase Income</h2>
+      <div id="selfIncomeResult" class="message">Self purchase income data is not connected yet.</div>
     </div>
+  </section>
 
-  </div>
+
+  <!-- REPURCHASE INCOME -->
+  <section id="repurchasePage" class="page hidden">
+    <div class="card">
+      <h2 class="section-title">Repurchase Income</h2>
+      <div id="repurchaseResult" class="message">Repurchase income data is not connected yet.</div>
+    </div>
+  </section>
+
+
+  <!-- WITHDRAWAL -->
+  <section id="withdrawPage" class="page hidden">
+    <div class="card">
+      <h2 class="section-title">Withdrawal</h2>
+
+      <div class="stat">
+        <div class="stat-label">Available Balance</div>
+        <div class="stat-value" id="withdrawBalance">—</div>
+      </div>
+
+      <p><strong>Minimum Withdrawal: ₹500</strong></p>
+
+      <label>Withdrawal Amount</label>
+      <input id="withdrawAmount" type="number" min="500" placeholder="Enter Amount">
+
+      <button class="gold-btn" onclick="withdraw()">WITHDRAW NOW</button>
+
+      <div id="withdrawResult" class="message hidden"></div>
+      <div id="withdrawStatus" class="message">Withdrawal status will appear here when connected.</div>
+
+      <hr>
+
+      <h3>Bank Details</h3>
+
+      <label>Account Holder Name</label>
+      <input id="bankName" placeholder="Account Holder Name">
+
+      <label>Bank Name</label>
+      <input id="bankBank" placeholder="Bank Name">
+
+      <label>Account Number</label>
+      <input id="bankAccount" placeholder="Account Number">
+
+      <label>IFSC Code</label>
+      <input id="bankIFSC" placeholder="IFSC Code">
+
+      <button onclick="bankSave()">SAVE BANK DETAILS</button>
+      <div id="bankResult" class="message hidden"></div>
+    </div>
+  </section>
+
+
+  <!-- WITHDRAWAL HISTORY -->
+  <section id="withdrawHistoryPage" class="page hidden">
+    <div class="card">
+      <h2 class="section-title">Withdrawal History</h2>
+      <div id="withdrawHistoryResult" class="message">Withdrawal history is not connected yet.</div>
+    </div>
+  </section>
+
+
+  <!-- COUPONS -->
+  <section id="couponsPage" class="page hidden">
+    <div class="card">
+      <h2 class="section-title">My Coupons</h2>
+      <div id="couponResult" class="message">Coupon details will appear here when connected to the coupon data.</div>
+    </div>
+  </section>
+
+
+  <!-- SUPPORT -->
+  <section id="supportPage" class="page hidden">
+    <div class="card">
+      <h2 class="section-title">Helpline / Support</h2>
+
+      <label>Subject</label>
+      <input id="supportSubject" placeholder="Enter Subject">
+
+      <label>Message</label>
+      <textarea id="supportMessage" placeholder="Describe your issue"></textarea>
+
+      <button onclick="support()">SUBMIT SUPPORT REQUEST</button>
+      <div id="supportResult" class="message hidden"></div>
+    </div>
+  </section>
+
+
+  <!-- NOTIFICATIONS -->
+  <section id="notificationsPage" class="page hidden">
+    <div class="card">
+      <h2 class="section-title">Notifications</h2>
+      <div id="notificationsResult" class="message">Notifications are not connected yet.</div>
+    </div>
+  </section>
+
+
+  <!-- TRANSFER -->
+  <section class="card">
+    <h3>Transfer Child Income to Main ID</h3>
+
+    <label>Child Member ID</label>
+    <input id="transferChildId" placeholder="Child Member ID">
+
+    <label>Transfer Amount</label>
+    <input id="transferAmount" type="number" placeholder="Enter Amount">
+
+    <button onclick="transfer()">REQUEST TRANSFER</button>
+    <div id="transferResult" class="message hidden"></div>
+  </section>
+
+  <div id="status" class="message hidden"></div>
 
 </section>
 
-
-<div class="card">
-  <div id="status" class="muted">
-    Welcome to OCTO7 India.
-  </div>
 </div>
 
-</main>
+<footer>
+  OCTO7 INDIA MEMBER PORTAL
+</footer>
 
 
 <script>
+const API = 'https://oqggzpbxrlglsqzdkbpy.supabase.co/functions/v1/octo7-api';
 
-// Replace with your Supabase project URL.
-const API =
-  'https://oqggzpbxrlglsqzdkbpy.supabase.co/functions/v1/octo7-api';
-
-let sessionToken =
-  localStorage.getItem('octo7_session') || '';
-
+let sessionToken = localStorage.getItem('octo7_session') || '';
 let current = null;
 
-
 async function api(action,data={}) {
-
   const r = await fetch(API,{
     method:'POST',
-
     headers:{
       'Content-Type':'application/json',
-
-      ...(sessionToken
-        ? {Authorization:'Bearer '+sessionToken}
-        : {})
+      ...(sessionToken ? {Authorization:'Bearer '+sessionToken} : {})
     },
-
-    body:JSON.stringify({
-      action,
-      ...data
-    })
+    body:JSON.stringify({action,...data})
   });
 
   const j = await r.json();
 
-  if(!r.ok) {
-    throw Error(j.error || 'Request failed');
-  }
+  if(!r.ok) throw Error(j.error || 'Request failed');
 
   return j;
 }
 
-
-function say(s) {
-  document.getElementById('status').textContent = s;
+function message(id,text) {
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.textContent=text;
+  el.classList.remove('hidden');
 }
 
+function showPage(id,button) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
 
-// REGISTRATION
+  document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('active'));
+  if(button)button.classList.add('active');
+
+  if(id==='genealogyPage')tree();
+  if(id==='productsPage')products();
+}
+
 async function registerMember() {
-
   try {
-
-    const r = await api('register_person',{
-
-      full_name:document.getElementById('fullName').value,
-
-      email:document.getElementById('email').value,
-
-      phone:document.getElementById('phone').value,
-
-      password:document.getElementById('password').value,
-
-      position_type:
-        document.getElementById('positionType').value,
-
-      sponsor_member_id:
-        document.getElementById('sponsorId').value || null
-
+    const r=await api('register_person',{
+      full_name:document.getElementById('regName').value.trim(),
+      email:document.getElementById('regEmail').value.trim(),
+      phone:document.getElementById('regPhone').value.trim(),
+      password:document.getElementById('regPassword').value,
+      position_type:document.getElementById('positionType').value,
+      sponsor_id:document.getElementById('sponsorId').value.trim()
     });
 
-    say(
-      'Registration submitted. Your Member ID: ' +
-      r.member_id +
-      '. Activation is pending.'
-    );
-
+    message('registerMessage',JSON.stringify(r));
   } catch(e) {
-
-    say(e.message);
-
+    message('registerMessage',e.message);
   }
 }
 
-
-// LOGIN
 async function login() {
-
   try {
-
-    const r = await api('login',{
-
-      member_id:
-        document.getElementById('loginId').value,
-
-      password:
-        document.getElementById('loginPassword').value
-
+    const r=await api('login',{
+      member_id:document.getElementById('loginId').value.trim(),
+      password:document.getElementById('loginPassword').value
     });
 
-    sessionToken = r.token;
+    sessionToken=r.token;
+    localStorage.setItem('octo7_session',sessionToken);
 
-    localStorage.setItem(
-      'octo7_session',
-      sessionToken
-    );
-
-    document.getElementById('auth')
-      .classList.add('hidden');
-
-    document.getElementById('portal')
-      .classList.remove('hidden');
+    document.getElementById('auth').classList.add('hidden');
+    document.getElementById('portal').classList.remove('hidden');
 
     await me();
-
-    say('Login successful.');
-
   } catch(e) {
-
-    say(e.message);
-
+    message('loginMessage',e.message);
   }
 }
 
-
-// LOGOUT
 async function logout() {
-
   try {
     await api('logout');
   } catch(e) {}
 
-  sessionToken = '';
-
+  sessionToken='';
+  current=null;
   localStorage.removeItem('octo7_session');
 
-  document.getElementById('portal')
-    .classList.add('hidden');
-
-  document.getElementById('auth')
-    .classList.remove('hidden');
-
-  say('Logged out.');
-
+  document.getElementById('portal').classList.add('hidden');
+  document.getElementById('auth').classList.remove('hidden');
 }
 
-
-// DASHBOARD
 async function me() {
-
   try {
+    const r=await api('me');
+    current=r;
 
-    const r = await api('me');
+    const name=r.full_name || r.name || 'Member';
 
-    current = r;
+    document.getElementById('welcome').textContent='Welcome, '+name;
 
-    document.getElementById('welcome').textContent =
-      'Welcome, ' + r.profile.full_name;
+    document.getElementById('memberInfo').textContent=
+      'Member ID: '+(r.member_id || '—')+
+      ' | Status: '+(r.status || '—')+
+      ' | Position: '+(r.position_type || '—');
 
-    document.getElementById('memberInfo').textContent =
-      'Member ID: ' + r.member.member_id +
-      ' | Status: ' + r.member.status +
-      ' | Position: ' + r.member.position_type;
+    document.getElementById('profileInfo').textContent=JSON.stringify(r,null,2);
 
-    document.getElementById('profileInfo').textContent =
-      'Wallet balance: ₹' + r.wallet_balance +
-      ' | Coupon uses: ' +
-      (r.coupon ? r.coupon.used_count + '/10' : 'Not issued');
+    document.getElementById('homeOverview').innerHTML=`
+      <div class="stat">
+        <div class="stat-label">Member Status</div>
+        <div class="stat-value">${safe(r.status)}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Available Balance</div>
+        <div class="stat-value">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">My Coupons</div>
+        <div class="stat-value">—</div>
+      </div>`;
 
   } catch(e) {
-
-    say(e.message);
-
+    message('status',e.message);
   }
 }
 
-
-// GENEALOGY
 async function tree() {
-
   try {
-
-    const r = await api('my_genealogy');
-
-    document.getElementById('treeView').innerHTML =
-      (r.tree || []).map(n =>
-
-        `<div class="node"
-          style="margin-left:${Math.min(n.depth,10)*18}px">
-          OCTO7 ${n.member_id} — ${n.side || 'Root'}
-        </div>`
-
-      ).join('') || 'No placed members';
-
+    const r=await api('my_genealogy');
+    document.getElementById('treeResult').textContent=JSON.stringify(r.tree || r,null,2);
   } catch(e) {
-
-    say(e.message);
-
+    document.getElementById('treeResult').textContent=e.message;
   }
 }
 
-
-// PRODUCTS
 async function products() {
-
   try {
-
-    const r = await api('get_products');
-
-    document.getElementById('productList').innerHTML =
-      (r.products || []).map(p =>
-
-        `<div>
-          ${p.id}. ${p.name} — ₹${p.price} | ${p.bv} BV
-        </div>`
-
-      ).join('') || 'No products available';
-
+    const r=await api('get_products');
+    document.getElementById('productsResult').textContent=JSON.stringify(r,null,2);
   } catch(e) {
-
-    say(e.message);
-
+    document.getElementById('productsResult').textContent=e.message;
   }
 }
 
-
-// PLACEMENT
 async function place() {
-
   try {
-
-    await api('place_member',{
-
-      member_id:
-        document.getElementById('placeChild').value,
-
-      parent_member_id:
-        document.getElementById('placeParent').value,
-
-      side:
-        document.getElementById('placeSide').value
-
+    const r=await api('place_member',{
+      member_id:document.getElementById('placeMemberId').value.trim(),
+      parent_member_id:document.getElementById('placeParentId').value.trim(),
+      side:document.getElementById('placeSide').value
     });
 
-    say('Placement saved.');
-
+    document.getElementById('treeResult').textContent=JSON.stringify(r,null,2);
   } catch(e) {
-
-    say(e.message);
-
+    document.getElementById('treeResult').textContent=e.message;
   }
 }
 
-
-// ORDER
 async function order() {
-
   try {
-
-    const r = await api('create_order',{
-
-      items:[{
-        product_id:
-          Number(document.getElementById('orderProduct').value),
-
-        qty:
-          Number(document.getElementById('orderQty').value)
-      }],
-
-      use_coupon:
-        document.getElementById('couponUse').checked
-
+    const r=await api('create_order',{
+      product_id:document.getElementById('orderProductId').value.trim(),
+      quantity:Number(document.getElementById('orderQuantity').value)
     });
 
-    say(
-      'Order ' +
-      r.order.order_no +
-      ' submitted for verification.'
-    );
-
+    message('orderResult',JSON.stringify(r,null,2));
   } catch(e) {
-
-    say(e.message);
-
+    message('orderResult',e.message);
   }
 }
 
-
-// TRANSFER
 async function transfer() {
-
   try {
-
-    const r = await api('request_transfer',{
-
-      to_member_id:
-        document.getElementById('mainId').value,
-
-      amount:
-        Number(document.getElementById('transferValue').value)
-
+    const r=await api('request_transfer',{
+      child_member_id:document.getElementById('transferChildId').value.trim(),
+      amount:Number(document.getElementById('transferAmount').value)
     });
 
-    say(
-      'Transfer request #' +
-      r.transfer.id +
-      ' submitted.'
-    );
-
+    message('transferResult',JSON.stringify(r,null,2));
   } catch(e) {
-
-    say(e.message);
-
+    message('transferResult',e.message);
   }
 }
 
-
-// BANK DETAILS
 async function bankSave() {
-
   try {
-
-    const r = await api('save_bank_account',{
-
-      holder_name:
-        document.getElementById('holder').value,
-
-      bank_name:
-        document.getElementById('bankName').value,
-
-      account_number:
-        document.getElementById('account').value,
-
-      ifsc:
-        document.getElementById('ifsc').value,
-
-      branch:
-        document.getElementById('branch').value
-
+    const r=await api('save_bank_account',{
+      account_holder:document.getElementById('bankName').value.trim(),
+      bank_name:document.getElementById('bankBank').value.trim(),
+      account_number:document.getElementById('bankAccount').value.trim(),
+      ifsc:document.getElementById('bankIFSC').value.trim()
     });
 
-    say(
-      'Bank details submitted. Account ID: ' +
-      r.bank_account.id +
-      '. Pending verification.'
-    );
-
+    message('bankResult',JSON.stringify(r,null,2));
   } catch(e) {
-
-    say(e.message);
-
+    message('bankResult',e.message);
   }
 }
 
-
-// WITHDRAWAL
 async function withdraw() {
-
   try {
+    const amount=Number(document.getElementById('withdrawAmount').value);
 
-    const r = await api('request_withdrawal',{
+    if(!Number.isFinite(amount) || amount<500) {
+      message('withdrawResult','Minimum withdrawal amount is ₹500.');
+      return;
+    }
 
-      bank_id:
-        Number(document.getElementById('bankId').value),
+    const r=await api('request_withdrawal',{amount});
 
-      amount:
-        Number(document.getElementById('withdrawValue').value)
-
-    });
-
-    say(
-      'Withdrawal request #' +
-      r.withdrawal.id +
-      ' submitted.'
-    );
-
+    message('withdrawResult',JSON.stringify(r,null,2));
+    document.getElementById('withdrawStatus').textContent=
+      'Request submitted. Final status depends on the server response and review.';
   } catch(e) {
-
-    say(e.message);
-
+    message('withdrawResult',e.message);
   }
 }
 
-
-// SUPPORT
 async function support() {
-
   try {
-
-    const r = await api('create_support_ticket',{
-
-      subject:
-        document.getElementById('ticketTitle').value,
-
-      message:
-        document.getElementById('ticketBody').value
-
+    const r=await api('create_support_ticket',{
+      subject:document.getElementById('supportSubject').value.trim(),
+      message:document.getElementById('supportMessage').value.trim()
     });
 
-    say(
-      'Support ticket #' +
-      r.ticket.id +
-      ' created.'
-    );
-
+    message('supportResult',JSON.stringify(r,null,2));
   } catch(e) {
-
-    say(e.message);
-
+    message('supportResult',e.message);
   }
 }
 
-
-// RESTORE SESSION
-if(sessionToken) {
-
-  document.getElementById('auth')
-    .classList.add('hidden');
-
-  document.getElementById('portal')
-    .classList.remove('hidden');
-
-  me().catch(logout);
-
+function safe(value) {
+  if(value===undefined || value===null || value==='')return '—';
+  return String(value).replace(/[&<>"']/g,c=>({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  }[c]));
 }
 
+
+// RESTORE EXISTING MEMBER SESSION
+if(sessionToken) {
+  document.getElementById('auth').classList.add('hidden');
+  document.getElementById('portal').classList.remove('hidden');
+
+  me().catch(()=>{
+    localStorage.removeItem('octo7_session');
+    sessionToken='';
+    document.getElementById('portal').classList.add('hidden');
+    document.getElementById('auth').classList.remove('hidden');
+  });
+}
 </script>
 
 </body>
-</html>
+        </html>
