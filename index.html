@@ -15,247 +15,102 @@
   --light:#f5f3f9;
   --white:#ffffff;
 }
-* { box-sizing:border-box; scroll-behavior:smooth; }
-
-body {
-  margin:0;
-  font-family:Arial,sans-serif;
-  color:#222;
-  background:white;
-}
+* {box-sizing:border-box;scroll-behavior:smooth}
+body {margin:0;font-family:Arial,sans-serif;color:#222;background:white}
 
 header {
-  background:var(--navy);
-  color:white;
-  padding:16px 5%;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  flex-wrap:wrap;
-  position:sticky;
-  top:0;
-  z-index:100;
+  background:var(--navy);color:white;padding:16px 5%;
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;position:sticky;top:0;z-index:100
 }
-
-.logo {
-  font-size:26px;
-  font-weight:bold;
-  letter-spacing:2px;
-}
-
-.logo span { color:var(--gold); }
-
-nav {
-  display:flex;
-  flex-wrap:wrap;
-  gap:15px;
-}
-
-nav a {
-  color:white;
-  text-decoration:none;
-  font-size:14px;
-}
-
-nav a:hover { color:var(--gold); }
+.logo {font-size:26px;font-weight:bold;letter-spacing:2px}
+.logo span {color:var(--gold)}
+nav {display:flex;flex-wrap:wrap;gap:15px}
+nav a {color:white;text-decoration:none;font-size:14px}
+nav a:hover {color:var(--gold)}
 
 .hero {
-  min-height:500px;
-  padding:90px 8%;
-  display:flex;
-  align-items:center;
-  color:white;
-  background:linear-gradient(120deg,#11152e,#38245d,#7040b5);
+  min-height:500px;padding:90px 8%;display:flex;align-items:center;
+  color:white;background:linear-gradient(120deg,#11152e,#38245d,#7040b5)
 }
-
-.hero-content { max-width:750px; }
-
-.hero h1 { font-size:48px; }
-
-.hero h1 span { color:var(--gold); }
-
-.hero p {
-  font-size:19px;
-  line-height:1.7;
-}
+.hero-content {max-width:750px}
+.hero h1 {font-size:48px}
+.hero h1 span {color:var(--gold)}
+.hero p {font-size:19px;line-height:1.7}
 
 .btn {
-  display:inline-block;
-  padding:13px 23px;
-  border:0;
-  border-radius:5px;
-  background:var(--gold);
-  color:#171323;
-  font-weight:bold;
-  text-decoration:none;
-  cursor:pointer;
-  margin:6px 4px;
+  display:inline-block;padding:13px 23px;border:0;border-radius:5px;
+  background:var(--gold);color:#171323;font-weight:bold;
+  text-decoration:none;cursor:pointer;margin:6px 4px
 }
+.btn.secondary {background:transparent;border:1px solid white;color:white}
+button:disabled {opacity:.6;cursor:not-allowed}
 
-.btn.secondary {
-  background:transparent;
-  border:1px solid white;
-  color:white;
-}
-
-section {
-  padding:65px 7%;
-  scroll-margin-top:75px;
-}
-
-section h2 {
-  text-align:center;
-  color:var(--navy);
-  font-size:32px;
-}
-
-.subtitle {
-  max-width:750px;
-  text-align:center;
-  margin:0 auto 35px;
-  line-height:1.7;
-  color:#666;
-}
-
-.about, .opportunity { background:var(--light); }
-
-.cards {
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
-  gap:20px;
-}
-
+section {padding:65px 7%;scroll-margin-top:75px}
+section h2 {text-align:center;color:var(--navy);font-size:32px}
+.subtitle {max-width:750px;text-align:center;margin:0 auto 35px;line-height:1.7;color:#666}
+.about,.opportunity,.login-area {background:var(--light)}
+.cards {display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:20px}
 .card {
-  background:white;
-  padding:24px;
-  border-radius:10px;
-  text-align:center;
-  box-shadow:0 4px 16px #00000012;
-  overflow-wrap:anywhere;
+  background:white;padding:24px;border-radius:10px;text-align:center;
+  box-shadow:0 4px 16px #00000012;overflow-wrap:anywhere
 }
+.card h3 {color:var(--purple)}
+.icon {font-size:38px}
 
-.card h3 { color:var(--purple); }
-
-.icon { font-size:38px; }
-
-.join {
-  background:linear-gradient(120deg,#17152e,#49306c);
-  color:white;
-  text-align:center;
-}
-
-.join h2 { color:white; }
-
-.contact { text-align:center; line-height:2; }
-
-.login-area { background:var(--light); }
+.join {background:linear-gradient(120deg,#17152e,#49306c);color:white;text-align:center}
+.join h2 {color:white}
+.contact {text-align:center;line-height:2}
 
 .login-box {
-  max-width:440px;
-  margin:auto;
-  padding:30px;
-  background:white;
-  border-radius:12px;
-  box-shadow:0 4px 18px #00000015;
+  max-width:440px;margin:auto;padding:30px;background:white;
+  border-radius:12px;box-shadow:0 4px 18px #00000015
 }
-
 input {
-  width:100%;
-  padding:13px;
-  margin:8px 0 16px;
-  border:1px solid #ccc;
-  border-radius:5px;
-  font-size:16px;
+  width:100%;padding:13px;margin:8px 0 16px;
+  border:1px solid #ccc;border-radius:5px;font-size:16px
 }
+.login-box button {width:100%}
+.form-link {text-align:right;margin:0 0 15px}
+.form-link a {color:var(--purple);font-weight:bold}
+.message {text-align:center;overflow-wrap:anywhere;padding:10px}
+.error {color:#b00020}
+.success {color:#18723b}
 
-.login-box button { width:100%; }
-
-#loginMessage, #portalMessage {
-  text-align:center;
-  overflow-wrap:anywhere;
-  padding:10px;
-}
-
-#memberPortal {
-  display:none;
-  background:#f5f3f9;
-  min-height:500px;
-}
-
+#memberPortal {display:none;background:#f5f3f9;min-height:500px}
 .portal-nav {
-  display:flex;
-  justify-content:center;
-  flex-wrap:wrap;
-  gap:8px;
-  margin:25px 0;
+  display:flex;justify-content:center;flex-wrap:wrap;
+  gap:8px;margin:25px 0
 }
-
-.portal-nav button {
-  min-width:110px;
-}
-
-.portal-view {
-  display:none;
-}
-
-.portal-view.active {
-  display:block;
-}
-
-.stat-card {
-  border-top:4px solid var(--purple);
-}
-
-.stat-card h2 {
-  margin:8px 0;
-  font-size:25px;
-}
+.portal-nav button {min-width:110px}
+.portal-view {display:none}
+.portal-view.active {display:block}
+.stat-card {border-top:4px solid var(--purple)}
+.stat-card h2 {margin:8px 0;font-size:25px}
 
 .tree-level {
-  display:flex;
-  justify-content:center;
-  flex-wrap:wrap;
-  gap:25px;
-  margin:20px 0;
+  display:flex;justify-content:center;flex-wrap:wrap;
+  gap:25px;margin:20px 0
 }
-
 .tree-node {
-  width:230px;
-  max-width:100%;
-  background:white;
-  border:2px solid var(--purple);
-  border-radius:10px;
-  padding:20px;
-  text-align:center;
-  box-shadow:0 4px 15px #00000010;
+  width:230px;max-width:100%;background:white;
+  border:2px solid var(--purple);border-radius:10px;
+  padding:20px;text-align:center;box-shadow:0 4px 15px #00000010
 }
+.tree-node.empty {border:2px dashed #aaa;color:#777}
+.tree-line {text-align:center;font-size:30px;color:var(--purple)}
 
-.tree-node.empty {
-  border:2px dashed #aaa;
-  color:#777;
-}
+footer {background:var(--navy);color:white;text-align:center;padding:25px}
+footer .logo {color:white}
 
-.tree-line {
-  text-align:center;
-  font-size:30px;
-  color:var(--purple);
-}
-
-footer {
-  background:var(--navy);
-  color:white;
-  text-align:center;
-  padding:25px;
-}
-
-footer .logo { color:white; }
+[hidden] {display:none !important}
 
 @media(max-width:650px) {
-  header { justify-content:center; gap:15px; }
-  nav { justify-content:center; }
-  .hero { padding:65px 7%; }
-  .hero h1 { font-size:36px; }
-  section { padding:48px 6%; }
+  header {justify-content:center;gap:15px}
+  nav {justify-content:center}
+  .hero {padding:65px 7%}
+  .hero h1 {font-size:36px}
+  section {padding:48px 6%}
 }
 </style>
 </head>
@@ -264,7 +119,6 @@ footer .logo { color:white; }
 
 <header>
   <div class="logo">OCTO<span>7</span> INDIA</div>
-
   <nav>
     <a href="#home">Home</a>
     <a href="#about">About Us</a>
@@ -276,28 +130,21 @@ footer .logo { color:white; }
   </nav>
 </header>
 
-<!-- HOME -->
-
 <section class="hero" id="home">
   <div class="hero-content">
     <h1>Welcome to <span>OCTO7 India</span></h1>
-
     <p>
       Explore. Experience. Enjoy.<br>
       Discover a modern business network built around products,
       entrepreneurship and opportunities for personal growth.
     </p>
-
     <a class="btn" href="#about">Discover OCTO7</a>
     <a class="btn secondary" href="#member-login">Member Login</a>
   </div>
 </section>
 
-<!-- ABOUT -->
-
 <section class="about" id="about">
   <h2>About OCTO7 India</h2>
-
   <p class="subtitle">
     OCTO7 India is a developing business network focused on bringing
     people and product categories together through a member-based
@@ -305,20 +152,17 @@ footer .logo { color:white; }
     customer-first approach, quality products and responsible
     business practices.
   </p>
-
   <div class="cards">
     <div class="card">
       <div class="icon">🌍</div>
       <h3>Our Vision</h3>
       <p>To build a connected business network with a wider reach.</p>
     </div>
-
     <div class="card">
       <div class="icon">🤝</div>
       <h3>Our Mission</h3>
       <p>To support members through products, service and collaboration.</p>
     </div>
-
     <div class="card">
       <div class="icon">⭐</div>
       <h3>Our Values</h3>
@@ -327,160 +171,113 @@ footer .logo { color:white; }
   </div>
 </section>
 
-<!-- PRODUCTS -->
-
 <section id="products">
   <h2>Our Products</h2>
-
   <p class="subtitle">
     Explore our range of product categories. Product availability
     and details will be updated on the member platform.
   </p>
-
   <div class="cards">
-    <div class="card">
-      <div class="icon">👗</div>
-      <h3>Garments</h3>
-      <p>Ladies' and gents' clothing and casual wear.</p>
-    </div>
-
-    <div class="card">
-      <div class="icon">💎</div>
-      <h3>Imitation Ornaments</h3>
-      <p>Fashion jewellery and imitation ornaments.</p>
-    </div>
-
-    <div class="card">
-      <div class="icon">🏠</div>
-      <h3>Home Care</h3>
-      <p>Products for everyday home care.</p>
-    </div>
-
-    <div class="card">
-      <div class="icon">🧴</div>
-      <h3>Personal Care</h3>
-      <p>Personal care and grooming products.</p>
-    </div>
-
-    <div class="card">
-      <div class="icon">🌿</div>
-      <h3>Health & Wellness</h3>
-      <p>Health and wellness product categories.</p>
-    </div>
-
-    <div class="card">
-      <div class="icon">🥗</div>
-      <h3>Nutrition</h3>
-      <p>Nutrition-related product categories.</p>
-    </div>
-
-    <div class="card">
-      <div class="icon">🌶️</div>
-      <h3>Spices</h3>
-      <p>Spices and selected food ingredients.</p>
-    </div>
-
-    <div class="card">
-      <div class="icon">🥫</div>
-      <h3>Food & Beverages</h3>
-      <p>Packed foods and beverage products.</p>
-    </div>
+    <div class="card"><div class="icon">👗</div><h3>Garments</h3><p>Ladies' and gents' clothing and casual wear.</p></div>
+    <div class="card"><div class="icon">💎</div><h3>Imitation Ornaments</h3><p>Fashion jewellery and imitation ornaments.</p></div>
+    <div class="card"><div class="icon">🏠</div><h3>Home Care</h3><p>Products for everyday home care.</p></div>
+    <div class="card"><div class="icon">🧴</div><h3>Personal Care</h3><p>Personal care and grooming products.</p></div>
+    <div class="card"><div class="icon">🌿</div><h3>Health & Wellness</h3><p>Health and wellness product categories.</p></div>
+    <div class="card"><div class="icon">🥗</div><h3>Nutrition</h3><p>Nutrition-related product categories.</p></div>
+    <div class="card"><div class="icon">🌶️</div><h3>Spices</h3><p>Spices and selected food ingredients.</p></div>
+    <div class="card"><div class="icon">🥫</div><h3>Food & Beverages</h3><p>Packed foods and beverage products.</p></div>
   </div>
 </section>
 
-<!-- OPPORTUNITY -->
-
 <section class="opportunity" id="opportunity">
   <h2>Business Opportunity</h2>
-
   <p class="subtitle">
     Discover the OCTO7 member platform and learn about its product,
     customer and business activities. Members can access their
     accounts through the secure member login.
   </p>
-
   <a class="btn" href="#member-login">Member Login</a>
 </section>
 
-<!-- JOIN -->
-
 <section class="join" id="join">
   <h2>Become Part of OCTO7 India</h2>
-
   <p>
     Interested in learning more about OCTO7 India?
     Contact our team for information about membership and products.
   </p>
-
   <a class="btn" href="#contact">Contact Us</a>
 </section>
 
-<!-- CONTACT -->
-
 <section class="contact" id="contact">
   <h2>Contact OCTO7 India</h2>
-
-  <p>
-    For membership, product and business enquiries,
-    contact our team.
-  </p>
-
-  <p>
-    Email:
-    <a href="mailto:octo7india@gmail.com">
-      octo7india@gmail.com
-    </a>
-  </p>
+  <p>For membership, product and business enquiries, contact our team.</p>
+  <p>Email: <a href="mailto:octo7india@gmail.com">octo7india@gmail.com</a></p>
 </section>
 
 <!-- LOGIN -->
-
 <section class="login-area" id="member-login">
   <h2>OCTO7 Member Portal</h2>
-
-  <p class="subtitle">
-    Sign in to access your member account.
-  </p>
+  <p class="subtitle">Sign in to access your member account.</p>
 
   <div class="login-box" id="loginBox">
+    <h3 style="text-align:center;color:#49306c">Member Login</h3>
 
-    <h3 style="text-align:center;color:#49306c">
-      Member Login
-    </h3>
+    <label for="email">Email Address</label>
+    <input id="email" type="email" autocomplete="username"
+           placeholder="Enter your registered email">
 
-    <label>Email Address</label>
-    <input
-      id="email"
-      type="email"
-      autocomplete="username"
-      placeholder="Enter your registered email"
-    >
+    <label for="password">Password</label>
+    <input id="password" type="password" autocomplete="current-password"
+           placeholder="Enter your password">
 
-    <label>Password</label>
-    <input
-      id="password"
-      type="password"
-      autocomplete="current-password"
-      placeholder="Enter your password"
-    >
+    <p class="form-link">
+      <a href="#" onclick="showForgotForm();return false;">Forgot Password?</a>
+    </p>
 
-    <button class="btn" id="loginButton" onclick="login()">
-      MEMBER LOGIN
+    <button class="btn" id="loginButton" onclick="login()">MEMBER LOGIN</button>
+    <div id="loginMessage" class="message" aria-live="polite"></div>
+  </div>
+
+  <!-- FORGOT PASSWORD -->
+  <div class="login-box" id="forgotBox" hidden>
+    <h3 style="text-align:center;color:#49306c">Reset Your Password</h3>
+    <p>Enter the email address registered with your OCTO7 account.</p>
+
+    <label for="resetEmail">Registered Email</label>
+    <input id="resetEmail" type="email" autocomplete="email"
+           placeholder="Enter your registered email">
+
+    <button class="btn" id="recoveryButton" onclick="sendRecoveryEmail()">
+      SEND RESET LINK
+    </button>
+    <button class="btn" onclick="showLoginForm()">BACK TO LOGIN</button>
+    <div id="recoveryMessage" class="message" aria-live="polite"></div>
+  </div>
+
+  <!-- SET NEW PASSWORD -->
+  <div class="login-box" id="newPasswordBox" hidden>
+    <h3 style="text-align:center;color:#49306c">Create New Password</h3>
+
+    <label for="newPassword">New Password</label>
+    <input id="newPassword" type="password" autocomplete="new-password"
+           placeholder="Enter your new password">
+
+    <label for="confirmPassword">Confirm New Password</label>
+    <input id="confirmPassword" type="password" autocomplete="new-password"
+           placeholder="Confirm your new password">
+
+    <button class="btn" id="updatePasswordButton" onclick="updatePassword()">
+      UPDATE PASSWORD
     </button>
 
-    <div id="loginMessage"></div>
+    <div id="passwordMessage" class="message" aria-live="polite"></div>
   </div>
 </section>
 
 <!-- MEMBER PORTAL -->
-
 <section id="memberPortal">
-
   <h2>OCTO7 Member Dashboard</h2>
-
-  <p class="subtitle">
-    Welcome to your OCTO7 member account.
-  </p>
+  <p class="subtitle">Welcome to your OCTO7 member account.</p>
 
   <div class="portal-nav">
     <button class="btn" onclick="loadDashboard()">Dashboard</button>
@@ -489,46 +286,27 @@ footer .logo { color:white; }
     <button class="btn" onclick="logout()">Log Out</button>
   </div>
 
-  <div id="portalMessage"></div>
-
-  <!-- DASHBOARD VIEW -->
+  <div id="portalMessage" class="message" aria-live="polite"></div>
 
   <div id="dashboardView" class="portal-view active">
-
     <h2>Member Overview</h2>
-
     <div id="dashboardCards" class="cards">
       <div class="card">Loading account...</div>
     </div>
-
   </div>
-
-  <!-- GENEALOGY VIEW -->
 
   <div id="genealogyView" class="portal-view">
-
     <h2>My Binary Genealogy</h2>
-
-    <p class="subtitle">
-      Your Main, Left Child and Right Child positions.
-    </p>
-
+    <p class="subtitle">Your Main, Left Child and Right Child positions.</p>
     <div id="genealogyTree"></div>
-
   </div>
 
-  <!-- PRODUCTS VIEW -->
-
   <div id="portalProductsView" class="portal-view">
-
     <h2>Member Products</h2>
-
     <div id="portalProducts" class="cards">
       <div class="card">Loading products...</div>
     </div>
-
   </div>
-
 </section>
 
 <footer>
@@ -538,30 +316,36 @@ footer .logo { color:white; }
 </footer>
 
 <script>
+"use strict";
 
 // =======================================
 // SUPABASE CONNECTION
 // =======================================
 
-const SUPABASE_URL =
-  "https://oqggzpbxrlglsqzdkbpy.supabase.co";
+const SUPABASE_URL = "https://oqggzpbxrlglsqzdkbpy.supabase.co";
 
 const SUPABASE_KEY =
   "sb_publishable_yz9i0uLvJVzElz7IhEMyyw_WQj8hDc0";
 
-const API_URL =
-  SUPABASE_URL + "/functions/v1/octo7-api";
+const API_URL = SUPABASE_URL + "/functions/v1/octo7-api";
 
 const client = window.supabase.createClient(
   SUPABASE_URL,
-  SUPABASE_KEY
+  SUPABASE_KEY,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    }
+  }
 );
 
 let accessToken = null;
 
 
 // =======================================
-// SAFE HTML DISPLAY
+// HTML SAFETY
 // =======================================
 
 function escapeHTML(value) {
@@ -574,21 +358,155 @@ function escapeHTML(value) {
   })[char]);
 }
 
-
-// =======================================
-// MESSAGES
-// =======================================
-
-function loginMessage(message, error=false) {
-  const box = document.getElementById("loginMessage");
+function showMessage(id, message, error=false) {
+  const box = document.getElementById(id);
   box.textContent = message;
-  box.style.color = error ? "#b00020" : "#18723b";
+  box.className = "message " + (error ? "error" : "success");
 }
 
-function portalMessage(message, error=false) {
-  const box = document.getElementById("portalMessage");
-  box.textContent = message;
-  box.style.color = error ? "#b00020" : "#18723b";
+
+// =======================================
+// LOGIN / RECOVERY FORMS
+// =======================================
+
+function showLoginForm() {
+  document.getElementById("loginBox").hidden = false;
+  document.getElementById("forgotBox").hidden = true;
+  document.getElementById("newPasswordBox").hidden = true;
+}
+
+function showForgotForm() {
+  document.getElementById("loginBox").hidden = true;
+  document.getElementById("forgotBox").hidden = false;
+  document.getElementById("newPasswordBox").hidden = true;
+
+  const email = document.getElementById("email").value.trim();
+  if (email) document.getElementById("resetEmail").value = email;
+}
+
+function showNewPasswordForm() {
+  document.getElementById("loginBox").hidden = true;
+  document.getElementById("forgotBox").hidden = true;
+  document.getElementById("newPasswordBox").hidden = false;
+
+  document.getElementById("member-login").scrollIntoView();
+}
+
+
+// =======================================
+// PASSWORD RECOVERY EMAIL
+// =======================================
+
+async function sendRecoveryEmail() {
+  const email = document.getElementById("resetEmail").value.trim();
+  const button = document.getElementById("recoveryButton");
+
+  if (!email) {
+    showMessage("recoveryMessage","Enter your registered email address.",true);
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "SENDING...";
+
+  try {
+    const redirectTo = window.location.origin + window.location.pathname;
+
+    const { error } = await client.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectTo
+    });
+
+    if (error) throw error;
+
+    showMessage(
+      "recoveryMessage",
+      "If this email is registered, a password-reset link has been requested. Check your inbox."
+    );
+
+  } catch(error) {
+    showMessage("recoveryMessage",error.message,true);
+  } finally {
+    button.disabled = false;
+    button.textContent = "SEND RESET LINK";
+  }
+}
+
+
+// =======================================
+// SUPABASE AUTH EVENTS
+// =======================================
+
+client.auth.onAuthStateChange((event, session) => {
+
+  if (session) {
+    accessToken = session.access_token;
+  } else {
+    accessToken = null;
+  }
+
+  if (event === "PASSWORD_RECOVERY") {
+    showNewPasswordForm();
+    showMessage(
+      "passwordMessage",
+      "Recovery verified. Enter your new password."
+    );
+  }
+
+});
+
+
+// =======================================
+// UPDATE PASSWORD
+// =======================================
+
+async function updatePassword() {
+  const password = document.getElementById("newPassword").value;
+  const confirm = document.getElementById("confirmPassword").value;
+  const button = document.getElementById("updatePasswordButton");
+
+  if (password.length < 8) {
+    showMessage("passwordMessage","Password must contain at least 8 characters.",true);
+    return;
+  }
+
+  if (password !== confirm) {
+    showMessage("passwordMessage","Passwords do not match.",true);
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "UPDATING...";
+
+  try {
+    const { error } = await client.auth.updateUser({
+      password: password
+    });
+
+    if (error) throw error;
+
+    showMessage(
+      "passwordMessage",
+      "Password updated successfully. You can now log in using your new password."
+    );
+
+    document.getElementById("newPassword").value = "";
+    document.getElementById("confirmPassword").value = "";
+
+    await client.auth.signOut();
+    accessToken = null;
+
+    setTimeout(() => {
+      showLoginForm();
+      showMessage("loginMessage","Your password has been updated. Please log in.");
+      document.getElementById("member-login").scrollIntoView();
+    }, 1800);
+
+  } catch(error) {
+    showMessage("passwordMessage",error.message,true);
+  } finally {
+    button.disabled = false;
+    button.textContent = "UPDATE PASSWORD";
+  }
 }
 
 
@@ -597,20 +515,17 @@ function portalMessage(message, error=false) {
 // =======================================
 
 async function api(action) {
-
   if (!accessToken) {
     throw new Error("Your session has expired. Please log in again.");
   }
 
   const response = await fetch(API_URL, {
     method:"POST",
-
     headers:{
       "Content-Type":"application/json",
       "apikey":SUPABASE_KEY,
       "Authorization":"Bearer " + accessToken
     },
-
     body:JSON.stringify({action:action})
   });
 
@@ -631,28 +546,25 @@ async function api(action) {
 
 
 // =======================================
-// LOGIN
+// MEMBER LOGIN
 // =======================================
 
 async function login() {
-
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
+  const button = document.getElementById("loginButton");
 
   if (!email || !password) {
-    loginMessage("Please enter your email and password.", true);
+    showMessage("loginMessage","Please enter your email and password.",true);
     return;
   }
 
-  const button = document.getElementById("loginButton");
   button.disabled = true;
   button.textContent = "PLEASE WAIT";
-
-  loginMessage("Signing in...");
+  showMessage("loginMessage","Signing in...");
 
   try {
-
-    const {data, error} = await client.auth.signInWithPassword({
+    const { data, error } = await client.auth.signInWithPassword({
       email:email,
       password:password
     });
@@ -661,27 +573,51 @@ async function login() {
 
     accessToken = data.session.access_token;
 
-    // Verify the member API connection before opening portal.
     const profile = await api("me");
 
-    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("loginBox").hidden = true;
     document.getElementById("memberPortal").style.display = "block";
-
     document.getElementById("memberPortal").scrollIntoView();
 
     showPortalPage("dashboard");
+    renderDashboard(profile);
+
+  } catch(error) {
+    showMessage("loginMessage",error.message || "Login failed.",true);
+  } finally {
+    button.disabled = false;
+    button.textContent = "MEMBER LOGIN";
+  }
+}
+
+
+// =======================================
+// SESSION RESTORE
+// =======================================
+
+async function restoreSession() {
+  try {
+    const { data, error } = await client.auth.getSession();
+
+    if (error) throw error;
+
+    if (!data.session) return;
+
+    accessToken = data.session.access_token;
+
+    // Do not replace the recovery screen with the dashboard.
+    const recoveryActive = !document.getElementById("newPasswordBox").hidden;
+    if (recoveryActive) return;
+
+    const profile = await api("me");
+
+    document.getElementById("loginBox").hidden = true;
+    document.getElementById("memberPortal").style.display = "block";
 
     renderDashboard(profile);
 
   } catch(error) {
-
-    loginMessage(error.message || "Login failed.", true);
-
-  } finally {
-
-    button.disabled = false;
-    button.textContent = "MEMBER LOGIN";
-
+    console.error("Session restore:",error.message);
   }
 }
 
@@ -691,18 +627,15 @@ async function login() {
 // =======================================
 
 function showPortalPage(page) {
-
   document.querySelectorAll(".portal-view").forEach(view => {
     view.classList.remove("active");
   });
 
   const selected = document.getElementById(page + "View");
 
-  if (selected) {
-    selected.classList.add("active");
-  }
+  if (selected) selected.classList.add("active");
 
-  portalMessage("");
+  showMessage("portalMessage","");
 }
 
 
@@ -711,13 +644,11 @@ function showPortalPage(page) {
 // =======================================
 
 function renderDashboard(data) {
-
   const member = data.member || {};
   const binary = data.binary || {};
   const wallet = data.wallet || {};
 
   document.getElementById("dashboardCards").innerHTML = `
-
     <div class="card stat-card">
       <h3>Member ID</h3>
       <h2>${escapeHTML(member.member_id || "-")}</h2>
@@ -757,27 +688,21 @@ function renderDashboard(data) {
       <h3>Available Balance</h3>
       <h2>₹${escapeHTML(wallet.available_balance ?? 0)}</h2>
     </div>
-
   `;
 }
 
 async function loadDashboard() {
-
   showPortalPage("dashboard");
 
   document.getElementById("dashboardCards").innerHTML =
     '<div class="card">Loading dashboard...</div>';
 
   try {
-
     const data = await api("me");
     renderDashboard(data);
-
   } catch(error) {
-
     document.getElementById("dashboardCards").innerHTML = "";
-    portalMessage(error.message, true);
-
+    showMessage("portalMessage",error.message,true);
   }
 }
 
@@ -787,16 +712,13 @@ async function loadDashboard() {
 // =======================================
 
 function treeNode(title, member) {
-
   if (!member) {
-
     return `
       <div class="tree-node empty">
         <h3>${escapeHTML(title)}</h3>
         <p>Position Available</p>
       </div>
     `;
-
   }
 
   const name = member.full_name || member.name || "Member";
@@ -814,54 +736,32 @@ function treeNode(title, member) {
 }
 
 async function loadGenealogy() {
-
   showPortalPage("genealogy");
 
   const box = document.getElementById("genealogyTree");
-
   box.innerHTML = '<div class="card">Loading genealogy...</div>';
 
   try {
-
     const data = await api("my_genealogy");
 
     const root = data.member || data.root || data;
-
-    const left =
-      root.left_child ||
-      data.left_child ||
-      data.left ||
-      null;
-
-    const right =
-      root.right_child ||
-      data.right_child ||
-      data.right ||
-      null;
+    const left = root.left_child || data.left_child || data.left || null;
+    const right = root.right_child || data.right_child || data.right || null;
 
     box.innerHTML = `
-
       <div class="tree-level">
-        ${treeNode("MAIN MEMBER", root)}
+        ${treeNode("MAIN MEMBER",root)}
       </div>
-
       <div class="tree-line">│</div>
-
       <div class="tree-level">
-
-        ${treeNode("LEFT CHILD", left)}
-
-        ${treeNode("RIGHT CHILD", right)}
-
+        ${treeNode("LEFT CHILD",left)}
+        ${treeNode("RIGHT CHILD",right)}
       </div>
-
     `;
 
   } catch(error) {
-
     box.innerHTML = "";
-    portalMessage(error.message, true);
-
+    showMessage("portalMessage",error.message,true);
   }
 }
 
@@ -871,51 +771,33 @@ async function loadGenealogy() {
 // =======================================
 
 async function loadProducts() {
-
   showPortalPage("portalProducts");
 
   const box = document.getElementById("portalProducts");
-
   box.innerHTML = '<div class="card">Loading products...</div>';
 
   try {
-
     const data = await api("get_products");
-
-    const products =
-      data.products ||
-      data.data ||
-      [];
+    const products = data.products || data.data || [];
 
     if (!Array.isArray(products) || products.length === 0) {
-
       box.innerHTML =
         '<div class="card">No active products are currently available.</div>';
-
       return;
     }
 
     box.innerHTML = products.map(product => `
-
       <div class="card">
-
         <h3>${escapeHTML(product.name || "Product")}</h3>
-
         <p>SKU: ${escapeHTML(product.sku || "-")}</p>
-
         <p>Price: ₹${escapeHTML(product.price ?? "-")}</p>
-
         <p>BV: ${escapeHTML(product.bv ?? 0)}</p>
-
       </div>
-
     `).join("");
 
   } catch(error) {
-
     box.innerHTML = "";
-    portalMessage(error.message, true);
-
+    showMessage("portalMessage",error.message,true);
   }
 }
 
@@ -925,7 +807,6 @@ async function loadProducts() {
 // =======================================
 
 async function logout() {
-
   try {
     await client.auth.signOut();
   } catch(error) {
@@ -935,18 +816,22 @@ async function logout() {
   accessToken = null;
 
   document.getElementById("memberPortal").style.display = "none";
-
-  document.getElementById("loginBox").style.display = "block";
-
+  document.getElementById("loginBox").hidden = false;
   document.getElementById("password").value = "";
 
-  loginMessage("You have logged out.");
+  showLoginForm();
+  showMessage("loginMessage","You have logged out.");
 
   document.getElementById("member-login").scrollIntoView();
-
 }
 
-</script>
 
+// =======================================
+// START APPLICATION
+// =======================================
+
+restoreSession();
+
+</script>
 </body>
 </html>
