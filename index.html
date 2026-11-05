@@ -3,151 +3,271 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OCTO7 India | Member Portal</title>
+<title>OCTO7 India | Explore. Experience. Enjoy.</title>
+<meta name="description" content="OCTO7 India – A modern business network for products, opportunity and growth.">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:#f3f4f8;
-  color:#222;
+:root {
+  --navy:#10152d;
+  --purple:#7040b5;
+  --gold:#d6b46a;
+  --light:#f6f5fa;
+  --white:#fff;
 }
+*{box-sizing:border-box;scroll-behavior:smooth}
+body{margin:0;font-family:Arial,sans-serif;color:#222;background:#fff}
 header{
-  background:#17132d;
-  color:white;
-  text-align:center;
-  padding:25px 12px;
+  background:var(--navy);color:white;padding:16px 5%;
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;position:sticky;top:0;z-index:1000
 }
-header h1{margin:0;color:#fff}
-header p{margin:8px 0 0;color:#d6caff}
-.container{
-  max-width:850px;
-  margin:25px auto;
-  padding:15px;
+.logo{font-size:27px;font-weight:bold;letter-spacing:2px;color:white}
+.logo span{color:var(--gold)}
+nav{display:flex;gap:17px;flex-wrap:wrap}
+nav a{color:white;text-decoration:none;font-size:14px}
+nav a:hover{color:var(--gold)}
+.hero{
+  min-height:540px;padding:100px 8%;display:flex;align-items:center;
+  background:linear-gradient(120deg,#10152d,#38235e,#7040b5);
+  color:white
 }
+.hero-content{max-width:750px}
+.hero h1{font-size:52px;margin:0 0 18px}
+.hero h1 span{color:var(--gold)}
+.hero p{font-size:19px;line-height:1.7}
+.btn{
+  display:inline-block;padding:13px 24px;border-radius:5px;
+  background:var(--gold);color:#171323;text-decoration:none;
+  font-weight:bold;border:0;cursor:pointer;margin:8px 6px 0 0
+}
+.btn.secondary{background:transparent;color:white;border:1px solid white}
+section{padding:65px 7%;scroll-margin-top:75px}
+section h2{text-align:center;color:var(--navy);font-size:32px;margin-top:0}
+.subtitle{text-align:center;color:#666;max-width:750px;margin:0 auto 35px;line-height:1.7}
+.about{background:var(--light);text-align:center;line-height:1.8}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:22px}
 .card{
-  background:white;
-  padding:22px;
-  margin-bottom:18px;
-  border-radius:12px;
-  box-shadow:0 3px 12px #00000012;
+  background:white;padding:25px;border-radius:12px;
+  box-shadow:0 4px 18px #00000012;text-align:center
 }
-input,button{
-  width:100%;
-  padding:13px;
-  margin:8px 0;
-  border-radius:7px;
-  font-size:16px;
+.card h3{color:var(--purple)}
+.card .icon{font-size:38px}
+.opportunity{background:#f6f5fa;text-align:center;line-height:1.8}
+.join{background:linear-gradient(120deg,#17152e,#49306c);color:white;text-align:center}
+.join h2{color:white}
+.contact{text-align:center;line-height:2}
+.login-area{background:#f2eff8}
+.login-box{
+  max-width:440px;margin:auto;background:white;padding:30px;
+  border-radius:12px;box-shadow:0 4px 20px #00000015
 }
-input{border:1px solid #ccc}
-button{
-  border:0;
-  background:#4b258c;
-  color:white;
-  font-weight:bold;
-  cursor:pointer;
+input{
+  width:100%;padding:13px;margin:8px 0 16px;
+  border:1px solid #ccc;border-radius:5px;font-size:16px
 }
-button.secondary{background:#333}
-button:disabled{opacity:.5;cursor:not-allowed}
-nav{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  margin-bottom:15px;
+.login-box button{width:100%;margin:5px 0}
+#message{padding:10px;text-align:center;overflow-wrap:anywhere}
+#dashboard{display:none;background:#f7f6fa}
+.dashboard-box{
+  background:white;padding:20px;margin:15px 0;border-radius:10px;
+  box-shadow:0 3px 12px #00000010
 }
-nav button{width:auto;flex:1;min-width:110px}
-.hidden{display:none}
-#message{white-space:pre-wrap;color:#a32626}
-.item{
-  padding:12px;
-  border-bottom:1px solid #eee;
+.dashboard-actions{display:flex;gap:10px;flex-wrap:wrap}
+.dashboard-actions button{width:auto}
+pre{white-space:pre-wrap;overflow-wrap:anywhere}
+footer{background:var(--navy);color:white;text-align:center;padding:25px}
+footer a{color:var(--gold)}
+@media(max-width:650px){
+  header{justify-content:center;gap:15px}
+  nav{justify-content:center;gap:12px}
+  .hero{padding:75px 7%;min-height:440px}
+  .hero h1{font-size:37px}
+  section{padding:50px 6%}
 }
-.small{color:#666;font-size:13px}
 </style>
 </head>
 
 <body>
 
 <header>
-  <h1>OCTO7 INDIA</h1>
-  <p>MEMBER PORTAL</p>
+  <div class="logo">OCTO<span>7</span> INDIA</div>
+  <nav>
+    <a href="#home">Home</a>
+    <a href="#about">About Us</a>
+    <a href="#products">Products</a>
+    <a href="#opportunity">Opportunity</a>
+    <a href="#join">Join Us</a>
+    <a href="#contact">Contact</a>
+    <a href="#member-login">Member Login</a>
+  </nav>
 </header>
 
-<div class="container">
+<main>
 
-  <section id="loginCard" class="card">
-    <h2>Member Login</h2>
-    <input id="email" type="email" placeholder="Registered email address">
-    <input id="password" type="password" placeholder="Password">
-    <button id="loginButton" onclick="login()">MEMBER LOGIN</button>
-    <p id="message"></p>
-  </section>
+<!-- HOME -->
+<section class="hero" id="home">
+  <div class="hero-content">
+    <h1>Welcome to <span>OCTO7 India</span></h1>
+    <p>
+      Explore. Experience. Enjoy.<br>
+      Discover a modern business network built around products,
+      entrepreneurship and opportunities for personal growth.
+    </p>
+    <a class="btn" href="#about">Discover OCTO7</a>
+    <a class="btn secondary" href="#member-login">Member Login</a>
+  </div>
+</section>
 
-  <section id="dashboard" class="hidden">
-
+<!-- ABOUT -->
+<section class="about" id="about">
+  <h2>About OCTO7 India</h2>
+  <p class="subtitle">
+    OCTO7 India is a developing business network focused on bringing
+    people and product categories together through a member-based platform.
+    Our vision is to build a professional network with a customer-first
+    approach, quality products and responsible business practices.
+  </p>
+  <div class="cards">
     <div class="card">
-      <h2>Welcome to OCTO7 India</h2>
-      <p id="memberInfo">Loading member information...</p>
-      <button class="secondary" onclick="logout()">LOG OUT</button>
+      <div class="icon">🌍</div>
+      <h3>Our Vision</h3>
+      <p>To build a connected business network with a wider reach.</p>
     </div>
-
-    <nav>
-      <button onclick="showPage('home')">Dashboard</button>
-      <button onclick="showPage('genealogy')">Genealogy</button>
-      <button onclick="showPage('products')">Products</button>
-      <button onclick="showPage('orders')">Orders</button>
-    </nav>
-
-    <div id="homePage" class="card">
-      <h2>Member Dashboard</h2>
-      <div id="dashboardData">Loading...</div>
+    <div class="card">
+      <div class="icon">🤝</div>
+      <h3>Our Mission</h3>
+      <p>To support members through products, service and collaboration.</p>
     </div>
-
-    <div id="genealogyPage" class="card hidden">
-      <h2>My Genealogy</h2>
-      <button onclick="loadGenealogy()">REFRESH GENEALOGY</button>
-      <div id="genealogyData"></div>
+    <div class="card">
+      <div class="icon">⭐</div>
+      <h3>Our Values</h3>
+      <p>Trust, transparency, responsibility and customer satisfaction.</p>
     </div>
+  </div>
+</section>
 
-    <div id="productsPage" class="card hidden">
-      <h2>Our Products</h2>
-      <button onclick="loadProducts()">LOAD PRODUCTS</button>
-      <div id="productsData"></div>
+<!-- PRODUCTS -->
+<section id="products">
+  <h2>Our Products</h2>
+  <p class="subtitle">
+    Explore our range of product categories.
+    Product availability and details will be updated on the member platform.
+  </p>
+  <div class="cards">
+    <div class="card"><div class="icon">👗</div><h3>Garments</h3><p>Ladies' and gents' clothing and casual wear.</p></div>
+    <div class="card"><div class="icon">💎</div><h3>Imitation Ornaments</h3><p>Fashion jewellery and imitation ornaments.</p></div>
+    <div class="card"><div class="icon">🏠</div><h3>Home Care</h3><p>Products for everyday home care.</p></div>
+    <div class="card"><div class="icon">🧴</div><h3>Personal Care</h3><p>Personal care and grooming products.</p></div>
+    <div class="card"><div class="icon">🌿</div><h3>Health & Wellness</h3><p>Health and wellness product categories.</p></div>
+    <div class="card"><div class="icon">🥗</div><h3>Nutrition</h3><p>Nutrition-related product categories.</p></div>
+    <div class="card"><div class="icon">🌶️</div><h3>Spices</h3><p>Spices and selected food ingredients.</p></div>
+    <div class="card"><div class="icon">🥫</div><h3>Food & Beverages</h3><p>Packed foods and beverage products.</p></div>
+  </div>
+</section>
+
+<!-- OPPORTUNITY -->
+<section class="opportunity" id="opportunity">
+  <h2>Business Opportunity</h2>
+  <p class="subtitle">
+    Discover the OCTO7 member platform and learn about its product,
+    customer and business activities. Members can access their accounts
+    through the secure member login.
+  </p>
+  <a class="btn" href="#member-login">Member Login</a>
+</section>
+
+<!-- JOIN -->
+<section class="join" id="join">
+  <h2>Become Part of OCTO7 India</h2>
+  <p>
+    Interested in learning more about OCTO7 India?
+    Contact our team for information about membership and products.
+  </p>
+  <a class="btn" href="#contact">Contact Us</a>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <h2>Contact OCTO7 India</h2>
+  <p>For membership, product and business enquiries, contact our team.</p>
+  <p>Email: <a href="mailto:octo7india@gmail.com">octo7india@gmail.com</a></p>
+</section>
+
+<!-- MEMBER LOGIN -->
+<section class="login-area" id="member-login">
+  <h2>OCTO7 Member Portal</h2>
+  <p class="subtitle">Sign in to access your member account.</p>
+
+  <div class="login-box" id="loginBox">
+    <h3 style="text-align:center;color:#38235e">Member Login</h3>
+
+    <label>Email Address</label>
+    <input id="email" type="email" placeholder="Enter your registered email">
+
+    <label>Password</label>
+    <input id="password" type="password" placeholder="Enter your password">
+
+    <button class="btn" onclick="login()">MEMBER LOGIN</button>
+    <div id="message" role="status"></div>
+  </div>
+</section>
+
+<!-- MEMBER DASHBOARD -->
+<section id="dashboard">
+  <h2>OCTO7 Member Dashboard</h2>
+  <p class="subtitle">Welcome to your OCTO7 member account.</p>
+
+  <div class="dashboard-box">
+    <h3>Account Information</h3>
+    <div id="accountInfo">Loading account information...</div>
+  </div>
+
+  <div class="dashboard-box">
+    <h3>Member Services</h3>
+    <div class="dashboard-actions">
+      <button class="btn" onclick="loadDashboard()">Dashboard</button>
+      <button class="btn" onclick="loadGenealogy()">Genealogy</button>
+      <button class="btn" onclick="loadProducts()">Products</button>
+      <button class="btn" onclick="logout()">Log Out</button>
     </div>
+  </div>
 
-    <div id="ordersPage" class="card hidden">
-      <h2>My Orders</h2>
-      <button onclick="loadOrders()">LOAD ORDERS</button>
-      <div id="ordersData"></div>
-    </div>
+  <div class="dashboard-box">
+    <h3 id="resultTitle">Member Information</h3>
+    <pre id="resultArea">Your member information will appear here.</pre>
+  </div>
+</section>
 
-  </section>
-</div>
+</main>
+
+<footer>
+  <div class="logo">OCTO<span>7</span> INDIA</div>
+  <p>Explore. Experience. Enjoy.</p>
+  <p>© <span id="year"></span> OCTO7 India. All rights reserved.</p>
+</footer>
 
 <script>
-const SUPABASE_URL =
-  "https://oqggzpbxrlglsqzdkbpy.supabase.co";
+const SUPABASE_URL = "https://oqggzpbxrlglsqzdkbpy.supabase.co";
+const SUPABASE_KEY = "sb_publishable_yz9i0uLvJVzElz7IhEMyyw_WQj8hDc0";
+const API_URL = SUPABASE_URL + "/functions/v1/octo7-api";
 
-const SUPABASE_KEY =
-  "sb_publishable_yz9i0uLvJVzElz7IhEMyyw_WQj8hDc0";
-
-const API_URL =
-  SUPABASE_URL + "/functions/v1/octo7-api";
-
-const supabase = window.supabase.createClient(
+const client = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_KEY
 );
 
 let accessToken = null;
 
-function message(text) {
-  document.getElementById("message").textContent = text;
+document.getElementById("year").textContent = new Date().getFullYear();
+
+function showMessage(text, isError=false) {
+  const box = document.getElementById("message");
+  box.textContent = text;
+  box.style.color = isError ? "#b00020" : "#18723b";
 }
 
-async function api(action, extra = {}) {
+async function api(action) {
   if (!accessToken) {
     throw new Error("Please log in again.");
   }
@@ -159,201 +279,101 @@ async function api(action, extra = {}) {
       "apikey": SUPABASE_KEY,
       "Authorization": "Bearer " + accessToken
     },
-    body: JSON.stringify({
-      action,
-      ...extra
-    })
+    body: JSON.stringify({ action })
   });
 
-  const result = await response.json();
+  const data = await response.json().catch(() => ({}));
 
-  if (!response.ok || result.success === false) {
-    throw new Error(result.error || "Request failed.");
+  if (!response.ok || data.error) {
+    throw new Error(data.error || data.message || ("Request failed: " + response.status));
   }
 
-  return result;
+  return data;
 }
 
 async function login() {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
-  const button = document.getElementById("loginButton");
 
   if (!email || !password) {
-    message("Enter your registered email and password.");
+    showMessage("Enter your email address and password.", true);
     return;
   }
 
-  button.disabled = true;
-  message("Signing in...");
+  showMessage("Signing in...");
 
   try {
-    const { data, error } =
-      await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+    const { data, error } = await client.auth.signInWithPassword({
+      email,
+      password
+    });
 
     if (error) throw error;
 
     accessToken = data.session.access_token;
 
-    const result = await api("me");
+    showMessage("Login successful. Loading your account...");
 
-    document.getElementById("loginCard").classList.add("hidden");
-    document.getElementById("dashboard").classList.remove("hidden");
+    const profile = await api("me");
 
-    const member = result.member || {};
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+    document.getElementById("accountInfo").textContent =
+      JSON.stringify(profile, null, 2);
 
-    document.getElementById("memberInfo").textContent =
-      "Member ID: " + (member.member_id || "—") +
-      " | Status: " + (member.status || "—");
+    document.getElementById("resultArea").textContent =
+      JSON.stringify(profile, null, 2);
 
-    document.getElementById("dashboardData").innerHTML = `
-      <div class="item">Left BV: ${result.binary?.left_available_bv ?? "—"}</div>
-      <div class="item">Right BV: ${result.binary?.right_available_bv ?? "—"}</div>
-      <div class="item">Downline count: ${result.binary?.downline_count ?? "—"}</div>
-      <div class="item">Available balance: ₹${result.wallet?.available_balance ?? "—"}</div>
-    `;
-
-    message("");
+    document.getElementById("dashboard").scrollIntoView();
   } catch (error) {
-    message(error.message);
-    await supabase.auth.signOut();
-    accessToken = null;
-  } finally {
-    button.disabled = false;
+    showMessage(error.message || "Unable to log in.", true);
   }
 }
 
-function showPage(page) {
-  ["home", "genealogy", "products", "orders"].forEach(name => {
-    document.getElementById(name + "Page")
-      .classList.toggle("hidden", name !== page);
-  });
-
-  if (page === "genealogy") loadGenealogy();
-  if (page === "products") loadProducts();
-  if (page === "orders") loadOrders();
+async function loadDashboard() {
+  try {
+    const data = await api("me");
+    document.getElementById("resultTitle").textContent = "Dashboard";
+    document.getElementById("resultArea").textContent =
+      JSON.stringify(data, null, 2);
+  } catch (error) {
+    alert(error.message);
+  }
 }
 
 async function loadGenealogy() {
-  const box = document.getElementById("genealogyData");
-  box.textContent = "Loading genealogy...";
-
   try {
-    const result = await api("my_genealogy");
-
-    box.innerHTML = "";
-
-    (result.nodes || []).forEach(node => {
-      const row = document.createElement("div");
-      row.className = "item";
-      row.style.paddingLeft = (12 + node.depth * 20) + "px";
-      row.textContent =
-        "OCTO7 | Member ID: " + node.member_id +
-        (node.side ? " | " + node.side : "");
-      box.appendChild(row);
-    });
-
-    if (!result.nodes?.length) {
-      box.textContent = "No genealogy records found.";
-    }
+    const data = await api("my_genealogy");
+    document.getElementById("resultTitle").textContent = "Genealogy";
+    document.getElementById("resultArea").textContent =
+      JSON.stringify(data, null, 2);
   } catch (error) {
-    box.textContent = error.message;
+    alert(error.message);
   }
 }
 
 async function loadProducts() {
-  const box = document.getElementById("productsData");
-  box.textContent = "Loading products...";
-
   try {
-    const result = await api("get_products");
-    box.innerHTML = "";
-
-    (result.products || []).forEach(product => {
-      const row = document.createElement("div");
-      row.className = "item";
-      row.textContent =
-        product.name + " | ₹" + product.price +
-        " | BV: " + product.bv;
-      box.appendChild(row);
-    });
-
-    if (!result.products?.length) {
-      box.textContent = "No active products found.";
-    }
+    const data = await api("get_products");
+    document.getElementById("resultTitle").textContent = "Products";
+    document.getElementById("resultArea").textContent =
+      JSON.stringify(data, null, 2);
   } catch (error) {
-    box.textContent = error.message;
-  }
-}
-
-async function loadOrders() {
-  const box = document.getElementById("ordersData");
-  box.textContent = "Loading orders...";
-
-  try {
-    const result = await api("orders");
-    box.innerHTML = "";
-
-    (result.orders || []).forEach(order => {
-      const row = document.createElement("div");
-      row.className = "item";
-      row.textContent =
-        order.order_no + " | " + order.status +
-        " | ₹" + order.total;
-      box.appendChild(row);
-    });
-
-    if (!result.orders?.length) {
-      box.textContent = "No orders found.";
-    }
-  } catch (error) {
-    box.textContent = error.message;
+    alert(error.message);
   }
 }
 
 async function logout() {
-  try {
-    await supabase.auth.signOut();
-  } finally {
-    accessToken = null;
-    document.getElementById("dashboard").classList.add("hidden");
-    document.getElementById("loginCard").classList.remove("hidden");
-    document.getElementById("password").value = "";
-    message("You have logged out.");
-  }
+  await client.auth.signOut();
+  accessToken = null;
+
+  document.getElementById("dashboard").style.display = "none";
+  document.getElementById("loginBox").style.display = "block";
+  document.getElementById("password").value = "";
+
+  showMessage("You have logged out.");
+  document.getElementById("member-login").scrollIntoView();
 }
-
-async function restoreSession() {
-  const { data } = await supabase.auth.getSession();
-
-  if (data.session) {
-    accessToken = data.session.access_token;
-
-    try {
-      const result = await api("me");
-
-      document.getElementById("loginCard").classList.add("hidden");
-      document.getElementById("dashboard").classList.remove("hidden");
-
-      const member = result.member || {};
-      document.getElementById("memberInfo").textContent =
-        "Member ID: " + (member.member_id || "—") +
-        " | Status: " + (member.status || "—");
-
-      document.getElementById("dashboardData").textContent =
-        "Your dashboard is ready.";
-    } catch (error) {
-      accessToken = null;
-      await supabase.auth.signOut();
-      message(error.message);
-    }
-  }
-}
-
-restoreSession();
 </script>
 
 </body>
