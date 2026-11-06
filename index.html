@@ -262,6 +262,18 @@ footer .logo {color:white}
   .tree-child {width:47%;padding:14px 5px}
   .tree-main {width:245px}
 }
+
+.member-menu-link {
+  border:1px solid currentColor;
+  background:transparent;
+  color:inherit;
+  border-radius:6px;
+  padding:10px 14px;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:1px;
+  cursor:pointer
+}
 </style>
 </head>
 
@@ -471,7 +483,7 @@ footer .logo {color:white}
 <section id="memberPortal">
   <div class="member-topbar">
     <div><div class="member-brand">OCTO<span>7</span> INDIA</div><small>MEMBER PORTAL</small></div>
-    <button class="menu-toggle" type="button" aria-label="Open member menu" aria-expanded="false" onclick="toggleMemberMenu(true)">☰</button>
+    <button class="member-menu-link" type="button" aria-label="Open member menu" aria-expanded="false" onclick="toggleMemberMenu(true)">MEMBER MENU</button>
   </div>
   <p class="subtitle">Welcome to your OCTO7 member account.</p>
   <div id="memberMenuShade" class="menu-shade" onclick="toggleMemberMenu(false)"></div>
