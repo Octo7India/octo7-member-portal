@@ -501,23 +501,31 @@ footer .logo {color:white}
 
   <div id="portalMessage" class="message" aria-live="polite"></div>
 
+  <div id="homeView" class="portal-view">
+    <h2>Welcome to OCTO7 India</h2>
+    <p class="subtitle">Your member account and business tools are available from the menu.</p>
+    <div class="card"><h3>Member Portal</h3><p>Choose a section from the menu to continue.</p></div>
+  </div>
+
   <div id="dashboardView" class="portal-view active">
-    <h2>Member Overview</h2>
+    <h2>Member Dashboard</h2>
     <div id="dashboardCards" class="cards">
       <div class="card">Loading account...</div>
     </div>
   </div>
 
-  <div id="genealogyView" class="portal-view">
-    <div id="genealogyTree"></div>
-  </div>
-
-  <div id="portalProductsView" class="portal-view">
-    <h2>Member Products</h2>
-    <div id="portalProducts" class="cards">
-      <div class="card">Loading products...</div>
-    </div>
-  </div>
+  <div id="profileView" class="portal-view"><h2>My Profile</h2><div class="card"><p>Your registered member profile will appear here.</p><p>Profile details will be connected in the profile stage.</p></div></div>
+  <div id="genealogyView" class="portal-view"><h2>My Genealogy</h2><div id="genealogyTree"></div></div>
+  <div id="registrationView" class="portal-view"><h2>New Member Registration</h2><div class="card"><p>Member registration and sponsor placement will be available in the registration stage.</p></div></div>
+  <div id="portalProductsView" class="portal-view"><h2>Products</h2><div id="portalProducts" class="cards"><div class="card">Loading products...</div></div></div>
+  <div id="ordersView" class="portal-view"><h2>My Orders</h2><div class="card"><p>Your order history will appear here once the orders page is connected.</p></div></div>
+  <div id="walletView" class="portal-view"><h2>My Wallet</h2><div class="card"><p>Your wallet balance and transaction history will appear here.</p></div></div>
+  <div id="bankView" class="portal-view"><h2>Bank Details</h2><div class="card"><p>Your bank details page will be connected in the bank-details stage.</p></div></div>
+  <div id="withdrawalsView" class="portal-view"><h2>Withdrawals</h2><div class="card"><p>Your withdrawal requests and their status will appear here.</p></div></div>
+  <div id="couponsView" class="portal-view"><h2>My Coupons</h2><div class="card"><p>Your OCTO7 coupon details and redemption history will appear here.</p></div></div>
+  <div id="passwordView" class="portal-view"><h2>Change Password</h2><div class="card"><p>Password management will be connected in the account-security stage.</p></div></div>
+  <div id="helpView" class="portal-view"><h2>Help Line</h2><div class="card"><p>For assistance, email <a href="mailto:octo7india@gmail.com">octo7india@gmail.com</a>.</p></div></div>
+  <div id="reportsView" class="portal-view"><h2>Report</h2><div class="card"><p>Your member reports will appear here when reporting features are connected.</p></div></div>
 </section>
 
 <footer>
@@ -642,9 +650,12 @@ function toggleWelcomeMenu(open) {
 }
 
 
-// Allow the welcome menu to be dismissed with the Escape key.
+// Allow either drawer to be dismissed with the Escape key.
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") toggleWelcomeMenu(false);
+  if (event.key === "Escape") {
+    toggleWelcomeMenu(false);
+    toggleMemberMenu(false);
+  }
 });
 
 // MEMBER SIDE-DRAWER MENU
@@ -659,12 +670,18 @@ function toggleMemberMenu(open) {
 }
 function goMemberMenu(item) {
   toggleMemberMenu(false);
-  if(item==="dashboard"){loadDashboard();return}
-  if(item==="genealogy"){loadGenealogy();return}
-  if(item==="products"){loadProducts();return}
-  if(item==="home"){document.getElementById("dashboardView").classList.add("active");document.getElementById("genealogyView").classList.remove("active");document.getElementById("portalProductsView").classList.remove("active");return}
-  const names={profile:"My Profile",registration:"New Member Registration",orders:"My Orders",wallet:"My Wallet",bank:"Bank Details",withdrawals:"Withdrawals",coupons:"My Coupons",password:"Change Password",help:"Help Line",reports:"Report"};
-  showMessage("portalMessage",names[item]+" is listed in your member menu. This section is not connected yet.");
+  const pages = {
+    home:"home", dashboard:"dashboard", profile:"profile", genealogy:"genealogy",
+    registration:"registration", products:"portalProducts", orders:"orders",
+    wallet:"wallet", bank:"bank", withdrawals:"withdrawals", coupons:"coupons",
+    password:"password", help:"help", reports:"reports"
+  };
+  const page = pages[item];
+  if (!page) return;
+  if (item === "dashboard") { loadDashboard(); return; }
+  if (item === "genealogy") { loadGenealogy(); return; }
+  if (item === "products") { loadProducts(); return; }
+  showPortalPage(page);
 }
 
 // LOGIN / RECOVERY FORMS
@@ -925,17 +942,13 @@ async function restoreSession() {
 // SWITCH PORTAL SCREENS
 
 function showPortalPage(page) {
-  document.querySelectorAll(".portal-view").forEach(view => {
-    view.classList.remove("active");
-  });
-
+  document.querySelectorAll("#memberPortal .portal-view").forEach(view => view.classList.remove("active"));
   const selected = document.getElementById(page + "View");
-
-  if (selected) {
-    selected.classList.add("active");
-  }
-
-  showMessage("portalMessage","");
+  if (selected) selected.classList.add("active");
+  showMessage("portalMessage", "");
+  const headings = {home:"Home",dashboard:"Dashboard",profile:"My Profile",genealogy:"My Genealogy",registration:"New Member Registration",portalProducts:"Products",orders:"My Orders",wallet:"My Wallet",bank:"Bank Details",withdrawals:"Withdrawals",coupons:"My Coupons",password:"Change Password",help:"Help Line",reports:"Report"};
+  const heading = selected?.querySelector("h2");
+  if (heading && headings[page]) heading.setAttribute("aria-label", headings[page]);
 }
 
 
