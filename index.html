@@ -281,18 +281,26 @@ footer .logo {color:white}
   <div id="welcomeMenuShade" class="menu-shade" onclick="toggleWelcomeMenu(false)"></div>
   <aside id="welcomeMenuDrawer" class="member-drawer" aria-label="OCTO7 welcome menu" aria-hidden="true">
     <div class="drawer-head">
-      <div class="drawer-avatar">🌐</div>
+      <div class="drawer-avatar">O7</div>
       <div class="drawer-member"><strong>OCTO7 INDIA</strong><small>Welcome Menu</small></div>
       <button type="button" class="drawer-close" aria-label="Close menu" onclick="toggleWelcomeMenu(false)">×</button>
     </div>
     <nav class="drawer-links">
-      <a href="#home" onclick="toggleWelcomeMenu(false)">⌂ &nbsp; Home</a>
-      <a href="#about" onclick="toggleWelcomeMenu(false)">▣ &nbsp; About Us</a>
-      <a href="#products" onclick="toggleWelcomeMenu(false)">◇ &nbsp; Products</a>
-      <a href="#opportunity" onclick="toggleWelcomeMenu(false)">♧ &nbsp; Business Opportunity</a>
-      <a href="#join" onclick="toggleWelcomeMenu(false)">＋ &nbsp; Join Our Team</a>
-      <a href="#contact" onclick="toggleWelcomeMenu(false)">☎ &nbsp; Contact Us</a>
-      <a href="#member-login" onclick="toggleWelcomeMenu(false)">♙ &nbsp; Member Login</a>
+      <button type="button" onclick="welcomeMenuAction('home')"><span>⌂</span>Home</button>
+      <button type="button" onclick="welcomeMenuAction('dashboard')"><span>▦</span>Dashboard</button>
+      <button type="button" onclick="welcomeMenuAction('profile')"><span>♙</span>My Profile</button>
+      <button type="button" onclick="welcomeMenuAction('genealogy')"><span>♧</span>My Genealogy</button>
+      <button type="button" onclick="welcomeMenuAction('registration')"><span>＋</span>New Member Registration</button>
+      <button type="button" onclick="welcomeMenuAction('products')"><span>◇</span>Products</button>
+      <button type="button" onclick="welcomeMenuAction('orders')"><span>🛒</span>My Orders</button>
+      <button type="button" onclick="welcomeMenuAction('wallet')"><span>▣</span>My Wallet</button>
+      <button type="button" onclick="welcomeMenuAction('bank')"><span>▤</span>Bank Details</button>
+      <button type="button" onclick="welcomeMenuAction('withdrawals')"><span>⇩</span>Withdrawals</button>
+      <button type="button" onclick="welcomeMenuAction('coupons')"><span>▧</span>My Coupons</button>
+      <button type="button" onclick="welcomeMenuAction('password')"><span>🔒</span>Change Password</button>
+      <button type="button" onclick="welcomeMenuAction('help')"><span>☎</span>Help Line</button>
+      <button type="button" onclick="welcomeMenuAction('reports')"><span>▥</span>Report</button>
+      <button type="button" class="drawer-logout" onclick="welcomeMenuAction('logout')"><span>⇥</span>Logout</button>
     </nav>
   </aside>
 </header>
@@ -582,6 +590,20 @@ function showMessage(id,message,error=false) {
 
 
 // PUBLIC WELCOME-PAGE MENU DRAWER
+function welcomeMenuAction(item) {
+  toggleWelcomeMenu(false);
+  if(item==="home"){location.hash="home";window.scrollTo({top:0,behavior:"smooth"});return}
+  if(item==="products"){location.hash="products";document.getElementById("products")?.scrollIntoView({behavior:"smooth"});return}
+  if(item==="help"){location.hash="contact";document.getElementById("contact")?.scrollIntoView({behavior:"smooth"});return}
+  if(item==="logout"){logout();return}
+  if(item==="registration"){location.hash="member-login";showRegisterForm();document.getElementById("member-login")?.scrollIntoView({behavior:"smooth"});return}
+  if(item==="dashboard"||item==="profile"||item==="genealogy"||item==="orders"||item==="wallet"||item==="bank"||item==="withdrawals"||item==="coupons"||item==="password"||item==="reports"){
+    const portal=document.getElementById("memberPortal");
+    const loggedIn=portal && getComputedStyle(portal).display!=="none";
+    if(!loggedIn){location.hash="member-login";document.getElementById("member-login")?.scrollIntoView({behavior:"smooth"});showMessage("loginMessage","Please log in to access your member account.");return}
+    goMemberMenu(item);portal.scrollIntoView({behavior:"smooth"});return;
+  }
+}
 function toggleWelcomeMenu(open) {
   const drawer=document.getElementById("welcomeMenuDrawer");
   const shade=document.getElementById("welcomeMenuShade");
