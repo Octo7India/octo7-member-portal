@@ -703,10 +703,10 @@ function goMemberMenu(item) {
   };
   const page = pages[item];
   if (!page) return;
-  if (item === "dashboard") { loadDashboard(); return; }
-  if (item === "genealogy") { loadGenealogy(); return; }
-  if (item === "products") { loadProducts(); return; }
   showPortalPage(page);
+  if (item === "dashboard") loadDashboard();
+  else if (item === "genealogy") loadGenealogy();
+  else if (item === "products") loadProducts();
 }
 
 // LOGIN / RECOVERY FORMS
@@ -967,13 +967,23 @@ async function restoreSession() {
 // SWITCH PORTAL SCREENS
 
 function showPortalPage(page) {
-  document.querySelectorAll("#memberPortal .portal-view").forEach(view => view.classList.remove("active"));
+  const views = document.querySelectorAll("#memberPortal .portal-view");
   const selected = document.getElementById(page + "View");
-  if (selected) selected.classList.add("active");
+  views.forEach(view => {
+    const isSelected = view === selected;
+    view.classList.toggle("active", isSelected);
+    view.style.display = isSelected ? "block" : "none";
+    view.hidden = !isSelected;
+  });
+  if (!selected) {
+    showMessage("portalMessage", "This member page is not available yet.", true);
+    return;
+  }
   showMessage("portalMessage", "");
   const headings = {home:"Home",dashboard:"Dashboard",profile:"My Profile",genealogy:"My Genealogy",registration:"New Member Registration",portalProducts:"Products",orders:"My Orders",wallet:"My Wallet",bank:"Bank Details",withdrawals:"Withdrawals",coupons:"My Coupons",password:"Change Password",help:"Help Line",reports:"Report"};
-  const heading = selected?.querySelector("h2");
+  const heading = selected.querySelector("h2");
   if (heading && headings[page]) heading.setAttribute("aria-label", headings[page]);
+  selected.scrollIntoView({behavior:"auto",block:"start"});
 }
 
 
