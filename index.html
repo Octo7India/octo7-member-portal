@@ -606,6 +606,8 @@ function showPublicPage(pageId) {
   });
   const portal = document.getElementById("memberPortal");
   if (portal) portal.style.display = "none";
+  const footer = document.querySelector("footer");
+  if (footer) footer.hidden = true;
   const target = document.getElementById(pageId);
   if (target) target.scrollIntoView({behavior:"auto",block:"start"});
   history.replaceState(null, "", location.pathname + location.search + (pageId === "home" ? "" : "#" + pageId));
@@ -618,6 +620,8 @@ function showMemberPortal() {
   });
   const portal = document.getElementById("memberPortal");
   if (portal) portal.style.display = "block";
+  const footer = document.querySelector("footer");
+  if (footer) footer.hidden = true;
   portal?.scrollIntoView({behavior:"auto",block:"start"});
 }
 
@@ -1226,7 +1230,9 @@ async function logout() {
 
 
 // START APPLICATION
-
+// Show only the welcome page on first load; do not leave the other
+// public sections stacked underneath it. A saved login is restored next.
+showPublicPage("home");
 restoreSession();
 
 </script>
