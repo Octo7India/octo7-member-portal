@@ -480,7 +480,7 @@ footer .logo {color:white}
 </section>
 
 <!-- MEMBER PORTAL -->
-<section id="memberPortal">
+<section id="memberPortal" hidden>
   <div class="member-topbar">
     <div><div class="member-brand">OCTO<span>7</span> INDIA</div><small>MEMBER PORTAL</small></div>
     <button class="member-menu-link" type="button" aria-label="Open member menu" aria-expanded="false" onclick="toggleMemberMenu(true)">MEMBER MENU</button>
@@ -618,7 +618,7 @@ function showPublicPage(pageId) {
     if (page) page.hidden = id !== pageId;
   });
   const portal = document.getElementById("memberPortal");
-  if (portal) portal.style.display = "none";
+  if (portal) { portal.hidden = true; portal.style.display = "none"; }
   const footer = document.querySelector("footer");
   if (footer) footer.hidden = true;
   const target = document.getElementById(pageId);
@@ -632,7 +632,7 @@ function showMemberPortal() {
     if (page) page.hidden = true;
   });
   const portal = document.getElementById("memberPortal");
-  if (portal) portal.style.display = "block";
+  if (portal) { portal.hidden = false; portal.style.display = "block"; }
   const footer = document.querySelector("footer");
   if (footer) footer.hidden = true;
   portal?.scrollIntoView({behavior:"auto",block:"start"});
@@ -922,7 +922,7 @@ async function login() {
 
     // After sign-in, open the member Home page. Dashboard loads only
     // when the member explicitly selects Dashboard from the menu.
-    showPortalPage("homeView".replace("View",""));
+    showPortalPage("home");
 
   } catch(error) {
     showMessage("loginMessage",error.message || "Login failed.",true);
