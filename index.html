@@ -592,27 +592,60 @@ function showMessage(id,message,error=false) {
 // PUBLIC WELCOME-PAGE MENU DRAWER
 function welcomeMenuAction(item) {
   toggleWelcomeMenu(false);
-  if(item==="home"){location.hash="home";window.scrollTo({top:0,behavior:"smooth"});return}
-  if(item==="products"){location.hash="products";document.getElementById("products")?.scrollIntoView({behavior:"smooth"});return}
-  if(item==="help"){location.hash="contact";document.getElementById("contact")?.scrollIntoView({behavior:"smooth"});return}
-  if(item==="logout"){logout();return}
-  if(item==="registration"){location.hash="member-login";showRegisterForm();document.getElementById("member-login")?.scrollIntoView({behavior:"smooth"});return}
-  if(item==="dashboard"||item==="profile"||item==="genealogy"||item==="orders"||item==="wallet"||item==="bank"||item==="withdrawals"||item==="coupons"||item==="password"||item==="reports"){
-    const portal=document.getElementById("memberPortal");
-    const loggedIn=portal && getComputedStyle(portal).display!=="none";
-    if(!loggedIn){location.hash="member-login";document.getElementById("member-login")?.scrollIntoView({behavior:"smooth"});showMessage("loginMessage","Please log in to access your member account.");return}
-    goMemberMenu(item);portal.scrollIntoView({behavior:"smooth"});return;
+  const goTo = (id) => {
+    const target = document.getElementById(id);
+    if (!target) return;
+    location.hash = id;
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  if (item === "home") {
+    history.replaceState(null, "", location.pathname + location.search);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    return;
   }
+  if (item === "products") { goTo("products"); return; }
+  if (item === "help") { goTo("contact"); return; }
+  if (item === "logout") { logout(); return; }
+
+  if (item === "registration") {
+    goTo("member-login");
+    showLoginForm();
+    showMessage("loginMessage", "New member registration will be available in the next portal update. Please check back shortly.");
+    return;
+  }
+
+  const memberItems = ["dashboard","profile","genealogy","orders","wallet","bank","withdrawals","coupons","password","reports"];
+  if (!memberItems.includes(item)) return;
+
+  const portal = document.getElementById("memberPortal");
+  const loggedIn = portal && getComputedStyle(portal).display !== "none";
+  if (!loggedIn) {
+    goTo("member-login");
+    showLoginForm();
+    showMessage("loginMessage", "Please log in to access this member section.");
+    return;
+  }
+
+  goMemberMenu(item);
+  portal.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 function toggleWelcomeMenu(open) {
-  const drawer=document.getElementById("welcomeMenuDrawer");
-  const shade=document.getElementById("welcomeMenuShade");
-  const toggle=document.querySelector(".welcome-menu-toggle");
-  drawer.classList.toggle("open",open);
-  shade.classList.toggle("open",open);
-  drawer.setAttribute("aria-hidden",String(!open));
-  toggle.setAttribute("aria-expanded",String(open));
+  const drawer = document.getElementById("welcomeMenuDrawer");
+  const shade = document.getElementById("welcomeMenuShade");
+  const toggle = document.querySelector(".welcome-menu-toggle");
+  if (!drawer || !shade) return;
+  drawer.classList.toggle("open", open);
+  shade.classList.toggle("open", open);
+  drawer.setAttribute("aria-hidden", String(!open));
+  if (toggle) toggle.setAttribute("aria-expanded", String(open));
 }
+
+
+// Allow the welcome menu to be dismissed with the Escape key.
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") toggleWelcomeMenu(false);
+});
 
 // MEMBER SIDE-DRAWER MENU
 function toggleMemberMenu(open) {
