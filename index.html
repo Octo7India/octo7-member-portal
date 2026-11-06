@@ -520,7 +520,7 @@ footer .logo {color:white}
     <div class="card"><h3>Member Portal</h3><p>Choose a section from the menu to continue.</p></div>
   </div>
 
-  <div id="dashboardView" class="portal-view active">
+  <div id="dashboardView" class="portal-view" hidden>
     <h2>Member Dashboard</h2>
     <div id="dashboardCards" class="cards">
       <div class="card">Loading account...</div>
@@ -652,8 +652,7 @@ function welcomeMenuAction(item) {
   }
   const memberItems = ["dashboard","profile","genealogy","orders","wallet","bank","withdrawals","coupons","password","reports"];
   if (!memberItems.includes(item)) return;
-  const portal = document.getElementById("memberPortal");
-  const loggedIn = portal && getComputedStyle(portal).display !== "none";
+  const loggedIn = Boolean(accessToken);
   if (!loggedIn) {
     showPublicPage("member-login");
     showLoginForm();
@@ -949,11 +948,10 @@ async function restoreSession() {
       return;
     }
 
-    document.getElementById("loginBox").hidden = true;
-    showMemberPortal();
-
-    // Restored sessions also open Home, never Dashboard automatically.
-    showPortalPage("home");
+    // Keep the public Welcome page visible after reload.
+    // Open the member area only after a member selects a member menu item.
+    document.getElementById("loginBox").hidden = false;
+    showPublicPage("home");
 
   } catch(error) {
     console.error("Session restore:",error.message);
