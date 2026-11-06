@@ -84,6 +84,8 @@ input {
 .login-box button {width:100%}
 .form-link {text-align:right;margin:0 0 15px}
 .form-link a {color:var(--purple);font-weight:bold}
+.password-checklist {font-size:13px;line-height:1.9;color:#666;padding-left:22px;margin:0 0 16px}
+.password-checklist li.valid {color:#18723b;font-weight:bold}
 .message {text-align:center;overflow-wrap:anywhere;padding:10px}
 .error {color:#b00020}
 .success {color:#18723b}
@@ -371,7 +373,44 @@ footer .logo {color:white}
     </p>
 
     <button class="btn" id="loginButton" onclick="login()">MEMBER LOGIN</button>
+    <p class="form-link"><a href="#" onclick="showRegisterForm();return false;">Create a new member account</a></p>
     <div id="loginMessage" class="message" aria-live="polite"></div>
+  </div>
+
+  <!-- NEW MEMBER REGISTRATION -->
+  <div class="login-box" id="registerBox" hidden>
+    <h3 style="text-align:center;color:#49306c">Create OCTO7 Account</h3>
+    <label for="registerName">Full Name</label>
+    <input id="registerName" type="text" autocomplete="name" maxlength="100" placeholder="Enter your full name">
+    <label for="registerPhone">Mobile Number</label>
+    <input id="registerPhone" type="tel" autocomplete="tel" maxlength="20" placeholder="Enter your mobile number">
+    <label> sponsor: Your logged-in Member ID </label>
+    <label for="registerParent">Placement Parent Database ID</label>
+    <input id="registerParent" type="number" min="1" value="1" required>
+    <label for="registerSide">Placement Side</label>
+    <select id="registerSide" style="width:100%;padding:13px;margin:8px 0 16px;border:1px solid #ccc;border-radius:5px;font-size:16px"><option value="left">LEFT</option><option value="right">RIGHT</option></select>
+    <label for="registerEmail">Email Address</label>
+    <input id="registerEmail" type="email" autocomplete="email" maxlength="254" placeholder="Enter your email">
+    <label for="registerPassword">Create Password</label>
+    <div class="password-box">
+      <input id="registerPassword" type="password" autocomplete="new-password" placeholder="Create a strong password" oninput="updatePasswordChecklist()">
+      <button type="button" class="eye-button" onclick="togglePassword('registerPassword',this)" aria-label="Show password">👁</button>
+    </div>
+    <ul class="password-checklist" id="passwordChecklist" aria-live="polite">
+      <li data-rule="length">At least 12 characters</li>
+      <li data-rule="upper">One uppercase letter (A–Z)</li>
+      <li data-rule="lower">One lowercase letter (a–z)</li>
+      <li data-rule="number">One number (0–9)</li>
+      <li data-rule="symbol">One special character</li>
+    </ul>
+    <label for="registerConfirm">Confirm Password</label>
+    <div class="password-box">
+      <input id="registerConfirm" type="password" autocomplete="new-password" placeholder="Re-enter your password">
+      <button type="button" class="eye-button" onclick="togglePassword('registerConfirm',this)" aria-label="Show password">👁</button>
+    </div>
+    <button class="btn" id="registerButton" onclick="registerMember()">CREATE ACCOUNT</button>
+    <p class="form-link"><a href="#" onclick="showLoginForm();return false;">Back to member login</a></p>
+    <div id="registerMessage" class="message" aria-live="polite"></div>
   </div>
 
   <!-- FORGOT PASSWORD -->
@@ -526,8 +565,65 @@ function showMessage(id,message,error=false) {
 
 function showLoginForm() {
   document.getElementById("loginBox").hidden = false;
+  document.getElementById("registerBox").hidden = true;
   document.getElementById("forgotBox").hidden = true;
   document.getElementById("newPasswordBox").hidden = true;
+}
+
+function showRegisterForm() {
+  document.getElementById("loginBox").hidden = true;
+  document.getElementById("registerBox").hidden = false;
+  document.getElementById("forgotBox").hidden = true;
+  document.getElementById("newPasswordBox").hidden = true;
+  document.getElementById("member-login").scrollIntoView();
+}
+
+function passwordMeetsPolicy(password) {
+  return password.length >= 12 &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /[0-9]/.test(password) &&
+    /[^A-Za-z0-9]/.test(password);
+}
+
+function updatePasswordChecklist() {
+  const password = document.getElementById("registerPassword").value;
+  const checks = {
+    length: password.length >= 12,
+    upper: /[A-Z]/.test(password),
+    lower: /[a-z]/.test(password),
+    number: /[0-9]/.test(password),
+    symbol: /[^A-Za-z0-9]/.test(password)
+  };
+  Object.entries(checks).forEach(([rule,valid]) => {
+    const item = document.querySelector('[data-rule="' + rule + '"]');
+    if (item) item.classList.toggle("valid",valid);
+  });
+}
+
+async function registerMember() {
+  const full_name=document.getElementById("registerName").value.trim();
+  const phone=document.getElementById("registerPhone").value.trim();
+  const email=document.getElementById("registerEmail").value.trim();
+  const password=document.getElementById("registerPassword").value;
+  const confirm=document.getElementById("registerConfirm").value;
+  const parent_id=Number(document.getElementById("registerParent").value);
+  const side=document.getElementById("registerSide").value;
+  const button=document.getElementById("registerButton");
+  if(!full_name||!phone||!email||!password||!confirm||!parent_id){showMessage("registerMessage","Complete all fields.",true);return;}
+  if(!passwordMeetsPolicy(password)){showMessage("registerMessage","Use 12+ characters with uppercase, lowercase, number and symbol.",true);return;}
+  if(password!==confirm){showMessage("registerMessage","Passwords do not match.",true);return;}
+  if(!accessToken){showMessage("registerMessage","Log in with your sponsor account before creating a child ID.",true);return;}
+  button.disabled=true;button.textContent="CREATING MEMBER...";
+  try{
+    const response=await fetch(SUPABASE_URL+"/functions/v1/octo7-member_api",{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":"Bearer "+accessToken},body:JSON.stringify({full_name,email,phone,password,parent_id,side})});
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok||result.error) throw new Error(result.error||"Registration failed.");
+    showMessage("registerMessage","Created "+result.member.member_id+" and placed "+side.toUpperCase()+". Email confirmation is required before the new member can log in.");
+    document.getElementById("registerPassword").value="";document.getElementById("registerConfirm").value="";
+    if(document.getElementById("memberPortal").style.display==="block"){await loadGenealogy();}
+  }catch(error){showMessage("registerMessage",error.message||"Registration failed.",true);}
+  finally{button.disabled=false;button.textContent="CREATE ACCOUNT";}
 }
 
 function showForgotForm() {
@@ -617,10 +713,10 @@ async function updatePassword() {
   const confirm = document.getElementById("confirmPassword").value;
   const button = document.getElementById("updatePasswordButton");
 
-  if (password.length < 8) {
+  if (!passwordMeetsPolicy(password)) {
     showMessage(
       "passwordMessage",
-      "Password must contain at least 8 characters.",
+      "Use at least 12 characters with uppercase, lowercase, a number and a special character.",
       true
     );
     return;
