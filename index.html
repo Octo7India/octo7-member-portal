@@ -918,13 +918,12 @@ async function login() {
 
     accessToken = data.session.access_token;
 
-    const profile = await api("me");
-
     document.getElementById("loginBox").hidden = true;
     showMemberPortal();
 
-    showPortalPage("dashboard");
-    renderDashboard(profile);
+    // After sign-in, open the member Home page. Dashboard loads only
+    // when the member explicitly selects Dashboard from the menu.
+    showPortalPage("homeView".replace("View",""));
 
   } catch(error) {
     showMessage("loginMessage",error.message || "Login failed.",true);
@@ -950,13 +949,11 @@ async function restoreSession() {
       return;
     }
 
-    const profile = await api("me");
-
     document.getElementById("loginBox").hidden = true;
     showMemberPortal();
 
-    showPortalPage("dashboard");
-    renderDashboard(profile);
+    // Restored sessions also open Home, never Dashboard automatically.
+    showPortalPage("home");
 
   } catch(error) {
     console.error("Session restore:",error.message);
