@@ -598,45 +598,53 @@ function showMessage(id,message,error=false) {
 
 
 // PUBLIC WELCOME-PAGE MENU DRAWER
+function showPublicPage(pageId) {
+  const ids = ["home","about","products","opportunity","join","contact","member-login"];
+  ids.forEach(id => {
+    const page = document.getElementById(id);
+    if (page) page.hidden = id !== pageId;
+  });
+  const portal = document.getElementById("memberPortal");
+  if (portal) portal.style.display = "none";
+  const target = document.getElementById(pageId);
+  if (target) target.scrollIntoView({behavior:"auto",block:"start"});
+  history.replaceState(null, "", location.pathname + location.search + (pageId === "home" ? "" : "#" + pageId));
+}
+
+function showMemberPortal() {
+  ["home","about","products","opportunity","join","contact","member-login"].forEach(id => {
+    const page = document.getElementById(id);
+    if (page) page.hidden = true;
+  });
+  const portal = document.getElementById("memberPortal");
+  if (portal) portal.style.display = "block";
+  portal?.scrollIntoView({behavior:"auto",block:"start"});
+}
+
 function welcomeMenuAction(item) {
   toggleWelcomeMenu(false);
-  const goTo = (id) => {
-    const target = document.getElementById(id);
-    if (!target) return;
-    location.hash = id;
-    target.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
-  if (item === "home") {
-    history.replaceState(null, "", location.pathname + location.search);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    return;
-  }
-  if (item === "products") { goTo("products"); return; }
-  if (item === "help") { goTo("contact"); return; }
   if (item === "logout") { logout(); return; }
-
+  if (item === "home") { showPublicPage("home"); return; }
+  if (item === "products") { showPublicPage("products"); return; }
+  if (item === "help") { showPublicPage("contact"); return; }
   if (item === "registration") {
-    goTo("member-login");
+    showPublicPage("member-login");
     showLoginForm();
-    showMessage("loginMessage", "New member registration will be available in the next portal update. Please check back shortly.");
+    showMessage("loginMessage", "Please log in to continue to member registration.");
     return;
   }
-
   const memberItems = ["dashboard","profile","genealogy","orders","wallet","bank","withdrawals","coupons","password","reports"];
   if (!memberItems.includes(item)) return;
-
   const portal = document.getElementById("memberPortal");
   const loggedIn = portal && getComputedStyle(portal).display !== "none";
   if (!loggedIn) {
-    goTo("member-login");
+    showPublicPage("member-login");
     showLoginForm();
-    showMessage("loginMessage", "Please log in to access this member section.");
+    showMessage("loginMessage", "Please log in to open this member page.");
     return;
   }
-
+  showMemberPortal();
   goMemberMenu(item);
-  portal.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 function toggleWelcomeMenu(open) {
   const drawer = document.getElementById("welcomeMenuDrawer");
@@ -896,8 +904,7 @@ async function login() {
     const profile = await api("me");
 
     document.getElementById("loginBox").hidden = true;
-    document.getElementById("memberPortal").style.display = "block";
-    document.getElementById("memberPortal").scrollIntoView();
+    showMemberPortal();
 
     showPortalPage("dashboard");
     renderDashboard(profile);
@@ -929,8 +936,9 @@ async function restoreSession() {
     const profile = await api("me");
 
     document.getElementById("loginBox").hidden = true;
-    document.getElementById("memberPortal").style.display = "block";
+    showMemberPortal();
 
+    showPortalPage("dashboard");
     renderDashboard(profile);
 
   } catch(error) {
@@ -1205,6 +1213,7 @@ async function logout() {
   accessToken = null;
 
   document.getElementById("memberPortal").style.display = "none";
+  ["home","about","products","opportunity","join","contact"].forEach(id => { const page=document.getElementById(id); if(page) page.hidden = id !== "home"; });
   document.getElementById("loginBox").hidden = false;
   document.getElementById("password").value = "";
 
