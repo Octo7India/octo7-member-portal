@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OCTO7 India | Official Website</title>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -14,6 +13,8 @@
   --gold:#d6b46a;
   --light:#f5f3f9;
   --white:#ffffff;
+  --green:#159447;
+  --red:#c62828;
 }
 * {box-sizing:border-box;scroll-behavior:smooth}
 body {margin:0;font-family:Arial,sans-serif;color:#222;background:white}
@@ -48,9 +49,16 @@ button:disabled {opacity:.6;cursor:not-allowed}
 
 section {padding:65px 7%;scroll-margin-top:75px}
 section h2 {text-align:center;color:var(--navy);font-size:32px}
-.subtitle {max-width:750px;text-align:center;margin:0 auto 35px;line-height:1.7;color:#666}
+.subtitle {
+  max-width:750px;text-align:center;margin:0 auto 35px;
+  line-height:1.7;color:#666
+}
 .about,.opportunity,.login-area {background:var(--light)}
-.cards {display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:20px}
+.cards {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+  gap:20px
+}
 .card {
   background:white;padding:24px;border-radius:10px;text-align:center;
   box-shadow:0 4px 16px #00000012;overflow-wrap:anywhere
@@ -58,7 +66,10 @@ section h2 {text-align:center;color:var(--navy);font-size:32px}
 .card h3 {color:var(--purple)}
 .icon {font-size:38px}
 
-.join {background:linear-gradient(120deg,#17152e,#49306c);color:white;text-align:center}
+.join {
+  background:linear-gradient(120deg,#17152e,#49306c);
+  color:white;text-align:center
+}
 .join h2 {color:white}
 .contact {text-align:center;line-height:2}
 
@@ -77,6 +88,26 @@ input {
 .error {color:#b00020}
 .success {color:#18723b}
 
+.password-box {
+  position:relative;
+  display:flex;
+  align-items:center
+}
+.password-box input {padding-right:52px}
+.eye-button {
+  position:absolute;
+  right:5px;
+  top:8px;
+  width:42px!important;
+  height:42px;
+  padding:0;
+  margin:0;
+  border:0;
+  background:transparent;
+  cursor:pointer;
+  font-size:20px
+}
+
 #memberPortal {display:none;background:#f5f3f9;min-height:500px}
 .portal-nav {
   display:flex;justify-content:center;flex-wrap:wrap;
@@ -88,22 +119,117 @@ input {
 .stat-card {border-top:4px solid var(--purple)}
 .stat-card h2 {margin:8px 0;font-size:25px}
 
-.tree-level {
-  display:flex;justify-content:center;flex-wrap:wrap;
-  gap:25px;margin:20px 0
+/* GENEALOGY TREE */
+.genealogy-tree {
+  max-width:850px;
+  margin:25px auto;
+  padding:25px 10px;
+  text-align:center;
+  overflow:hidden
 }
-.tree-node {
-  width:230px;max-width:100%;background:white;
-  border:2px solid var(--purple);border-radius:10px;
-  padding:20px;text-align:center;box-shadow:0 4px 15px #00000010
+.genealogy-title {
+  color:var(--navy);
+  font-size:29px;
+  font-weight:bold;
+  margin-bottom:35px
 }
-.tree-node.empty {border:2px dashed #aaa;color:#777}
-.tree-line {text-align:center;font-size:30px;color:var(--purple)}
+.tree-main {
+  display:inline-block;
+  width:260px;
+  max-width:95%;
+  padding:24px 15px;
+  background:var(--navy);
+  color:white;
+  border:3px solid var(--gold);
+  border-radius:14px;
+  box-shadow:0 5px 20px #00000020
+}
+.tree-main-name {
+  font-size:27px;
+  font-weight:bold;
+  letter-spacing:2px;
+  color:var(--gold)
+}
+.tree-main-id {
+  font-size:25px;
+  font-weight:bold;
+  margin:10px 0
+}
+.tree-status {
+  font-weight:bold;
+  margin:12px 0
+}
+.tree-status.active {color:#55e889}
+.tree-status.inactive {color:#ff7979}
+.tree-volume {
+  display:flex;
+  justify-content:space-around;
+  gap:15px;
+  margin-top:16px;
+  font-size:15px;
+  font-weight:bold
+}
+.tree-volume div {
+  padding:8px;
+  background:#ffffff15;
+  border-radius:6px
+}
+.tree-vertical {
+  height:30px;
+  width:2px;
+  background:var(--purple);
+  margin:auto
+}
+.tree-connector {
+  width:50%;
+  height:35px;
+  margin:auto;
+  border-bottom:2px solid var(--purple);
+  border-left:2px solid var(--purple);
+  border-right:2px solid var(--purple)
+}
+.tree-children {
+  display:flex;
+  justify-content:space-around;
+  align-items:flex-start;
+  gap:20px
+}
+.tree-child {
+  width:42%;
+  max-width:220px;
+  min-height:125px;
+  padding:18px 10px;
+  background:white;
+  border:2px solid var(--purple);
+  border-radius:12px;
+  box-shadow:0 4px 15px #00000010
+}
+.tree-child.empty {
+  border:2px dashed #aaa;
+  color:#777
+}
+.tree-child h3 {
+  color:var(--purple);
+  font-size:16px;
+  margin:0 0 12px
+}
+.tree-child p {
+  overflow-wrap:anywhere;
+  font-size:14px
+}
+.tree-child-status {font-weight:bold}
+.tree-child-status.active {color:var(--green)}
+.tree-child-status.inactive {color:var(--red)}
+.tree-child-volume {font-size:13px;line-height:1.8}
 
-footer {background:var(--navy);color:white;text-align:center;padding:25px}
+footer {
+  background:var(--navy);
+  color:white;
+  text-align:center;
+  padding:25px
+}
 footer .logo {color:white}
-
-[hidden] {display:none !important}
+[hidden] {display:none!important}
 
 @media(max-width:650px) {
   header {justify-content:center;gap:15px}
@@ -111,6 +237,9 @@ footer .logo {color:white}
   .hero {padding:65px 7%}
   .hero h1 {font-size:36px}
   section {padding:48px 6%}
+  .tree-children {gap:10px}
+  .tree-child {width:47%;padding:14px 5px}
+  .tree-main {width:245px}
 }
 </style>
 </head>
@@ -152,6 +281,7 @@ footer .logo {color:white}
     customer-first approach, quality products and responsible
     business practices.
   </p>
+
   <div class="cards">
     <div class="card">
       <div class="icon">🌍</div>
@@ -177,15 +307,16 @@ footer .logo {color:white}
     Explore our range of product categories. Product availability
     and details will be updated on the member platform.
   </p>
+
   <div class="cards">
     <div class="card"><div class="icon">👗</div><h3>Garments</h3><p>Ladies' and gents' clothing and casual wear.</p></div>
     <div class="card"><div class="icon">💎</div><h3>Imitation Ornaments</h3><p>Fashion jewellery and imitation ornaments.</p></div>
     <div class="card"><div class="icon">🏠</div><h3>Home Care</h3><p>Products for everyday home care.</p></div>
     <div class="card"><div class="icon">🧴</div><h3>Personal Care</h3><p>Personal care and grooming products.</p></div>
-    <div class="card"><div class="icon">🌿</div><h3>Health & Wellness</h3><p>Health and wellness product categories.</p></div>
+    <div class="card"><div class="icon">🌿</div><h3>Health &amp; Wellness</h3><p>Health and wellness product categories.</p></div>
     <div class="card"><div class="icon">🥗</div><h3>Nutrition</h3><p>Nutrition-related product categories.</p></div>
     <div class="card"><div class="icon">🌶️</div><h3>Spices</h3><p>Spices and selected food ingredients.</p></div>
-    <div class="card"><div class="icon">🥫</div><h3>Food & Beverages</h3><p>Packed foods and beverage products.</p></div>
+    <div class="card"><div class="icon">🥫</div><h3>Food &amp; Beverages</h3><p>Packed foods and beverage products.</p></div>
   </div>
 </section>
 
@@ -227,8 +358,13 @@ footer .logo {color:white}
            placeholder="Enter your registered email">
 
     <label for="password">Password</label>
-    <input id="password" type="password" autocomplete="current-password"
-           placeholder="Enter your password">
+    <div class="password-box">
+      <input id="password" type="password" autocomplete="current-password"
+             placeholder="Enter your password">
+      <button type="button" class="eye-button"
+        onclick="togglePassword('password',this)"
+        aria-label="Show password">👁</button>
+    </div>
 
     <p class="form-link">
       <a href="#" onclick="showForgotForm();return false;">Forgot Password?</a>
@@ -259,12 +395,22 @@ footer .logo {color:white}
     <h3 style="text-align:center;color:#49306c">Create New Password</h3>
 
     <label for="newPassword">New Password</label>
-    <input id="newPassword" type="password" autocomplete="new-password"
-           placeholder="Enter your new password">
+    <div class="password-box">
+      <input id="newPassword" type="password" autocomplete="new-password"
+             placeholder="Enter your new password">
+      <button type="button" class="eye-button"
+        onclick="togglePassword('newPassword',this)"
+        aria-label="Show password">👁</button>
+    </div>
 
     <label for="confirmPassword">Confirm New Password</label>
-    <input id="confirmPassword" type="password" autocomplete="new-password"
-           placeholder="Confirm your new password">
+    <div class="password-box">
+      <input id="confirmPassword" type="password" autocomplete="new-password"
+             placeholder="Confirm your new password">
+      <button type="button" class="eye-button"
+        onclick="togglePassword('confirmPassword',this)"
+        aria-label="Show password">👁</button>
+    </div>
 
     <button class="btn" id="updatePasswordButton" onclick="updatePassword()">
       UPDATE PASSWORD
@@ -296,8 +442,6 @@ footer .logo {color:white}
   </div>
 
   <div id="genealogyView" class="portal-view">
-    <h2>My Binary Genealogy</h2>
-    <p class="subtitle">Your Main, Left Child and Right Child positions.</p>
     <div id="genealogyTree"></div>
   </div>
 
@@ -318,9 +462,7 @@ footer .logo {color:white}
 <script>
 "use strict";
 
-// =======================================
 // SUPABASE CONNECTION
-// =======================================
 
 const SUPABASE_URL = "https://oqggzpbxrlglsqzdkbpy.supabase.co";
 
@@ -344,9 +486,24 @@ const client = window.supabase.createClient(
 let accessToken = null;
 
 
-// =======================================
+// PASSWORD SHOW / HIDE
+
+function togglePassword(inputId,button) {
+  const input = document.getElementById(inputId);
+
+  if (input.type === "password") {
+    input.type = "text";
+    button.textContent = "🙈";
+    button.setAttribute("aria-label","Hide password");
+  } else {
+    input.type = "password";
+    button.textContent = "👁";
+    button.setAttribute("aria-label","Show password");
+  }
+}
+
+
 // HTML SAFETY
-// =======================================
 
 function escapeHTML(value) {
   return String(value ?? "").replace(/[&<>"']/g, char => ({
@@ -358,16 +515,14 @@ function escapeHTML(value) {
   })[char]);
 }
 
-function showMessage(id, message, error=false) {
+function showMessage(id,message,error=false) {
   const box = document.getElementById(id);
   box.textContent = message;
   box.className = "message " + (error ? "error" : "success");
 }
 
 
-// =======================================
 // LOGIN / RECOVERY FORMS
-// =======================================
 
 function showLoginForm() {
   document.getElementById("loginBox").hidden = false;
@@ -381,7 +536,10 @@ function showForgotForm() {
   document.getElementById("newPasswordBox").hidden = true;
 
   const email = document.getElementById("email").value.trim();
-  if (email) document.getElementById("resetEmail").value = email;
+
+  if (email) {
+    document.getElementById("resetEmail").value = email;
+  }
 }
 
 function showNewPasswordForm() {
@@ -393,9 +551,7 @@ function showNewPasswordForm() {
 }
 
 
-// =======================================
 // PASSWORD RECOVERY EMAIL
-// =======================================
 
 async function sendRecoveryEmail() {
   const email = document.getElementById("resetEmail").value.trim();
@@ -410,10 +566,11 @@ async function sendRecoveryEmail() {
   button.textContent = "SENDING...";
 
   try {
-    const redirectTo = window.location.origin + window.location.pathname;
+    const redirectTo =
+      window.location.origin + window.location.pathname;
 
-    const { error } = await client.auth.resetPasswordForEmail(email, {
-      redirectTo: redirectTo
+    const { error } = await client.auth.resetPasswordForEmail(email,{
+      redirectTo:redirectTo
     });
 
     if (error) throw error;
@@ -432,11 +589,9 @@ async function sendRecoveryEmail() {
 }
 
 
-// =======================================
 // SUPABASE AUTH EVENTS
-// =======================================
 
-client.auth.onAuthStateChange((event, session) => {
+client.auth.onAuthStateChange((event,session) => {
 
   if (session) {
     accessToken = session.access_token;
@@ -446,18 +601,16 @@ client.auth.onAuthStateChange((event, session) => {
 
   if (event === "PASSWORD_RECOVERY") {
     showNewPasswordForm();
+
     showMessage(
       "passwordMessage",
       "Recovery verified. Enter your new password."
     );
   }
-
 });
 
 
-// =======================================
 // UPDATE PASSWORD
-// =======================================
 
 async function updatePassword() {
   const password = document.getElementById("newPassword").value;
@@ -465,7 +618,11 @@ async function updatePassword() {
   const button = document.getElementById("updatePasswordButton");
 
   if (password.length < 8) {
-    showMessage("passwordMessage","Password must contain at least 8 characters.",true);
+    showMessage(
+      "passwordMessage",
+      "Password must contain at least 8 characters.",
+      true
+    );
     return;
   }
 
@@ -479,7 +636,7 @@ async function updatePassword() {
 
   try {
     const { error } = await client.auth.updateUser({
-      password: password
+      password:password
     });
 
     if (error) throw error;
@@ -497,9 +654,14 @@ async function updatePassword() {
 
     setTimeout(() => {
       showLoginForm();
-      showMessage("loginMessage","Your password has been updated. Please log in.");
+
+      showMessage(
+        "loginMessage",
+        "Your password has been updated. Please log in."
+      );
+
       document.getElementById("member-login").scrollIntoView();
-    }, 1800);
+    },1800);
 
   } catch(error) {
     showMessage("passwordMessage",error.message,true);
@@ -510,16 +672,14 @@ async function updatePassword() {
 }
 
 
-// =======================================
 // API CONNECTION
-// =======================================
 
 async function api(action) {
   if (!accessToken) {
     throw new Error("Your session has expired. Please log in again.");
   }
 
-  const response = await fetch(API_URL, {
+  const response = await fetch(API_URL,{
     method:"POST",
     headers:{
       "Content-Type":"application/json",
@@ -545,9 +705,7 @@ async function api(action) {
 }
 
 
-// =======================================
 // MEMBER LOGIN
-// =======================================
 
 async function login() {
   const email = document.getElementById("email").value.trim();
@@ -564,7 +722,7 @@ async function login() {
   showMessage("loginMessage","Signing in...");
 
   try {
-    const { data, error } = await client.auth.signInWithPassword({
+    const { data,error } = await client.auth.signInWithPassword({
       email:email,
       password:password
     });
@@ -591,23 +749,20 @@ async function login() {
 }
 
 
-// =======================================
-// SESSION RESTORE
-// =======================================
+// RESTORE EXISTING SESSION
 
 async function restoreSession() {
   try {
-    const { data, error } = await client.auth.getSession();
+    const { data,error } = await client.auth.getSession();
 
     if (error) throw error;
-
     if (!data.session) return;
 
     accessToken = data.session.access_token;
 
-    // Do not replace the recovery screen with the dashboard.
-    const recoveryActive = !document.getElementById("newPasswordBox").hidden;
-    if (recoveryActive) return;
+    if (!document.getElementById("newPasswordBox").hidden) {
+      return;
+    }
 
     const profile = await api("me");
 
@@ -622,9 +777,7 @@ async function restoreSession() {
 }
 
 
-// =======================================
 // SWITCH PORTAL SCREENS
-// =======================================
 
 function showPortalPage(page) {
   document.querySelectorAll(".portal-view").forEach(view => {
@@ -633,15 +786,15 @@ function showPortalPage(page) {
 
   const selected = document.getElementById(page + "View");
 
-  if (selected) selected.classList.add("active");
+  if (selected) {
+    selected.classList.add("active");
+  }
 
   showMessage("portalMessage","");
 }
 
 
-// =======================================
 // DASHBOARD
-// =======================================
 
 function renderDashboard(data) {
   const member = data.member || {};
@@ -649,6 +802,7 @@ function renderDashboard(data) {
   const wallet = data.wallet || {};
 
   document.getElementById("dashboardCards").innerHTML = `
+
     <div class="card stat-card">
       <h3>Member ID</h3>
       <h2>${escapeHTML(member.member_id || "-")}</h2>
@@ -688,6 +842,7 @@ function renderDashboard(data) {
       <h3>Available Balance</h3>
       <h2>₹${escapeHTML(wallet.available_balance ?? 0)}</h2>
     </div>
+
   `;
 }
 
@@ -707,55 +862,129 @@ async function loadDashboard() {
 }
 
 
-// =======================================
-// GENEALOGY
-// =======================================
+// GENEALOGY HELPERS
 
-function treeNode(title, member) {
+function isActive(member) {
+  return String(member?.status || "").toLowerCase() === "active";
+}
+
+function getMemberId(member) {
+  return member?.member_id ?? member?.id ?? "-";
+}
+
+function treeChild(title,member) {
+
   if (!member) {
     return `
-      <div class="tree-node empty">
+      <div class="tree-child empty">
         <h3>${escapeHTML(title)}</h3>
         <p>Position Available</p>
       </div>
     `;
   }
 
-  const name = member.full_name || member.name || "Member";
-  const id = member.member_id || member.id || "-";
-  const status = member.status || "-";
+  const active = isActive(member);
 
   return `
-    <div class="tree-node">
+    <div class="tree-child">
       <h3>${escapeHTML(title)}</h3>
-      <strong>${escapeHTML(name)}</strong>
-      <p>Member ID: ${escapeHTML(id)}</p>
-      <p>Status: ${escapeHTML(status)}</p>
+
+      <strong>
+        ${escapeHTML(member.full_name || member.name || "Member")}
+      </strong>
+
+      <p>Member ID: ${escapeHTML(getMemberId(member))}</p>
+
+      <p class="tree-child-status ${active ? "active" : "inactive"}">
+        ${active ? "🟢 ACTIVATED" : "🔴 " + escapeHTML(member.status || "INACTIVE")}
+      </p>
+
+      <div class="tree-child-volume">
+        LBV: ${escapeHTML(member.left_available_bv ?? 0)}
+        |
+        RBV: ${escapeHTML(member.right_available_bv ?? 0)}
+      </div>
     </div>
   `;
 }
+
+
+// LOAD GENEALOGY
 
 async function loadGenealogy() {
   showPortalPage("genealogy");
 
   const box = document.getElementById("genealogyTree");
-  box.innerHTML = '<div class="card">Loading genealogy...</div>';
+
+  box.innerHTML =
+    '<div class="card">Loading OCTO7 genealogy...</div>';
 
   try {
-    const data = await api("my_genealogy");
 
-    const root = data.member || data.root || data;
-    const left = root.left_child || data.left_child || data.left || null;
-    const right = root.right_child || data.right_child || data.right || null;
+    const [profile,genealogy] = await Promise.all([
+      api("me"),
+      api("my_genealogy")
+    ]);
+
+    const root =
+      genealogy.member ||
+      genealogy.root ||
+      genealogy.main_member ||
+      profile.member ||
+      {};
+
+    const left =
+      root.left_child ||
+      genealogy.left_child ||
+      genealogy.left ||
+      null;
+
+    const right =
+      root.right_child ||
+      genealogy.right_child ||
+      genealogy.right ||
+      null;
+
+    const binary = profile.binary || genealogy.binary || {};
+    const active = isActive(root);
 
     box.innerHTML = `
-      <div class="tree-level">
-        ${treeNode("MAIN MEMBER",root)}
-      </div>
-      <div class="tree-line">│</div>
-      <div class="tree-level">
-        ${treeNode("LEFT CHILD",left)}
-        ${treeNode("RIGHT CHILD",right)}
+
+      <div class="genealogy-tree">
+
+        <div class="genealogy-title">
+          OCTO7 GENEALOGY
+        </div>
+
+        <div class="tree-main">
+
+          <div class="tree-main-name">
+            OCTO7
+          </div>
+
+          <div class="tree-main-id">
+            ${escapeHTML(getMemberId(root))}
+          </div>
+
+          <div class="tree-status ${active ? "active" : "inactive"}">
+            ${active ? "🟢 ACTIVATED" : "🔴 " + escapeHTML(root.status || "INACTIVE")}
+          </div>
+
+          <div class="tree-volume">
+            <div>LBV: ${escapeHTML(binary.left_available_bv ?? 0)}</div>
+            <div>RBV: ${escapeHTML(binary.right_available_bv ?? 0)}</div>
+          </div>
+
+        </div>
+
+        <div class="tree-vertical"></div>
+        <div class="tree-connector"></div>
+
+        <div class="tree-children">
+          ${treeChild("LEFT CHILD",left)}
+          ${treeChild("RIGHT CHILD",right)}
+        </div>
+
       </div>
     `;
 
@@ -766,17 +995,18 @@ async function loadGenealogy() {
 }
 
 
-// =======================================
 // PRODUCTS
-// =======================================
 
 async function loadProducts() {
   showPortalPage("portalProducts");
 
   const box = document.getElementById("portalProducts");
-  box.innerHTML = '<div class="card">Loading products...</div>';
+
+  box.innerHTML =
+    '<div class="card">Loading products...</div>';
 
   try {
+
     const data = await api("get_products");
     const products = data.products || data.data || [];
 
@@ -787,12 +1017,14 @@ async function loadProducts() {
     }
 
     box.innerHTML = products.map(product => `
+
       <div class="card">
         <h3>${escapeHTML(product.name || "Product")}</h3>
         <p>SKU: ${escapeHTML(product.sku || "-")}</p>
         <p>Price: ₹${escapeHTML(product.price ?? "-")}</p>
         <p>BV: ${escapeHTML(product.bv ?? 0)}</p>
       </div>
+
     `).join("");
 
   } catch(error) {
@@ -802,11 +1034,10 @@ async function loadProducts() {
 }
 
 
-// =======================================
 // LOGOUT
-// =======================================
 
 async function logout() {
+
   try {
     await client.auth.signOut();
   } catch(error) {
@@ -820,15 +1051,14 @@ async function logout() {
   document.getElementById("password").value = "";
 
   showLoginForm();
+
   showMessage("loginMessage","You have logged out.");
 
   document.getElementById("member-login").scrollIntoView();
 }
 
 
-// =======================================
 // START APPLICATION
-// =======================================
 
 restoreSession();
 
