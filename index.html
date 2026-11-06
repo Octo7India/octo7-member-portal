@@ -654,6 +654,7 @@ function showPublicPage(pageId) {
 }
 
 function showMemberPortal() {
+  showPageLoader();
   ["home","about","products","opportunity","join","contact","member-login"].forEach(id => {
     const page = document.getElementById(id);
     if (page) page.hidden = true;
@@ -663,6 +664,7 @@ function showMemberPortal() {
   const footer = document.querySelector("footer");
   if (footer) footer.hidden = true;
   portal?.scrollIntoView({behavior:"auto",block:"start"});
+  hidePageLoaderSoon();
 }
 
 function welcomeMenuAction(item) {
@@ -700,6 +702,29 @@ function toggleWelcomeMenu(open) {
   if (toggle) toggle.setAttribute("aria-expanded", String(open));
 }
 
+
+
+/* Apply the same loading transition to every in-site page link. */
+document.addEventListener("click", (event) => {
+  const link = event.target.closest("a[href^='#']");
+  if (!link) return;
+  const pageId = link.getAttribute("href").slice(1);
+  const publicIds = ["home","about","products","opportunity","join","contact","member-login"];
+  const publicTarget = publicIds.includes(pageId) ? document.getElementById(pageId) : null;
+  if (publicTarget) {
+    event.preventDefault();
+    showPublicPage(pageId);
+    toggleWelcomeMenu(false);
+    return;
+  }
+  const memberPage = pageId.endsWith("View") ? pageId.slice(0,-4) : "";
+  if (memberPage && document.getElementById(pageId)?.closest("#memberPortal")) {
+    event.preventDefault();
+    showPageLoader();
+    showMemberPortal();
+    showPortalPage(memberPage);
+  }
+}, true);
 
 // Allow either drawer to be dismissed with the Escape key.
 document.addEventListener("keydown", (event) => {
@@ -756,11 +781,13 @@ function showForgotForm() {
 }
 
 function showNewPasswordForm() {
+  showPageLoader();
   document.getElementById("loginBox").hidden = true;
   document.getElementById("forgotBox").hidden = true;
   document.getElementById("newPasswordBox").hidden = false;
 
   document.getElementById("member-login").scrollIntoView();
+  hidePageLoaderSoon();
 }
 
 
@@ -1000,6 +1027,7 @@ function showPortalPage(page) {
   });
   if (!selected) {
     showMessage("portalMessage", "This member page is not available yet.", true);
+    hidePageLoaderSoon();
     return;
   }
   showMessage("portalMessage", "");
