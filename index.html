@@ -114,6 +114,9 @@ input {
   gap:8px;margin:25px 0
 }
 .portal-nav button {min-width:110px}
+.welcome-menu-toggle{display:block;width:48px;height:44px;border:1px solid #ffffff70;border-radius:8px;background:#ffffff18;color:#fff;font-size:27px;cursor:pointer}
+.drawer-links a{display:flex;align-items:center;min-height:53px;padding:10px 20px;border-bottom:1px solid #eee;color:#17152e;text-decoration:none;font-size:16px}
+.drawer-links a:hover,.drawer-links a:focus{background:#f1eaff}
 .member-topbar{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(110deg,#171044,#5420a0);color:#fff;padding:18px 22px;margin:-65px -7vw 24px}
 .member-brand{font-size:25px;font-weight:800;letter-spacing:2px}.member-brand span{color:#e5c36f}
 .member-topbar small{letter-spacing:3px;font-size:10px;color:#e8ddff}
@@ -265,6 +268,7 @@ footer .logo {color:white}
 
 <header>
   <div class="logo">OCTO<span>7</span> INDIA</div>
+  <button class="welcome-menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" onclick="toggleWelcomeMenu(true)">☰</button>
   <nav>
     <a href="#home">Home</a>
     <a href="#about">About Us</a>
@@ -274,6 +278,23 @@ footer .logo {color:white}
     <a href="#contact">Contact</a>
     <a href="#member-login">Member Login</a>
   </nav>
+  <div id="welcomeMenuShade" class="menu-shade" onclick="toggleWelcomeMenu(false)"></div>
+  <aside id="welcomeMenuDrawer" class="member-drawer" aria-label="OCTO7 welcome menu" aria-hidden="true">
+    <div class="drawer-head">
+      <div class="drawer-avatar">🌐</div>
+      <div class="drawer-member"><strong>OCTO7 INDIA</strong><small>Welcome Menu</small></div>
+      <button type="button" class="drawer-close" aria-label="Close menu" onclick="toggleWelcomeMenu(false)">×</button>
+    </div>
+    <nav class="drawer-links">
+      <a href="#home" onclick="toggleWelcomeMenu(false)">⌂ &nbsp; Home</a>
+      <a href="#about" onclick="toggleWelcomeMenu(false)">▣ &nbsp; About Us</a>
+      <a href="#products" onclick="toggleWelcomeMenu(false)">◇ &nbsp; Products</a>
+      <a href="#opportunity" onclick="toggleWelcomeMenu(false)">♧ &nbsp; Business Opportunity</a>
+      <a href="#join" onclick="toggleWelcomeMenu(false)">＋ &nbsp; Join Our Team</a>
+      <a href="#contact" onclick="toggleWelcomeMenu(false)">☎ &nbsp; Contact Us</a>
+      <a href="#member-login" onclick="toggleWelcomeMenu(false)">♙ &nbsp; Member Login</a>
+    </nav>
+  </aside>
 </header>
 
 <section class="hero" id="home">
@@ -559,6 +580,17 @@ function showMessage(id,message,error=false) {
   box.className = "message " + (error ? "error" : "success");
 }
 
+
+// PUBLIC WELCOME-PAGE MENU DRAWER
+function toggleWelcomeMenu(open) {
+  const drawer=document.getElementById("welcomeMenuDrawer");
+  const shade=document.getElementById("welcomeMenuShade");
+  const toggle=document.querySelector(".welcome-menu-toggle");
+  drawer.classList.toggle("open",open);
+  shade.classList.toggle("open",open);
+  drawer.setAttribute("aria-hidden",String(!open));
+  toggle.setAttribute("aria-expanded",String(open));
+}
 
 // MEMBER SIDE-DRAWER MENU
 function toggleMemberMenu(open) {
