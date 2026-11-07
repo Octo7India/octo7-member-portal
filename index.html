@@ -1256,13 +1256,16 @@ async function loadProfile() {
     const indicatorText=document.getElementById("profileActiveText");
     if(indicator){indicator.classList.toggle("active",active);indicator.classList.toggle("inactive",Boolean(m.status)&&!active);}
     if(indicatorText) indicatorText.textContent=active?"ID Active":(m.status?"ID Inactive":"Status unavailable");
-    const photoUrl=m.profile_picture_url || m.avatar_url || m.photo_url || m.profile_image;
+    const { data: authResult } = await client.auth.getUser();
+    const savedPhotoUrl =
+      authResult.user?.user_metadata?.avatar_url ||
+      m.profile_picture_url || m.avatar_url || m.photo_url || m.profile_image;
     const preview=document.getElementById("profilePhotoPreview");
-    if(photoUrl && preview){preview.src=photoUrl;preview.hidden=false;}
+    if(savedPhotoUrl && preview){preview.src=savedPhotoUrl;preview.hidden=false;}
     const photoInput=document.getElementById("profilePhotoInput");
     if(photoInput && !photoInput.dataset.previewBound){
       photoInput.dataset.previewBound="1";
-      photoInput.addEventListener("change",()=>{
+      photoInput.addEventListener("change", async ()=>{
         const file=photoInput.files && photoInput.files[0];
         if(!file)return;
         if(!["image/jpeg","image/png","image/webp"].includes(file.type) || file.size>5*1024*1024){
@@ -1270,10 +1273,37 @@ async function loadProfile() {
           photoInput.value="";
           return;
         }
-        const localUrl=URL.createObjectURL(file);
-        preview.src=localUrl;preview.hidden=false;
-        const photoStatus=document.getElementById("profilePhotoStatus");
-        if(photoStatus) photoStatus.textContent="Photo selected — upload storage connection required to save it.";
+        const { data: userData, error: userError } = await client.auth.getUser();
+        if(userError || !userData.user){
+          showMessage("profileMessage","Please log in again before uploading your photo.",true);
+          return;
+        }
+        const userId=userData.user.id;
+        const extension=file.type==="image/png"?"png":(file.type==="image/webp"?"webp":"jpg");
+        const filePath=userId+"/profile-"+Date.now()+"."+extension;
+        photoInput.disabled=true;
+        showMessage("profileMessage","Uploading your profile photo...");
+        try{
+          const { error: uploadError } = await client.storage
+            .from("member-profile-photos")
+            .upload(filePath,file,{contentType:file.type,upsert:false});
+          if(uploadError)throw uploadError;
+          const { data: publicData } = client.storage
+            .from("member-profile-photos")
+            .getPublicUrl(filePath);
+          const photoUrl=publicData.publicUrl;
+          const { error: updateError } = await client.auth.updateUser({
+            data:{avatar_url:photoUrl}
+          });
+          if(updateError)throw updateError;
+          preview.src=photoUrl;
+          preview.hidden=false;
+          showMessage("profileMessage","Profile photo uploaded successfully.");
+        }catch(error){
+          showMessage("profileMessage",error.message || "Unable to upload your profile photo.",true);
+        }finally{
+          photoInput.disabled=false;
+        }
       });
     }
     put("nomineeName",m.nominee_full_name || m.nominee_name);
