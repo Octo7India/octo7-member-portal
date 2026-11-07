@@ -167,8 +167,14 @@ input {
 .binary-children:after{content:"";position:absolute;top:28px;left:50%;transform:translateX(-50%);width:var(--branch-width,210px);border-top:2px solid var(--purple)}
 .binary-child-slot{position:relative;padding-top:29px}
 .binary-child-slot:before{content:"";position:absolute;top:0;left:50%;height:29px;border-left:2px solid var(--purple)}
-.binary-empty{width:90px;height:58px;box-sizing:border-box;border:2px dashed #aaa;border-radius:3px;background:#fff;color:#777;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;font-weight:700;line-height:1.4}
+.binary-empty{width:90px;height:58px;box-sizing:border-box;border:2px dashed #aaa;border-radius:3px;background:#fff;color:#7040b5;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;font-weight:700;line-height:1.4;cursor:pointer;font-family:inherit}
 .binary-empty small{font-size:8px;font-weight:500}
+.binary-empty:hover,.binary-empty:focus{background:#f1eaff;border-color:#7040b5;outline:2px solid #7040b544;outline-offset:2px}
+.registration-card{max-width:650px;margin:20px auto;padding:24px;text-align:left}
+.registration-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.registration-grid label{display:block;font-size:13px;font-weight:700;color:#444}
+.registration-grid input,.registration-grid select{width:100%;padding:12px;margin:7px 0 5px;border:1px solid #ccc;border-radius:6px;font:inherit}
+.registration-note{padding:12px;background:#fff8e8;border-left:4px solid #d6b46a;color:#694f1b;font-size:13px;line-height:1.5}
 .genealogy-legend{font-size:12px;color:#666;margin:10px 0}
 @media(max-width:650px){.genealogy-viewport{height:62vh;min-height:330px}.genealogy-canvas{padding:25px 18px 45px}}
 footer {
@@ -590,7 +596,28 @@ footer .logo {color:white}
     </section>
   </div>
   <div id="genealogyView" class="portal-view"><h2>My Genealogy</h2><div id="genealogyTree"></div></div>
-  <div id="registrationView" class="portal-view"><h2>New Member Registration</h2><div class="card"><p>Member registration and sponsor placement will be available in the registration stage.</p></div></div>
+  <div id="registrationView" class="portal-view">
+    <h2>New Member Registration</h2>
+    <p class="subtitle">Register a new OCTO7 member in the selected available binary position.</p>
+    <div class="card registration-card">
+      <div id="registrationMessage" class="message" aria-live="polite"></div>
+      <form id="newMemberRegistrationForm" onsubmit="return false;">
+        <div class="registration-grid">
+          <label>Sponsor Member ID<input id="newMemberSponsorId" readonly></label>
+          <label>Placement Parent ID<input id="newMemberParentId" readonly></label>
+          <label>Selected Position<input id="newMemberPlacementSide" readonly></label>
+          <label>Full Name<input id="newMemberFullName" type="text" autocomplete="name" maxlength="120" required></label>
+          <label>Email Address<input id="newMemberEmail" type="email" autocomplete="email" maxlength="254" required></label>
+          <label>Mobile Number<input id="newMemberPhone" type="tel" autocomplete="tel" maxlength="20" required></label>
+        </div>
+        <p class="registration-note">The selected position is reserved only after the secure registration process is completed. Do not share passwords or payment details here.</p>
+        <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:18px">
+          <button type="button" class="secondary-button" onclick="cancelMemberRegistration()">BACK TO GENEALOGY</button>
+          <button type="button" class="btn" disabled title="Secure registration API is not connected yet">SUBMIT REGISTRATION</button>
+        </div>
+      </form>
+    </div>
+  </div>
   <div id="portalProductsView" class="portal-view"><h2>Products</h2><div id="portalProducts" class="cards"><div class="card">Loading products...</div></div></div>
   <div id="ordersView" class="portal-view"><h2>My Orders</h2><div class="card"><p>Your order history will appear here once the orders page is connected.</p></div></div>
   <div id="walletView" class="portal-view"><h2>My Wallet</h2><div class="card"><p>Your wallet balance and transaction history will appear here.</p></div></div>
@@ -1419,8 +1446,9 @@ function genealogySubtreeWidth(node){
 function renderGenealogyNode(node,isRoot){
   const active=String(node.status||"").toLowerCase()==="active";
   const card='<div class="binary-card '+(isRoot?'root':'')+'"><span class="binary-brand">OCTO7</span><span class="binary-id">'+escapeHTML(String(node.member_id??"-"))+'</span><span class="binary-status '+(active?'active':'inactive')+'">'+(active?'ACTIVE':'INACTIVE')+'</span></div>';
-  const left=node.left?renderGenealogyNode(node.left,false):'<div class="binary-empty">LEFT<small>Position Available</small></div>';
-  const right=node.right?renderGenealogyNode(node.right,false):'<div class="binary-empty">RIGHT<small>Position Available</small></div>';
+  const parentId=Number(node.id);
+  const left=node.left?renderGenealogyNode(node.left,false):'<button type="button" class="binary-empty" aria-label="Create a member in the available left position" onclick="openMemberRegistration('+parentId+', \'left\')">LEFT<small>Position Available</small></button>';
+  const right=node.right?renderGenealogyNode(node.right,false):'<button type="button" class="binary-empty" aria-label="Create a member in the available right position" onclick="openMemberRegistration('+parentId+', \'right\')">RIGHT<small>Position Available</small></button>';
   const lw=genealogySubtreeWidth(node.left),rw=genealogySubtreeWidth(node.right);
   const branch=lw/2+120+rw/2;
   return '<div class="binary-subtree"><div>'+card+'</div><div class="binary-children" style="--branch-width:'+branch+'px"><div class="binary-child-slot">'+left+'</div><div class="binary-child-slot">'+right+'</div></div></div>';
@@ -1440,6 +1468,35 @@ function setupGenealogyControls(){
   view.addEventListener("wheel",e=>{if(e.ctrlKey){e.preventDefault();scale=Math.max(.35,Math.min(2.2,scale+(e.deltaY<0?.08:-.08)));apply();}},{passive:false});
   apply();setTimeout(()=>document.getElementById("genealogyFit").click(),60);
 }
+async function openMemberRegistration(parentId,side){
+  const parent=Number(parentId);
+  const selectedSide=String(side||"").toLowerCase();
+  if(!Number.isSafeInteger(parent)||parent<1||!["left","right"].includes(selectedSide)){
+    showMessage("portalMessage","That available position is invalid. Refresh your genealogy and try again.",true);
+    return;
+  }
+  document.getElementById("newMemberParentId").value=String(parent);
+  document.getElementById("newMemberPlacementSide").value=selectedSide.toUpperCase();
+  document.getElementById("newMemberSponsorId").value="Loading...";
+  document.getElementById("newMemberFullName").value="";
+  document.getElementById("newMemberEmail").value="";
+  document.getElementById("newMemberPhone").value="";
+  showPortalPage("registration");
+  showMessage("registrationMessage","Selected "+selectedSide.toUpperCase()+" position under parent ID "+parent+".");
+  try{
+    const profile=await api("me");
+    const member=profile.member||{};
+    document.getElementById("newMemberSponsorId").value=String(member.member_id||member.id||"");
+  }catch(error){
+    document.getElementById("newMemberSponsorId").value="Unavailable";
+    showMessage("registrationMessage",error.message||"Unable to load sponsor details.",true);
+  }
+}
+function cancelMemberRegistration(){
+  showPortalPage("genealogy");
+  loadGenealogy();
+}
+
 async function loadGenealogy(){
   showPortalPage("genealogy");
   const box=document.getElementById("genealogyTree");
