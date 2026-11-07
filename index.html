@@ -1148,6 +1148,7 @@ async function restoreSession() {
 
     if (page === "home") loadMemberWelcome();
     else if (page === "dashboard") loadDashboard();
+    else if (page === "profile") loadProfile();
     else if (page === "kyc") loadKyc();
     else if (page === "genealogy") loadGenealogy();
     else if (page === "portalProducts") loadProducts();
@@ -1277,7 +1278,16 @@ async function loadProfile() {
       authResult.user?.user_metadata?.avatar_url ||
       m.profile_picture_url || m.avatar_url || m.photo_url || m.profile_image;
     const preview=document.getElementById("profilePhotoPreview");
-    if(savedPhotoUrl && preview){preview.src=savedPhotoUrl;preview.hidden=false;}
+    if(preview){
+      if(savedPhotoUrl){
+        preview.onerror=()=>{preview.hidden=true;};
+        preview.onload=()=>{preview.hidden=false;};
+        preview.src=savedPhotoUrl;
+      }else{
+        preview.removeAttribute("src");
+        preview.hidden=true;
+      }
+    }
     const photoInput=document.getElementById("profilePhotoInput");
     if(photoInput && !photoInput.dataset.previewBound){
       photoInput.dataset.previewBound="1";
@@ -1622,27 +1632,59 @@ let octo7PhotoCropper=null;
 let octo7PhotoObjectUrl="";
 let octo7SelectedPhoto=null;
 
-function openPhotoCropper(file){
-  if(typeof Cropper==="undefined"){
-    showMessage("profileMessage","Photo crop tool is still loading. Please try again.",true);
-    return;
+function ensureCropperLoaded(){
+  if(typeof Cropper!=="undefined")return Promise.resolve();
+  return new Promise((resolve,reject)=>{
+    const existing=document.querySelector('script[data-octo7-cropper="1"]');
+    const script=existing || document.createElement("script");
+    let settled=false;
+    const finish=()=>{
+      if(settled)return;
+      settled=true;
+      if(typeof Cropper!=="undefined")resolve();
+      else reject(new Error("Photo editor could not load. Check your internet connection and try again."));
+    };
+    script.onload=finish;
+    script.onerror=()=>{
+      if(script.src.includes("jsdelivr")){
+        script.src="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js";
+      }else{
+        if(!settled){settled=true;reject(new Error("Photo editor could not load. Check your internet connection and try again."));}
+      }
+    };
+    if(!existing){
+      script.dataset.octo7Cropper="1";
+      script.src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js";
+      document.head.appendChild(script);
+    }
+    if(typeof Cropper!=="undefined")finish();
+  });
+}
+async function openPhotoCropper(file){
+  try{
+    await ensureCropperLoaded();
+    octo7SelectedPhoto=file;
+    const image=document.getElementById("photoCropImage");
+    if(octo7PhotoCropper){octo7PhotoCropper.destroy();octo7PhotoCropper=null;}
+    if(octo7PhotoObjectUrl)URL.revokeObjectURL(octo7PhotoObjectUrl);
+    octo7PhotoObjectUrl=URL.createObjectURL(file);
+    image.onload=()=>{
+      try{
+        octo7PhotoCropper=new Cropper(image,{
+          aspectRatio:1,viewMode:1,dragMode:"move",autoCropArea:.85,
+          responsive:true,restore:false,guides:true,center:true,
+          highlight:false,background:false,modal:true,movable:true,
+          zoomable:true,zoomOnTouch:true,zoomOnWheel:true,
+          cropBoxMovable:false,cropBoxResizable:false,toggleDragModeOnDblclick:false
+        });
+      }catch(error){showMessage("profileMessage",error.message || "Unable to open the photo editor.",true);}
+    };
+    image.onerror=()=>showMessage("profileMessage","This image could not be opened. Please choose another photo.",true);
+    image.src=octo7PhotoObjectUrl;
+    document.getElementById("photoCropModal").classList.add("open");
+  }catch(error){
+    showMessage("profileMessage",error.message || "Unable to load the photo editor.",true);
   }
-  octo7SelectedPhoto=file;
-  const image=document.getElementById("photoCropImage");
-  if(octo7PhotoObjectUrl)URL.revokeObjectURL(octo7PhotoObjectUrl);
-  octo7PhotoObjectUrl=URL.createObjectURL(file);
-  image.src=octo7PhotoObjectUrl;
-  document.getElementById("photoCropModal").classList.add("open");
-  if(octo7PhotoCropper){octo7PhotoCropper.destroy();octo7PhotoCropper=null;}
-  image.onload=()=>{
-    octo7PhotoCropper=new Cropper(image,{
-      aspectRatio:1,viewMode:1,dragMode:"move",autoCropArea:.85,
-      responsive:true,restore:false,guides:true,center:true,
-      highlight:false,background:false,modal:true,movable:true,
-      zoomable:true,zoomOnTouch:true,zoomOnWheel:true,
-      cropBoxMovable:false,cropBoxResizable:false,toggleDragModeOnDblclick:false
-    });
-  };
 }
 function cropPhotoAction(action){
   if(!octo7PhotoCropper)return;
@@ -1711,12 +1753,15 @@ async function uploadCroppedProfilePhoto(file){
     const uploadBody=await uploadResponse.json().catch(()=>({}));
     if(!uploadResponse.ok)throw new Error(uploadBody.message || uploadBody.error || "Storage upload failed (HTTP "+uploadResponse.status+").");
     const uploadedPhotoUrl=SUPABASE_URL+"/storage/v1/object/public/member-profile-photos/"+filePath.split("/").map(encodeURIComponent).join("/");
-    preview.src=uploadedPhotoUrl;
-    preview.hidden=false;
     showMessage("profileMessage","Photo uploaded. Saving it to your member profile...");
-    const {error:updateError}=await client.auth.updateUser({data:{avatar_url:uploadedPhotoUrl}});
+    const {data:updateData,error:updateError}=await client.auth.updateUser({data:{avatar_url:uploadedPhotoUrl}});
     if(updateError)throw new Error("Photo uploaded, but the profile link could not be saved: "+updateError.message);
-    showMessage("profileMessage","Cropped profile photo uploaded and saved successfully.");
+    const savedUrl=updateData.user?.user_metadata?.avatar_url;
+    if(!savedUrl)throw new Error("Photo uploaded, but Supabase did not confirm the saved profile photo. Please try again.");
+    preview.onerror=()=>{preview.hidden=true;showMessage("profileMessage","Your photo was saved, but the preview could not load. Reopen your profile after checking your connection.",true);};
+    preview.onload=()=>{preview.hidden=false;};
+    preview.src=savedUrl;
+    showMessage("profileMessage","Profile photo uploaded and saved successfully.");
     photoInput.value="";
   }catch(error){
     const message=error.name==="AbortError"?"Upload timed out. Check your internet connection and try again.":(error.message || "Unable to upload your profile photo.");
