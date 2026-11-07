@@ -120,6 +120,9 @@ input {
 }
 .portal-nav button {min-width:110px}
 .welcome-menu-toggle{display:block;width:48px;height:44px;border:1px solid #ffffff70;border-radius:8px;background:#ffffff18;color:#fff;font-size:27px;cursor:pointer}
+.drawer-menu-title{display:flex;align-items:center;gap:12px;color:#21143d;font-size:18px;font-weight:800;letter-spacing:1.5px}
+.drawer-menu-title .menu-emblem{color:#21143d}
+.drawer-menu-title .menu-emblem i{background:currentColor}
 .drawer-links a{display:flex;align-items:center;min-height:53px;padding:10px 20px;border-bottom:1px solid #eee;color:#17152e;text-decoration:none;font-size:16px}
 .drawer-links a:hover,.drawer-links a:focus{background:#f1eaff}
 .member-topbar{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(110deg,#171044,#5420a0);color:#fff;padding:18px 22px;margin:-65px -7vw 24px}
@@ -495,8 +498,7 @@ footer .logo {color:white}
   <div id="memberMenuShade" class="menu-shade" onclick="toggleMemberMenu(false)"></div>
   <aside id="memberMenuDrawer" class="member-drawer" aria-label="Member menu" aria-hidden="true">
     <div class="drawer-head">
-      <div class="drawer-avatar">👤</div>
-      <div class="drawer-member"><strong id="drawerMemberName">OCTO7 Member</strong><small id="drawerMemberId">Member Portal</small></div>
+      <div class="drawer-menu-title"><span class="menu-emblem" aria-hidden="true"><i></i><i></i><i></i></span><strong>MENU</strong></div>
       <button type="button" class="drawer-close" aria-label="Close menu" onclick="toggleMemberMenu(false)">×</button>
     </div>
     <nav class="drawer-links">
