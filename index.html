@@ -322,6 +322,10 @@ footer .logo {color:white}
 .photo-crop-actions button{border:0;border-radius:7px;padding:12px 18px;font-weight:700;cursor:pointer}
 .photo-crop-cancel{background:#eee;color:#333}.photo-crop-apply{background:#7040b5;color:#fff}
 .photo-crop-panel .cropper-view-box,.photo-crop-panel .cropper-face{border-radius:50%}
+
+.photo-adjust-tools{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}
+.photo-adjust-tools button{border:1px solid #ddd;border-radius:7px;padding:10px 13px;background:#f7f4fb;color:#34205d;font-weight:700;cursor:pointer}
+.photo-adjust-tools button:active{background:#e9def8}
 </style>
 \n<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">\n</head>
 
@@ -1598,13 +1602,22 @@ restoreSession();
     <h3 id="photoCropTitle">Adjust your profile photo</h3>
     <p>Move the photo and pinch or zoom to fit your face inside the circle.</p>
     <div class="photo-crop-stage"><img id="photoCropImage" alt="Photo to crop"></div>
+    <div class="photo-adjust-tools" aria-label="Photo adjustment tools">
+      <button type="button" onclick="cropPhotoAction('zoomOut')" title="Zoom out">−</button>
+      <button type="button" onclick="cropPhotoAction('zoomIn')" title="Zoom in">＋</button>
+      <button type="button" onclick="cropPhotoAction('rotateLeft')" title="Rotate left">↶ Rotate</button>
+      <button type="button" onclick="cropPhotoAction('rotateRight')" title="Rotate right">↷ Rotate</button>
+      <button type="button" onclick="cropPhotoAction('flipH')" title="Flip horizontally">↔ Flip</button>
+      <button type="button" onclick="cropPhotoAction('reset')" title="Reset adjustments">Reset</button>
+    </div>
     <div class="photo-crop-actions">
       <button type="button" class="photo-crop-cancel" onclick="cancelPhotoCrop()">Cancel</button>
       <button type="button" class="photo-crop-apply" id="applyPhotoCrop" onclick="applyPhotoCrop()">Crop &amp; Upload</button>
     </div>
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js">
+<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+<script>
 let octo7PhotoCropper=null;
 let octo7PhotoObjectUrl="";
 let octo7SelectedPhoto=null;
@@ -1624,14 +1637,23 @@ function openPhotoCropper(file){
   image.onload=()=>{
     octo7PhotoCropper=new Cropper(image,{
       aspectRatio:1,viewMode:1,dragMode:"move",autoCropArea:.85,
-      responsive:true,restore:false, guides:true,center:true,
+      responsive:true,restore:false,guides:true,center:true,
       highlight:false,background:false,modal:true,movable:true,
       zoomable:true,zoomOnTouch:true,zoomOnWheel:true,
       cropBoxMovable:false,cropBoxResizable:false,toggleDragModeOnDblclick:false
     });
   };
 }
-
+function cropPhotoAction(action){
+  if(!octo7PhotoCropper)return;
+  if(action==="zoomIn")octo7PhotoCropper.zoom(.1);
+  if(action==="zoomOut")octo7PhotoCropper.zoom(-.1);
+  if(action==="rotateLeft")octo7PhotoCropper.rotate(-90);
+  if(action==="rotateRight")octo7PhotoCropper.rotate(90);
+  if(action==="flipH")octo7PhotoCropper.scaleX(-(octo7PhotoCropper.getData().scaleX||1));
+  if(action==="flipV")octo7PhotoCropper.scaleY(-(octo7PhotoCropper.getData().scaleY||1));
+  if(action==="reset")octo7PhotoCropper.reset();
+}
 function cancelPhotoCrop(){
   document.getElementById("photoCropModal").classList.remove("open");
   if(octo7PhotoCropper){octo7PhotoCropper.destroy();octo7PhotoCropper=null;}
@@ -1641,7 +1663,6 @@ function cancelPhotoCrop(){
   const input=document.getElementById("profilePhotoInput");
   if(input)input.value="";
 }
-
 async function applyPhotoCrop(){
   if(!octo7PhotoCropper || !octo7SelectedPhoto)return;
   const button=document.getElementById("applyPhotoCrop");
@@ -1664,7 +1685,6 @@ async function applyPhotoCrop(){
     button.textContent="Crop & Upload";
   }
 }
-
 async function uploadCroppedProfilePhoto(file){
   const photoInput=document.getElementById("profilePhotoInput");
   const preview=document.getElementById("profilePhotoPreview");
@@ -1703,7 +1723,6 @@ async function uploadCroppedProfilePhoto(file){
     showMessage("profileMessage",message,true);
   }finally{photoInput.disabled=false;}
 }
-
 </script>
 </body>
 </html>
