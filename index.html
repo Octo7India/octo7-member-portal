@@ -1273,34 +1273,49 @@ async function loadProfile() {
           photoInput.value="";
           return;
         }
-        const { data: userData, error: userError } = await client.auth.getUser();
-        if(userError || !userData.user){
-          showMessage("profileMessage","Please log in again before uploading your photo.",true);
-          return;
-        }
-        const userId=userData.user.id;
-        const extension=file.type==="image/png"?"png":(file.type==="image/webp"?"webp":"jpg");
-        const filePath=userId+"/profile-"+Date.now()+"."+extension;
         photoInput.disabled=true;
-        showMessage("profileMessage","Uploading your profile photo...");
+        showMessage("profileMessage","Connecting securely...");
+        let uploadedPhotoUrl="";
         try{
-          const { error: uploadError } = await client.storage
-            .from("member-profile-photos")
-            .upload(filePath,file,{contentType:file.type,upsert:false});
-          if(uploadError)throw uploadError;
-          const { data: publicData } = client.storage
-            .from("member-profile-photos")
-            .getPublicUrl(filePath);
-          const photoUrl=publicData.publicUrl;
-          const { error: updateError } = await client.auth.updateUser({
-            data:{avatar_url:photoUrl}
-          });
-          if(updateError)throw updateError;
-          preview.src=photoUrl;
+          const { data: sessionData, error: sessionError } = await client.auth.getSession();
+          if(sessionError)throw sessionError;
+          const session=sessionData.session;
+          if(!session || !session.user)throw new Error("Your session has expired. Please log in again.");
+          const userId=session.user.id;
+          const extension=file.type==="image/png"?"png":(file.type==="image/webp"?"webp":"jpg");
+          const filePath=userId+"/profile-"+Date.now()+"."+extension;
+          showMessage("profileMessage","Uploading your profile photo...");
+          const controller=new AbortController();
+          const timeout=setTimeout(()=>controller.abort(),45000);
+          let uploadResponse;
+          try{
+            uploadResponse=await fetch(SUPABASE_URL+"/storage/v1/object/member-profile-photos/"+filePath.split("/").map(encodeURIComponent).join("/"),{
+              method:"POST",
+              headers:{
+                "apikey":SUPABASE_KEY,
+                "Authorization":"Bearer "+session.access_token,
+                "Content-Type":file.type,
+                "x-upsert":"false"
+              },
+              body:file,
+              signal:controller.signal
+            });
+          } finally {
+            clearTimeout(timeout);
+          }
+          const uploadBody=await uploadResponse.json().catch(()=>({}));
+          if(!uploadResponse.ok)throw new Error(uploadBody.message || uploadBody.error || "Storage upload failed (HTTP "+uploadResponse.status+").");
+          uploadedPhotoUrl=SUPABASE_URL+"/storage/v1/object/public/member-profile-photos/"+filePath.split("/").map(encodeURIComponent).join("/");
+          preview.src=uploadedPhotoUrl;
           preview.hidden=false;
-          showMessage("profileMessage","Profile photo uploaded successfully.");
+          showMessage("profileMessage","Photo uploaded. Saving it to your member profile...");
+          const { error: updateError } = await client.auth.updateUser({data:{avatar_url:uploadedPhotoUrl}});
+          if(updateError)throw new Error("Photo uploaded, but the profile link could not be saved: "+updateError.message);
+          showMessage("profileMessage","Profile photo uploaded and saved successfully.");
+          photoInput.value="";
         }catch(error){
-          showMessage("profileMessage",error.message || "Unable to upload your profile photo.",true);
+          const message=error.name==="AbortError"?"Upload timed out. Check your internet connection and try again.":(error.message || "Unable to upload your profile photo.");
+          showMessage("profileMessage",message,true);
         }finally{
           photoInput.disabled=false;
         }
@@ -1313,7 +1328,7 @@ async function loadProfile() {
     put("nomineeEmail",m.nominee_email);
     put("nomineeAddress",m.nominee_address);
     put("nomineeIdType",m.nominee_id_proof_type);
-    put("photoStatus",m.profile_picture_url || m.avatar_url || m.photo_url ? "Photo on file" : "Not provided");
+    put("photoStatus",savedPhotoUrl ? "Photo on file" : "Not provided");
     put("emailVerified",m.email_verified === true ? "Verified" : "Not verified / unavailable");
     put("phoneVerified",m.phone_verified === true ? "Verified" : "Not verified / unavailable");
     showMessage("profileMessage","");
@@ -1371,7 +1386,8 @@ async function loadMemberWelcome() {
     const status = String(member.status || "Pending");
     statusEl.textContent = status;
     statusEl.className = "welcome-status " + (status.toLowerCase() === "active" ? "active" : "pending");
-    const photo = member.profile_picture_url || member.avatar_url || member.photo_url || member.profile_image;
+    const { data: welcomeAuth } = await client.auth.getUser();
+    const photo = welcomeAuth.user?.user_metadata?.avatar_url || member.profile_picture_url || member.avatar_url || member.photo_url || member.profile_image;
     if (photo) {
       const img = document.createElement("img");
       img.src = photo;
