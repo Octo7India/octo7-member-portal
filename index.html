@@ -162,9 +162,9 @@ input {
 .binary-status{font-size:8px;font-weight:800;margin-top:2px;line-height:1}
 .binary-status.active{color:#168344}.binary-status.inactive{color:#d22}
 .binary-card.root .binary-status.active{color:#65e99a}.binary-card.root .binary-status.inactive{color:#ff8888}
-.binary-children{display:flex;justify-content:center;align-items:flex-start;gap:120px;position:relative;padding-top:57px}
+.binary-children{display:flex;justify-content:center;align-items:flex-start;gap:120px;position:relative;padding-top:28px}
 .binary-children:before{content:"";position:absolute;top:0;left:50%;height:28px;border-left:2px solid var(--purple)}
-.binary-children:after{content:"";position:absolute;top:28px;left:calc(50% - 105px);width:210px;border-top:2px solid var(--purple)}
+.binary-children:after{content:"";position:absolute;top:28px;left:50%;transform:translateX(-50%);width:var(--branch-width,210px);border-top:2px solid var(--purple)}
 .binary-child-slot{position:relative;padding-top:29px}
 .binary-child-slot:before{content:"";position:absolute;top:0;left:50%;height:29px;border-left:2px solid var(--purple)}
 .binary-empty{width:90px;height:58px;box-sizing:border-box;border:2px dashed #aaa;border-radius:3px;background:#fff;color:#777;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;font-weight:700;line-height:1.4}
@@ -1411,12 +1411,19 @@ function buildGenealogyMap(nodes){
   }
   return {root};
 }
+function genealogySubtreeWidth(node){
+  if(!node||(!node.left&&!node.right))return 90;
+  const lw=genealogySubtreeWidth(node.left),rw=genealogySubtreeWidth(node.right);
+  return lw+120+rw;
+}
 function renderGenealogyNode(node,isRoot){
   const active=String(node.status||"").toLowerCase()==="active";
   const card='<div class="binary-card '+(isRoot?'root':'')+'"><span class="binary-brand">OCTO7</span><span class="binary-id">'+escapeHTML(String(node.member_id??"-"))+'</span><span class="binary-status '+(active?'active':'inactive')+'">'+(active?'ACTIVE':'INACTIVE')+'</span></div>';
   const left=node.left?renderGenealogyNode(node.left,false):'<div class="binary-empty">LEFT<small>Position Available</small></div>';
   const right=node.right?renderGenealogyNode(node.right,false):'<div class="binary-empty">RIGHT<small>Position Available</small></div>';
-  return '<div class="binary-subtree"><div>'+card+'</div><div class="binary-children"><div class="binary-child-slot">'+left+'</div><div class="binary-child-slot">'+right+'</div></div></div>';
+  const lw=genealogySubtreeWidth(node.left),rw=genealogySubtreeWidth(node.right);
+  const branch=lw/2+120+rw/2;
+  return '<div class="binary-subtree"><div>'+card+'</div><div class="binary-children" style="--branch-width:'+branch+'px"><div class="binary-child-slot">'+left+'</div><div class="binary-child-slot">'+right+'</div></div></div>';
 }
 function setupGenealogyControls(){
   const view=document.getElementById("genealogyViewport"),canvas=document.getElementById("genealogyCanvas");
