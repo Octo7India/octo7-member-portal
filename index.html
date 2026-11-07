@@ -39,6 +39,9 @@ nav a:hover {color:var(--gold)}
 .hero h1 span {color:var(--gold)}
 .hero h1.hero-welcome .welcome-small{display:block;font-size:clamp(30px,4vw,46px);line-height:1.15;color:white}
 .hero h1.hero-welcome .brand-line{display:block;font-size:clamp(68px,12vw,120px);font-weight:900;line-height:1.05;letter-spacing:2px;color:var(--gold)}
+.hero h1.hero-welcome .brand-o{position:relative;display:inline-block}
+.hero h1.hero-welcome .globe-mark{position:absolute;width:.43em;height:.43em;left:50%;top:50%;transform:translate(-50%,-50%);display:block;pointer-events:none}
+.hero h1.hero-welcome .globe-mark svg{display:block;width:100%;height:100%;fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
 .hero p {font-size:19px;line-height:1.7}
 
 .btn {
@@ -310,7 +313,7 @@ footer .logo {color:white}
 
 <section class="hero" id="home">
   <div class="hero-content">
-    <h1 class="hero-welcome"><span class="welcome-small">Welcome</span><span class="welcome-small">To</span><span class="brand-line">OCTO7</span></h1>
+    <h1 class="hero-welcome"><span class="welcome-small">Welcome</span><span class="welcome-small">To</span><span class="brand-line"><span class="brand-o">O<span class="globe-mark" aria-hidden="true"><svg viewBox="0 0 100 100" focusable="false"><circle cx="50" cy="50" r="43"/><ellipse cx="50" cy="50" rx="19" ry="43"/><path d="M8 50h84M17 29h66M17 71h66"/></svg></span></span>CTO7</span></h1>
     <p>Discover a world of opportunities through quality products, entrepreneurship and a growing business network.</p>
     <p>Together For a Better Tomorrow.</p>
     <a class="btn" href="#about">Discover OCTO7</a>
