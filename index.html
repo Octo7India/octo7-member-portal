@@ -307,6 +307,7 @@ footer .logo {color:white}
 @keyframes octo7spin{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){#octo7PageLoader .spinner{animation-duration:2s}}
 
+.profile-photo-control{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0}.profile-photo-control label{font-weight:600}.profile-photo-control input{max-width:100%;font-size:14px}.profile-photo-preview{width:104px;height:104px;border-radius:50%;object-fit:cover;border:2px solid #ddd}.profile-member-badge{display:flex;flex-direction:column;gap:8px;align-items:flex-start}.profile-member-badge strong{font-size:20px;letter-spacing:.5px}.member-status-indicator{display:inline-flex;align-items:center;gap:7px;font-size:13px}.member-status-indicator i{width:10px;height:10px;border-radius:50%;background:#999;display:inline-block}.member-status-indicator.active i{background:#16a34a;box-shadow:0 0 0 3px #16a34a22}.member-status-indicator.inactive i{background:#dc2626}
 .profile-section{margin:16px 0}.profile-section h3{margin:0 0 16px;color:var(--text,#222)}.profile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px}.profile-grid>div{min-width:0;padding:10px 0;border-bottom:1px solid #e8e8e8}.profile-grid small{display:block;color:#777;margin-bottom:5px}.profile-grid strong{display:block;overflow-wrap:anywhere;font-weight:600}.profile-note{font-size:13px;color:#777;margin-top:14px}.profile-section button{margin-top:16px}@media(max-width:420px){.profile-grid{grid-template-columns:1fr 1fr;gap:10px}}
 </style>
 </head>
@@ -550,7 +551,17 @@ footer .logo {color:white}
         <div><small>Gender</small><strong id="profileGender">—</strong></div>
         <div><small>Email address</small><strong id="profileEmail">—</strong></div>
         <div><small>Mobile number</small><strong id="profilePhone">—</strong></div>
-        <div><small>Profile photo</small><strong id="profilePhotoStatus">Not provided</strong></div>
+        <div class="profile-photo-control">
+          <img id="profilePhotoPreview" class="profile-photo-preview" alt="Member profile photo" hidden>
+          <label for="profilePhotoInput">Profile photo</label>
+          <input id="profilePhotoInput" type="file" accept="image/jpeg,image/png,image/webp">
+          <small id="profilePhotoStatus">Choose a photo (JPG, PNG or WebP).</small>
+        </div>
+        <div class="profile-member-badge">
+          <small>OCTO7 Member ID</small>
+          <strong id="profileMemberIdBadge">OCTO7 —</strong>
+          <span id="profileActiveIndicator" class="member-status-indicator"><i></i><b id="profileActiveText">Status unavailable</b></span>
+        </div>
       </div>
     </section>
     <section class="card profile-section">
@@ -1235,6 +1246,33 @@ async function loadProfile() {
     put("sponsorName",m.sponsor_name || m.sponsor_full_name);
     put("joined",m.joined_at || m.created_at || m.date_of_joining);
     put("status",m.status || "Pending");
+    const rawMemberId=String(m.member_id || m.id || "");
+    const memberBadge=document.getElementById("profileMemberIdBadge");
+    if(memberBadge) memberBadge.textContent="OCTO7 " + (rawMemberId.replace(/^OCTO7\\s*/i,"") || "Not assigned");
+    const active=String(m.status || "").toLowerCase()==="active";
+    const indicator=document.getElementById("profileActiveIndicator");
+    const indicatorText=document.getElementById("profileActiveText");
+    if(indicator){indicator.classList.toggle("active",active);indicator.classList.toggle("inactive",Boolean(m.status)&&!active);}
+    if(indicatorText) indicatorText.textContent=active?"ID Active":(m.status?"ID Inactive":"Status unavailable");
+    const photoUrl=m.profile_picture_url || m.avatar_url || m.photo_url || m.profile_image;
+    const preview=document.getElementById("profilePhotoPreview");
+    if(photoUrl && preview){preview.src=photoUrl;preview.hidden=false;}
+    const photoInput=document.getElementById("profilePhotoInput");
+    if(photoInput && !photoInput.dataset.previewBound){
+      photoInput.dataset.previewBound="1";
+      photoInput.addEventListener("change",()=>{
+        const file=photoInput.files && photoInput.files[0];
+        if(!file)return;
+        if(!["image/jpeg","image/png","image/webp"].includes(file.type) || file.size>5*1024*1024){
+          showMessage("profileMessage","Choose a JPG, PNG or WebP image up to 5 MB.",true);
+          photoInput.value="";
+          return;
+        }
+        const localUrl=URL.createObjectURL(file);
+        preview.src=localUrl;preview.hidden=false;
+        document.getElementById("profilePhotoStatus").textContent="Photo selected — upload storage connection required to save it.";
+      });
+    }
     put("nomineeName",m.nominee_full_name || m.nominee_name);
     put("nomineeRelationship",m.nominee_relationship || m.nominee_relation);
     put("nomineeDob",m.nominee_date_of_birth || m.nominee_dob);
