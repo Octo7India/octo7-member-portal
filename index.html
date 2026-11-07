@@ -601,7 +601,7 @@ footer .logo {color:white}
     <p class="subtitle">Register a new OCTO7 member in the selected available binary position.</p>
     <div class="card registration-card">
       <div id="registrationMessage" class="message" aria-live="polite"></div>
-      <form id="newMemberRegistrationForm" onsubmit="return false;">
+      <form id="newMemberRegistrationForm" onsubmit="submitNewMemberRegistration(event)">
         <div class="registration-grid">
           <label>Sponsor Member ID<input id="newMemberSponsorId" readonly></label>
           <label>Placement Parent ID<input id="newMemberParentId" readonly></label>
@@ -609,11 +609,13 @@ footer .logo {color:white}
           <label>Full Name<input id="newMemberFullName" type="text" autocomplete="name" maxlength="120" required></label>
           <label>Email Address<input id="newMemberEmail" type="email" autocomplete="email" maxlength="254" required></label>
           <label>Mobile Number<input id="newMemberPhone" type="tel" autocomplete="tel" maxlength="20" required></label>
+          <label>Create Password<input id="newMemberPassword" type="password" autocomplete="new-password" minlength="8" maxlength="72" required></label>
+          <label>Confirm Password<input id="newMemberConfirmPassword" type="password" autocomplete="new-password" minlength="8" maxlength="72" required></label>
         </div>
-        <p class="registration-note">The selected position is reserved only after the secure registration process is completed. Do not share passwords or payment details here.</p>
+        <p class="registration-note">The new Member ID will be generated automatically. New registrations remain pending until OCTO7 activates the membership. Keep the password confidential.</p>
         <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:18px">
           <button type="button" class="secondary-button" onclick="cancelMemberRegistration()">BACK TO GENEALOGY</button>
-          <button type="button" class="btn" disabled title="Secure registration API is not connected yet">SUBMIT REGISTRATION</button>
+          <button type="submit" class="btn" id="submitNewMemberButton">CREATE MEMBER</button>
         </div>
       </form>
     </div>
@@ -1490,6 +1492,48 @@ async function openMemberRegistration(parentId,side){
   }catch(error){
     document.getElementById("newMemberSponsorId").value="Unavailable";
     showMessage("registrationMessage",error.message||"Unable to load sponsor details.",true);
+  }
+}
+async function submitNewMemberRegistration(event){
+  event.preventDefault();
+  const form=document.getElementById("newMemberRegistrationForm");
+  const button=document.getElementById("submitNewMemberButton");
+  const password=document.getElementById("newMemberPassword").value;
+  const confirmPassword=document.getElementById("newMemberConfirmPassword").value;
+  if(password!==confirmPassword){
+    showMessage("registrationMessage","The passwords do not match.",true);
+    return;
+  }
+  if(password.length<8||password.length>72){
+    showMessage("registrationMessage","Password must contain 8 to 72 characters.",true);
+    return;
+  }
+  button.disabled=true;
+  button.textContent="CREATING MEMBER...";
+  showMessage("registrationMessage","Creating the member account securely. Please wait.");
+  try{
+    const result=await api("register_person",{
+      parent_position_id:Number(document.getElementById("newMemberParentId").value),
+      placement_side:document.getElementById("newMemberPlacementSide").value.toLowerCase(),
+      full_name:document.getElementById("newMemberFullName").value.trim(),
+      email:document.getElementById("newMemberEmail").value.trim(),
+      phone:document.getElementById("newMemberPhone").value.trim(),
+      password:password
+    });
+    const member=result.member||{};
+    const memberId=escapeHTML(String(member.member_id||""));
+    const status=escapeHTML(String(member.status||"pending").toUpperCase());
+    document.querySelector("#registrationView .registration-card").innerHTML=
+      '<div class="message success">New OCTO7 member registered successfully.</div>'+
+      '<h3>Registration completed</h3>'+
+      '<p><strong>New Member ID:</strong> '+memberId+'</p>'+
+      '<p><strong>Account status:</strong> '+status+'</p>'+
+      '<p class="registration-note">Please share the Member ID with the new member. Membership remains pending until activation. The new member can sign in using the password created during registration.</p>'+
+      '<button type="button" class="btn" onclick="loadGenealogy()">RETURN TO GENEALOGY</button>';
+  }catch(error){
+    showMessage("registrationMessage",error.message||"Member registration failed. Please try again.",true);
+    button.disabled=false;
+    button.textContent="CREATE MEMBER";
   }
 }
 function cancelMemberRegistration(){
