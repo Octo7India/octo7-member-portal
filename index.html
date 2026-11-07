@@ -34,9 +34,11 @@ nav a:hover {color:var(--gold)}
   min-height:500px;padding:90px 8%;display:flex;align-items:center;
   color:white;background:linear-gradient(120deg,#11152e,#38245d,#7040b5)
 }
-.hero-content {max-width:750px}
+.hero-content {max-width:750px;margin:0 auto;text-align:center}
 .hero h1 {font-size:48px}
 .hero h1 span {color:var(--gold)}
+.hero h1.hero-welcome .welcome-small{display:block;font-size:clamp(30px,4vw,46px);line-height:1.15;color:white}
+.hero h1.hero-welcome .brand-line{display:block;font-size:clamp(68px,12vw,120px);font-weight:900;line-height:1.05;letter-spacing:2px;color:var(--gold)}
 .hero p {font-size:19px;line-height:1.7}
 
 .btn {
@@ -308,7 +310,7 @@ footer .logo {color:white}
 
 <section class="hero" id="home">
   <div class="hero-content">
-    <h1>Welcome to <span>OCTO7</span></h1>
+    <h1 class="hero-welcome"><span class="welcome-small">Welcome</span><span class="welcome-small">To</span><span class="brand-line">OCTO7</span></h1>
     <p>Discover a world of opportunities through quality products, entrepreneurship and a growing business network.</p>
     <p>Together For a Better Tomorrow.</p>
     <a class="btn" href="#about">Discover OCTO7</a>
