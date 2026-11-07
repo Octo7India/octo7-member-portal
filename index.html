@@ -565,6 +565,19 @@ footer .logo {color:white}
       </div>
     </section>
     <section class="card profile-section">
+      <h3>Nominee Details</h3>
+      <div class="profile-grid">
+        <div><small>Nominee full name</small><strong id="profileNomineeName">—</strong></div>
+        <div><small>Relationship with member</small><strong id="profileNomineeRelationship">—</strong></div>
+        <div><small>Date of birth</small><strong id="profileNomineeDob">—</strong></div>
+        <div><small>Mobile number</small><strong id="profileNomineePhone">—</strong></div>
+        <div><small>Email address</small><strong id="profileNomineeEmail">—</strong></div>
+        <div><small>Complete address</small><strong id="profileNomineeAddress">—</strong></div>
+        <div><small>ID proof type</small><strong id="profileNomineeIdType">—</strong></div>
+      </div>
+      <p class="profile-note">Nominee information is displayed from your member record. Please contact OCTO7 support to add or change nominee details until secure nominee editing is connected.</p>
+    </section>
+    <section class="card profile-section">
       <h3>OCTO7 Membership Details</h3>
       <div class="profile-grid">
         <div><small>Member ID</small><strong id="profileMemberId">—</strong></div>
@@ -1200,6 +1213,13 @@ async function loadProfile() {
     put("sponsorName",m.sponsor_name || m.sponsor_full_name);
     put("joined",m.joined_at || m.created_at || m.date_of_joining);
     put("status",m.status || "Pending");
+    put("nomineeName",m.nominee_full_name || m.nominee_name);
+    put("nomineeRelationship",m.nominee_relationship || m.nominee_relation);
+    put("nomineeDob",m.nominee_date_of_birth || m.nominee_dob);
+    put("nomineePhone",m.nominee_phone || m.nominee_mobile);
+    put("nomineeEmail",m.nominee_email);
+    put("nomineeAddress",m.nominee_address);
+    put("nomineeIdType",m.nominee_id_proof_type);
     put("photoStatus",m.profile_picture_url || m.avatar_url || m.photo_url ? "Photo on file" : "Not provided");
     put("emailVerified",m.email_verified === true ? "Verified" : "Not verified / unavailable");
     put("phoneVerified",m.phone_verified === true ? "Verified" : "Not verified / unavailable");
