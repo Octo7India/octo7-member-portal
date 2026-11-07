@@ -548,10 +548,8 @@ footer .logo {color:white}
         <img id="profilePhotoPreview" class="profile-photo-preview" alt="Member profile photo" hidden>
         <label for="profilePhotoInput">Profile photo</label>
         <input id="profilePhotoInput" type="file" accept="image/jpeg,image/png,image/webp">
-        <small id="profilePhotoStatus">Choose a photo (JPG, PNG or WebP).</small>
       </div>
       <div class="profile-member-badge">
-        <small>OCTO7 Member ID</small>
         <strong id="profileMemberIdBadge">OCTO7 —</strong>
         <span id="profileActiveIndicator" class="member-status-indicator"><i></i><b id="profileActiveText">Status unavailable</b></span>
       </div>
@@ -1274,7 +1272,8 @@ async function loadProfile() {
         }
         const localUrl=URL.createObjectURL(file);
         preview.src=localUrl;preview.hidden=false;
-        document.getElementById("profilePhotoStatus").textContent="Photo selected — upload storage connection required to save it.";
+        const photoStatus=document.getElementById("profilePhotoStatus");
+        if(photoStatus) photoStatus.textContent="Photo selected — upload storage connection required to save it.";
       });
     }
     put("nomineeName",m.nominee_full_name || m.nominee_name);
