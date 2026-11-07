@@ -990,7 +990,7 @@ async function login() {
 }
 
 
-// RESTORE EXISTING SESSION
+// RESTORE EXISTING SESSION AFTER PAGE RELOAD
 
 async function restoreSession() {
   try {
@@ -1005,10 +1005,28 @@ async function restoreSession() {
       return;
     }
 
-    // Keep the public Welcome page visible after reload.
-    // Open the member area only after a member selects a member menu item.
-    document.getElementById("loginBox").hidden = false;
-    showPublicPage("home");
+    // Keep the member logged in after browser refresh / pull-to-refresh.
+    document.getElementById("loginBox").hidden = true;
+    showMemberPortal();
+
+    // Restore the member page that was open before refresh.
+    const hash = location.hash.replace(/^#/, "");
+    const allowedPages = [
+      "home","dashboard","profile","genealogy","registration",
+      "portalProducts","orders","wallet","bank","withdrawals",
+      "coupons","password","help","reports"
+    ];
+    const savedPage = hash.startsWith("member-")
+      ? hash.slice("member-".length)
+      : "";
+    const page = allowedPages.includes(savedPage) ? savedPage : "home";
+
+    showPortalPage(page, true);
+
+    if (page === "home") loadMemberWelcome();
+    else if (page === "dashboard") loadDashboard();
+    else if (page === "genealogy") loadGenealogy();
+    else if (page === "portalProducts") loadProducts();
 
   } catch(error) {
     console.error("Session restore:",error.message);
