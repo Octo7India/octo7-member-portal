@@ -307,6 +307,7 @@ footer .logo {color:white}
 @keyframes octo7spin{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){#octo7PageLoader .spinner{animation-duration:2s}}
 
+.profile-top-row{display:flex;align-items:center;gap:28px;flex-wrap:wrap;margin:0 0 18px;padding:16px;background:var(--card,#fff);border:1px solid #e8e8e8;border-radius:12px}.profile-top-row .profile-photo-control{max-width:220px}.profile-top-row .profile-member-badge{min-width:150px}
 .profile-photo-control{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0}.profile-photo-control label{font-weight:600}.profile-photo-control input{max-width:100%;font-size:14px}.profile-photo-preview{width:104px;height:104px;border-radius:50%;object-fit:cover;border:2px solid #ddd}.profile-member-badge{display:flex;flex-direction:column;gap:8px;align-items:flex-start}.profile-member-badge strong{font-size:20px;letter-spacing:.5px}.member-status-indicator{display:inline-flex;align-items:center;gap:7px;font-size:13px}.member-status-indicator i{width:10px;height:10px;border-radius:50%;background:#999;display:inline-block}.member-status-indicator.active i{background:#16a34a;box-shadow:0 0 0 3px #16a34a22}.member-status-indicator.inactive i{background:#dc2626}
 .profile-section{margin:16px 0}.profile-section h3{margin:0 0 16px;color:var(--text,#222)}.profile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px}.profile-grid>div{min-width:0;padding:10px 0;border-bottom:1px solid #e8e8e8}.profile-grid small{display:block;color:#777;margin-bottom:5px}.profile-grid strong{display:block;overflow-wrap:anywhere;font-weight:600}.profile-note{font-size:13px;color:#777;margin-top:14px}.profile-section button{margin-top:16px}@media(max-width:420px){.profile-grid{grid-template-columns:1fr 1fr;gap:10px}}
 </style>
@@ -542,6 +543,19 @@ footer .logo {color:white}
 
   <div id="profileView" class="portal-view">
     <h2>My Profile</h2>
+    <div class="profile-top-row">
+      <div class="profile-photo-control">
+        <img id="profilePhotoPreview" class="profile-photo-preview" alt="Member profile photo" hidden>
+        <label for="profilePhotoInput">Profile photo</label>
+        <input id="profilePhotoInput" type="file" accept="image/jpeg,image/png,image/webp">
+        <small id="profilePhotoStatus">Choose a photo (JPG, PNG or WebP).</small>
+      </div>
+      <div class="profile-member-badge">
+        <small>OCTO7 Member ID</small>
+        <strong id="profileMemberIdBadge">OCTO7 —</strong>
+        <span id="profileActiveIndicator" class="member-status-indicator"><i></i><b id="profileActiveText">Status unavailable</b></span>
+      </div>
+    </div>
     <div id="profileMessage" class="message" aria-live="polite"></div>
     <section class="card profile-section">
       <h3>Personal Information</h3>
@@ -551,17 +565,7 @@ footer .logo {color:white}
         <div><small>Gender</small><strong id="profileGender">—</strong></div>
         <div><small>Email address</small><strong id="profileEmail">—</strong></div>
         <div><small>Mobile number</small><strong id="profilePhone">—</strong></div>
-        <div class="profile-photo-control">
-          <img id="profilePhotoPreview" class="profile-photo-preview" alt="Member profile photo" hidden>
-          <label for="profilePhotoInput">Profile photo</label>
-          <input id="profilePhotoInput" type="file" accept="image/jpeg,image/png,image/webp">
-          <small id="profilePhotoStatus">Choose a photo (JPG, PNG or WebP).</small>
-          <div class="profile-member-badge">
-            <small>OCTO7 Member ID</small>
-            <strong id="profileMemberIdBadge">OCTO7 —</strong>
-            <span id="profileActiveIndicator" class="member-status-indicator"><i></i><b id="profileActiveText">Status unavailable</b></span>
-          </div>
-        </div>
+
       </div>
     </section>
     <section class="card profile-section">
