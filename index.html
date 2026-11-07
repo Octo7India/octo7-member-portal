@@ -283,6 +283,9 @@ footer .logo {color:white}
 .menu-emblem{display:inline-flex;flex-direction:column;gap:4px;width:22px}
 .menu-emblem i{display:block;width:22px;height:2px;border-radius:2px;background:currentColor}
 .login-hint{display:block;margin:5px 0 14px;color:#777;font-size:12px}
+.member-welcome-simple{text-align:center;max-width:760px;margin:42px auto;padding:0 16px;color:#302044}
+.member-welcome-simple h2{margin:0 0 10px;font-size:clamp(26px,4vw,36px);font-weight:500}
+.member-welcome-simple h1{margin:0;font-size:clamp(30px,5vw,46px);font-weight:800}
 .member-welcome-card{display:flex;align-items:center;gap:22px;max-width:760px;margin:28px auto;padding:28px;border:1px solid #e8e1ef;border-radius:16px;background:#fff;box-shadow:0 8px 28px rgba(35,20,55,.08);color:#302044}
 .member-welcome-photo{width:104px;height:104px;flex:0 0 104px;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#f0eaf6;border:3px solid var(--gold);font-size:44px}
 .member-welcome-photo img{width:100%;height:100%;object-fit:cover}
@@ -518,14 +521,9 @@ footer .logo {color:white}
   <div id="portalMessage" class="message" aria-live="polite"></div>
 
   <div id="homeView" class="portal-view">
-    <div class="member-welcome-card">
-      <div class="member-welcome-photo" id="welcomeMemberPhoto" aria-label="Member profile picture">👤</div>
-      <div class="member-welcome-details">
-        <p class="welcome-kicker">OCTO7 INDIA MEMBER PORTAL</p>
-        <h2 id="welcomeMemberName">Welcome, Member</h2>
-        <p>Member ID: <strong id="welcomeMemberId">Loading...</strong></p>
-        <span id="welcomeAccountStatus" class="welcome-status pending">Checking account status...</span>
-      </div>
+    <div class="member-welcome-simple">
+      <h2>Welcome</h2>
+      <h1 id="welcomeMemberName">Varghese Thomas</h1>
     </div>
     <div id="welcomeMessage" class="message" aria-live="polite"></div>
   </div>
@@ -1143,7 +1141,7 @@ async function loadMemberWelcome() {
     const data = await api("me");
     const member = data.member || {};
     const name = member.full_name || member.name || "OCTO7 Member";
-    nameEl.textContent = "Welcome, " + name;
+    nameEl.textContent = name;
     idEl.textContent = member.member_id || member.id || "Not assigned";
     const status = String(member.status || "Pending");
     statusEl.textContent = status;
