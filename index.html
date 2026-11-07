@@ -307,6 +307,7 @@ footer .logo {color:white}
 @keyframes octo7spin{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){#octo7PageLoader .spinner{animation-duration:2s}}
 
+.profile-section{margin:16px 0}.profile-section h3{margin:0 0 16px;color:var(--text,#222)}.profile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px}.profile-grid>div{min-width:0;padding:10px 0;border-bottom:1px solid #e8e8e8}.profile-grid small{display:block;color:#777;margin-bottom:5px}.profile-grid strong{display:block;overflow-wrap:anywhere;font-weight:600}.profile-note{font-size:13px;color:#777;margin-top:14px}.profile-section button{margin-top:16px}@media(max-width:420px){.profile-grid{grid-template-columns:1fr 1fr;gap:10px}}
 </style>
 </head>
 
@@ -537,7 +538,53 @@ footer .logo {color:white}
     </div>
   </div>
 
-  <div id="profileView" class="portal-view"><h2>My Profile</h2><div class="card"><p>Your registered member profile will appear here.</p><p>Profile details will be connected in the profile stage.</p></div></div>
+  <div id="profileView" class="portal-view">
+    <h2>My Profile</h2>
+    <div id="profileMessage" class="message" aria-live="polite"></div>
+    <section class="card profile-section">
+      <h3>Personal Information</h3>
+      <div class="profile-grid">
+        <div><small>Full name</small><strong id="profileFullName">—</strong></div>
+        <div><small>Date of birth</small><strong id="profileDob">—</strong></div>
+        <div><small>Gender</small><strong id="profileGender">—</strong></div>
+        <div><small>Email address</small><strong id="profileEmail">—</strong></div>
+        <div><small>Mobile number</small><strong id="profilePhone">—</strong></div>
+        <div><small>Profile photo</small><strong id="profilePhotoStatus">Not provided</strong></div>
+      </div>
+    </section>
+    <section class="card profile-section">
+      <h3>Address Details</h3>
+      <div class="profile-grid">
+        <div><small>House / building</small><strong id="profileHouse">—</strong></div>
+        <div><small>Street / locality</small><strong id="profileStreet">—</strong></div>
+        <div><small>City</small><strong id="profileCity">—</strong></div>
+        <div><small>District</small><strong id="profileDistrict">—</strong></div>
+        <div><small>State</small><strong id="profileState">—</strong></div>
+        <div><small>PIN code</small><strong id="profilePin">—</strong></div>
+        <div><small>Country</small><strong id="profileCountry">—</strong></div>
+      </div>
+    </section>
+    <section class="card profile-section">
+      <h3>OCTO7 Membership Details</h3>
+      <div class="profile-grid">
+        <div><small>Member ID</small><strong id="profileMemberId">—</strong></div>
+        <div><small>Sponsor ID</small><strong id="profileSponsorId">—</strong></div>
+        <div><small>Sponsor name</small><strong id="profileSponsorName">—</strong></div>
+        <div><small>Date of joining</small><strong id="profileJoined">—</strong></div>
+        <div><small>Account status</small><strong id="profileStatus">—</strong></div>
+      </div>
+      <p class="profile-note">Your Member ID, Sponsor ID, joining date and account status are managed by OCTO7 and cannot be changed here.</p>
+    </section>
+    <section class="card profile-section">
+      <h3>Account Security</h3>
+      <div class="profile-grid">
+        <div><small>Email verification</small><strong id="profileEmailVerified">—</strong></div>
+        <div><small>Mobile verification</small><strong id="profilePhoneVerified">—</strong></div>
+      </div>
+      <button type="button" class="secondary-button" onclick="goMemberMenu('password')">CHANGE PASSWORD</button>
+    </section>
+    <p class="profile-note">Profile information is shown from your OCTO7 member record. Contact OCTO7 support if any detail needs correction.</p>
+  </div>
   <div id="genealogyView" class="portal-view"><h2>My Genealogy</h2><div id="genealogyTree"></div></div>
   <div id="registrationView" class="portal-view"><h2>New Member Registration</h2><div class="card"><p>Member registration and sponsor placement will be available in the registration stage.</p></div></div>
   <div id="portalProductsView" class="portal-view"><h2>Products</h2><div id="portalProducts" class="cards"><div class="card">Loading products...</div></div></div>
@@ -762,6 +809,7 @@ function goMemberMenu(item) {
   if (!page) return;
   showPortalPage(page);
   if (item === "dashboard") loadDashboard();
+  else if (item === "profile") loadProfile();
   else if (item === "genealogy") loadGenealogy();
   else if (item === "products") loadProducts();
 }
@@ -1125,6 +1173,42 @@ function renderDashboard(data) {
 
   `;
 }
+
+async function loadProfile() {
+  const ids = {
+    fullName:"full_name", dob:"date_of_birth", gender:"gender",
+    email:"email", phone:"phone", house:"house_name", street:"street",
+    city:"city", district:"district", state:"state", pin:"pin_code",
+    country:"country", memberId:"member_id", sponsorId:"sponsor_id",
+    sponsorName:"sponsor_name", joined:"joined_at", status:"status"
+  };
+  const put = (id,value) => {
+    const el=document.getElementById("profile"+id.charAt(0).toUpperCase()+id.slice(1));
+    if(el) el.textContent = value == null || value === "" ? "Not provided" : String(value);
+  };
+  showMessage("profileMessage","Loading your profile...");
+  try {
+    const data=await api("me");
+    const m=data.member || {};
+    Object.entries(ids).forEach(([key,field]) => put(key,m[field]));
+    put("email",m.email || (client.auth.getUser ? (await client.auth.getUser()).data.user?.email : ""));
+    put("phone",m.phone || m.mobile_number || m.mobile);
+    put("house",m.house_name || m.house_number || m.address_line1);
+    put("street",m.street || m.locality || m.address_line2);
+    put("pin",m.pin_code || m.pincode || m.postal_code);
+    put("sponsorId",m.sponsor_id || m.sponsor_member_id);
+    put("sponsorName",m.sponsor_name || m.sponsor_full_name);
+    put("joined",m.joined_at || m.created_at || m.date_of_joining);
+    put("status",m.status || "Pending");
+    put("photoStatus",m.profile_picture_url || m.avatar_url || m.photo_url ? "Photo on file" : "Not provided");
+    put("emailVerified",m.email_verified === true ? "Verified" : "Not verified / unavailable");
+    put("phoneVerified",m.phone_verified === true ? "Verified" : "Not verified / unavailable");
+    showMessage("profileMessage","");
+  } catch(error) {
+    showMessage("profileMessage",error.message || "Unable to load your profile.",true);
+  }
+}
+
 
 async function loadDashboard() {
   showPortalPage("dashboard");
