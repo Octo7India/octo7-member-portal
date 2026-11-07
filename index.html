@@ -147,109 +147,30 @@ input {
 .stat-card {border-top:4px solid var(--purple)}
 .stat-card h2 {margin:8px 0;font-size:25px}
 
-/* GENEALOGY TREE */
-.genealogy-tree {
-  max-width:850px;
-  margin:25px auto;
-  padding:25px 10px;
-  text-align:center;
-  overflow:hidden
-}
-.genealogy-title {
-  color:var(--navy);
-  font-size:29px;
-  font-weight:bold;
-  margin-bottom:35px
-}
-.tree-main {
-  display:inline-block;
-  width:260px;
-  max-width:95%;
-  padding:24px 15px;
-  background:var(--navy);
-  color:white;
-  border:3px solid var(--gold);
-  border-radius:14px;
-  box-shadow:0 5px 20px #00000020
-}
-.tree-main-name {
-  font-size:27px;
-  font-weight:bold;
-  letter-spacing:2px;
-  color:var(--gold)
-}
-.tree-main-id {
-  font-size:25px;
-  font-weight:bold;
-  margin:10px 0
-}
-.tree-status {
-  font-weight:bold;
-  margin:12px 0
-}
-.tree-status.active {color:#55e889}
-.tree-status.inactive {color:#ff7979}
-.tree-volume {
-  display:flex;
-  justify-content:space-around;
-  gap:15px;
-  margin-top:16px;
-  font-size:15px;
-  font-weight:bold
-}
-.tree-volume div {
-  padding:8px;
-  background:#ffffff15;
-  border-radius:6px
-}
-.tree-vertical {
-  height:30px;
-  width:2px;
-  background:var(--purple);
-  margin:auto
-}
-.tree-connector {
-  width:50%;
-  height:35px;
-  margin:auto;
-  border-bottom:2px solid var(--purple);
-  border-left:2px solid var(--purple);
-  border-right:2px solid var(--purple)
-}
-.tree-children {
-  display:flex;
-  justify-content:space-around;
-  align-items:flex-start;
-  gap:20px
-}
-.tree-child {
-  width:42%;
-  max-width:220px;
-  min-height:125px;
-  padding:18px 10px;
-  background:white;
-  border:2px solid var(--purple);
-  border-radius:12px;
-  box-shadow:0 4px 15px #00000010
-}
-.tree-child.empty {
-  border:2px dashed #aaa;
-  color:#777
-}
-.tree-child h3 {
-  color:var(--purple);
-  font-size:16px;
-  margin:0 0 12px
-}
-.tree-child p {
-  overflow-wrap:anywhere;
-  font-size:14px
-}
-.tree-child-status {font-weight:bold}
-.tree-child-status.active {color:var(--green)}
-.tree-child-status.inactive {color:var(--red)}
-.tree-child-volume {font-size:13px;line-height:1.8}
-
+/* OCTO7 BINARY GENEALOGY — scalable rectangular layout */
+.genealogy-tree{max-width:100%;margin:18px auto;padding:12px 8px;text-align:center}
+.genealogy-toolbar{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;margin:0 auto 14px}
+.genealogy-toolbar button{border:1px solid var(--purple);background:#fff;color:var(--purple);border-radius:7px;padding:8px 12px;font-weight:700;cursor:pointer}
+.genealogy-viewport{width:100%;height:min(68vh,680px);min-height:360px;overflow:auto;position:relative;border:1px solid #e7e1ee;border-radius:12px;background:#fbfaff;cursor:grab}
+.genealogy-viewport.dragging{cursor:grabbing;user-select:none}
+.genealogy-canvas{display:inline-block;min-width:100%;padding:34px 28px 55px;transform-origin:top left}
+.binary-subtree{display:flex;flex-direction:column;align-items:center;position:relative;flex:0 0 auto}
+.binary-card{width:90px;height:58px;box-sizing:border-box;border:2px solid var(--purple);border-radius:3px;background:#fff;color:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 2px 7px #00000012}
+.binary-card.root{background:var(--navy);border-color:var(--gold);color:#fff}
+.binary-brand{font-size:11px;font-weight:800;letter-spacing:.7px;line-height:1.2}
+.binary-id{font-size:14px;font-weight:800;line-height:1.25}
+.binary-status{font-size:8px;font-weight:800;margin-top:2px;line-height:1}
+.binary-status.active{color:#168344}.binary-status.inactive{color:#d22}
+.binary-card.root .binary-status.active{color:#65e99a}.binary-card.root .binary-status.inactive{color:#ff8888}
+.binary-children{display:flex;justify-content:center;align-items:flex-start;gap:120px;position:relative;padding-top:57px}
+.binary-children:before{content:"";position:absolute;top:0;left:50%;height:28px;border-left:2px solid var(--purple)}
+.binary-children:after{content:"";position:absolute;top:28px;left:calc(50% - 105px);width:210px;border-top:2px solid var(--purple)}
+.binary-child-slot{position:relative;padding-top:29px}
+.binary-child-slot:before{content:"";position:absolute;top:0;left:50%;height:29px;border-left:2px solid var(--purple)}
+.binary-empty{width:90px;height:58px;box-sizing:border-box;border:2px dashed #aaa;border-radius:3px;background:#fff;color:#777;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;font-weight:700;line-height:1.4}
+.binary-empty small{font-size:8px;font-weight:500}
+.genealogy-legend{font-size:12px;color:#666;margin:10px 0}
+@media(max-width:650px){.genealogy-viewport{height:62vh;min-height:330px}.genealogy-canvas{padding:25px 18px 45px}}
 footer {
   background:var(--navy);
   color:white;
@@ -1473,136 +1394,65 @@ async function loadMemberWelcome() {
 }
 
 
-// GENEALOGY HELPERS
-
-function isActive(member) {
-  return String(member?.status || "").toLowerCase() === "active";
-}
-
-function getMemberId(member) {
-  return member?.member_id ?? member?.id ?? "-";
-}
-
-function treeChild(title,member) {
-
-  if (!member) {
-    return `
-      <div class="tree-child empty">
-        <h3>${escapeHTML(title)}</h3>
-        <p>Position Available</p>
-      </div>
-    `;
+// GENEALOGY HELPERS — scalable binary tree
+function buildGenealogyMap(nodes){
+  const map=new Map();
+  for(const n of nodes||[])map.set(String(n.id),Object.assign({},n,{left:null,right:null}));
+  const first=(nodes||[]).find(n=>Number(n.depth)===0);
+  if(!first)return {root:null};
+  const root=map.get(String(first.id));
+  for(const n of nodes||[]){
+    if(Number(n.depth)===0)continue;
+    const parent=map.get(String(n.parent_id));
+    if(!parent)continue;
+    const side=String(n.side||"").toLowerCase();
+    if(side==="left")parent.left=map.get(String(n.id));
+    if(side==="right")parent.right=map.get(String(n.id));
   }
-
-  const active = isActive(member);
-
-  return `
-    <div class="tree-child">
-      <h3>${escapeHTML(title)}</h3>
-
-      <strong>
-        ${escapeHTML(member.full_name || member.name || "Member")}
-      </strong>
-
-      <p>Member ID: ${escapeHTML(getMemberId(member))}</p>
-
-      <p class="tree-child-status ${active ? "active" : "inactive"}">
-        ${active ? "🟢 ACTIVATED" : "🔴 " + escapeHTML(member.status || "INACTIVE")}
-      </p>
-
-      <div class="tree-child-volume">
-        LBV: ${escapeHTML(member.left_available_bv ?? 0)}
-        |
-        RBV: ${escapeHTML(member.right_available_bv ?? 0)}
-      </div>
-    </div>
-  `;
+  return {root};
 }
-
-
-// LOAD GENEALOGY
-
-async function loadGenealogy() {
+function renderGenealogyNode(node,isRoot){
+  const active=String(node.status||"").toLowerCase()==="active";
+  const card='<div class="binary-card '+(isRoot?'root':'')+'"><span class="binary-brand">OCTO7</span><span class="binary-id">'+escapeHTML(String(node.member_id??"-"))+'</span><span class="binary-status '+(active?'active':'inactive')+'">'+(active?'ACTIVE':'INACTIVE')+'</span></div>';
+  const left=node.left?renderGenealogyNode(node.left,false):'<div class="binary-empty">LEFT<small>Position Available</small></div>';
+  const right=node.right?renderGenealogyNode(node.right,false):'<div class="binary-empty">RIGHT<small>Position Available</small></div>';
+  return '<div class="binary-subtree"><div>'+card+'</div><div class="binary-children"><div class="binary-child-slot">'+left+'</div><div class="binary-child-slot">'+right+'</div></div></div>';
+}
+function setupGenealogyControls(){
+  const view=document.getElementById("genealogyViewport"),canvas=document.getElementById("genealogyCanvas");
+  if(!view||!canvas)return;
+  let scale=1,drag=false,x=0,y=0,left=0,top=0;
+  const apply=()=>{canvas.style.transform="scale("+scale+")";document.getElementById("genealogyZoomLabel").textContent=Math.round(scale*100)+"%";};
+  document.getElementById("genealogyZoomIn").onclick=()=>{scale=Math.min(2.2,scale+.15);apply();};
+  document.getElementById("genealogyZoomOut").onclick=()=>{scale=Math.max(.35,scale-.15);apply();};
+  document.getElementById("genealogyFit").onclick=()=>{scale=Math.max(.35,Math.min(1,(view.clientWidth-30)/(canvas.scrollWidth||canvas.offsetWidth)));apply();view.scrollLeft=0;view.scrollTop=0;};
+  view.addEventListener("pointerdown",e=>{if(e.target.closest("button"))return;drag=true;x=e.clientX;y=e.clientY;left=view.scrollLeft;top=view.scrollTop;view.classList.add("dragging");view.setPointerCapture(e.pointerId);});
+  view.addEventListener("pointermove",e=>{if(drag){view.scrollLeft=left-(e.clientX-x);view.scrollTop=top-(e.clientY-y);}});
+  const stop=()=>{drag=false;view.classList.remove("dragging");};
+  view.addEventListener("pointerup",stop);view.addEventListener("pointercancel",stop);
+  view.addEventListener("wheel",e=>{if(e.ctrlKey){e.preventDefault();scale=Math.max(.35,Math.min(2.2,scale+(e.deltaY<0?.08:-.08)));apply();}},{passive:false});
+  apply();setTimeout(()=>document.getElementById("genealogyFit").click(),60);
+}
+async function loadGenealogy(){
   showPortalPage("genealogy");
-
-  const box = document.getElementById("genealogyTree");
-
-  box.innerHTML =
-    '<div class="card">Loading OCTO7 genealogy...</div>';
-
-  try {
-
-    const [profile,genealogy] = await Promise.all([
-      api("me"),
-      api("my_genealogy")
-    ]);
-
-    const root =
-      genealogy.member ||
-      genealogy.root ||
-      genealogy.main_member ||
-      profile.member ||
-      {};
-
-    const left =
-      root.left_child ||
-      genealogy.left_child ||
-      genealogy.left ||
-      null;
-
-    const right =
-      root.right_child ||
-      genealogy.right_child ||
-      genealogy.right ||
-      null;
-
-    const binary = profile.binary || genealogy.binary || {};
-    const active = isActive(root);
-
-    box.innerHTML = `
-
-      <div class="genealogy-tree">
-
-        <div class="tree-main">
-
-          <div class="tree-main-name">
-            OCTO7
-          </div>
-
-          <div class="tree-main-id">
-            ${escapeHTML(getMemberId(root))}
-          </div>
-
-          <div class="tree-status ${active ? "active" : "inactive"}">
-            ${active ? "🟢 ACTIVATED" : "🔴 " + escapeHTML(root.status || "INACTIVE")}
-          </div>
-
-          <div class="tree-volume">
-            <div>LBV: ${escapeHTML(binary.left_available_bv ?? 0)}</div>
-            <div>RBV: ${escapeHTML(binary.right_available_bv ?? 0)}</div>
-          </div>
-
-        </div>
-
-        <div class="tree-vertical"></div>
-        <div class="tree-connector"></div>
-
-        <div class="tree-children">
-          ${treeChild("LEFT CHILD",left)}
-          ${treeChild("RIGHT CHILD",right)}
-        </div>
-
-      </div>
-    `;
-
-  } catch(error) {
-    box.innerHTML = "";
-    showMessage("portalMessage",error.message,true);
+  const box=document.getElementById("genealogyTree");
+  box.innerHTML='<div class="card">Loading OCTO7 genealogy...</div>';
+  try{
+    const [profile,genealogy]=await Promise.all([api("me"),api("my_genealogy")]);
+    const nodes=Array.isArray(genealogy.nodes)?genealogy.nodes:[];
+    if(!nodes.length)throw new Error("No genealogy positions were returned for this member.");
+    const tree=buildGenealogyMap(nodes);
+    if(!tree.root)throw new Error("The genealogy root position is missing.");
+    const binary=profile.binary||genealogy.binary||{};
+    box.innerHTML='<div class="genealogy-tree"><div class="genealogy-toolbar"><button type="button" id="genealogyZoomOut">−</button><span id="genealogyZoomLabel">100%</span><button type="button" id="genealogyZoomIn">＋</button><button type="button" id="genealogyFit">Fit to Tree</button></div><div class="genealogy-viewport" id="genealogyViewport"><div class="genealogy-canvas" id="genealogyCanvas">'+renderGenealogyNode(tree.root,true)+'</div></div><div class="genealogy-legend">Drag to move · Use zoom controls · LBV: '+escapeHTML(String(binary.left_available_bv??0))+' · RBV: '+escapeHTML(String(binary.right_available_bv??0))+'</div></div>';
+    setupGenealogyControls();
+  }catch(error){
+    box.innerHTML='<div class="card">Unable to load genealogy: '+escapeHTML(error.message)+'</div>';
   }
 }
 
 
-// PRODUCTS
+// // PRODUCTS
 
 async function loadProducts() {
   showPortalPage("portalProducts");
