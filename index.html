@@ -512,6 +512,7 @@ footer .logo {color:white}
       <button type="button" onclick="goMemberMenu('orders')"><span>🛒</span>My Orders</button>
       <button type="button" onclick="goMemberMenu('wallet')"><span>▣</span>My Wallet</button>
       <button type="button" onclick="goMemberMenu('bank')"><span>▤</span>Bank Details</button>
+      <button type="button" onclick="goMemberMenu('kyc')"><span>✓</span>KYC Verification</button>
       <button type="button" onclick="goMemberMenu('withdrawals')"><span>⇩</span>Withdrawals</button>
       <button type="button" onclick="goMemberMenu('coupons')"><span>▧</span>My Coupons</button>
       <button type="button" onclick="goMemberMenu('password')"><span>🔒</span>Change Password</button>
@@ -604,6 +605,25 @@ footer .logo {color:white}
   <div id="ordersView" class="portal-view"><h2>My Orders</h2><div class="card"><p>Your order history will appear here once the orders page is connected.</p></div></div>
   <div id="walletView" class="portal-view"><h2>My Wallet</h2><div class="card"><p>Your wallet balance and transaction history will appear here.</p></div></div>
   <div id="bankView" class="portal-view"><h2>Bank Details</h2><div class="card"><p>Your bank details page will be connected in the bank-details stage.</p></div></div>
+  <div id="kycView" class="portal-view">
+    <h2>KYC Verification</h2>
+    <div id="kycMessage" class="message" aria-live="polite"></div>
+    <section class="card profile-section">
+      <h3>Identity Verification</h3>
+      <p>Complete at least ONE verification method to meet OCTO7's KYC requirement. You may complete both if needed.</p>
+      <div class="profile-grid">
+        <div><small>PAN verification</small><strong id="kycPanStatus">Not submitted</strong></div>
+        <div><small>Aadhaar verification</small><strong id="kycAadhaarStatus">Not submitted</strong></div>
+        <div><small>Overall KYC status</small><strong id="kycOverallStatus">Pending</strong></div>
+      </div>
+    </section>
+    <section class="card profile-section">
+      <h3>Choose a verification method</h3>
+      <p><strong>Option 1: PAN Card</strong> — verify your PAN and the name printed on it.</p>
+      <p><strong>Option 2: Aadhaar</strong> — complete verification through an authorised, legally compliant Aadhaar verification process.</p>
+      <p class="profile-note">Secure KYC submission, document upload and verification are not connected yet. Do not enter or upload PAN or Aadhaar details on this page until the secure verification service is enabled. Full Aadhaar numbers and identity documents must not be stored in an ordinary website form.</p>
+    </section>
+  </div>
   <div id="withdrawalsView" class="portal-view"><h2>Withdrawals</h2><div class="card"><p>Your withdrawal requests and their status will appear here.</p></div></div>
   <div id="couponsView" class="portal-view"><h2>My Coupons</h2><div class="card"><p>Your OCTO7 coupon details and redemption history will appear here.</p></div></div>
   <div id="passwordView" class="portal-view"><h2>Change Password</h2><div class="card"><p>Password management will be connected in the account-security stage.</p></div></div>
@@ -813,7 +833,7 @@ function toggleMemberMenu(open) {
 function goMemberMenu(item) {
   toggleMemberMenu(false);
   const pages = {
-    home:"home", dashboard:"dashboard", profile:"profile", genealogy:"genealogy",
+    home:"home", dashboard:"dashboard", profile:"profile", kyc:"kyc", genealogy:"genealogy",
     registration:"registration", products:"portalProducts", orders:"orders",
     wallet:"wallet", bank:"bank", withdrawals:"withdrawals", coupons:"coupons",
     password:"password", help:"help", reports:"reports"
@@ -823,6 +843,7 @@ function goMemberMenu(item) {
   showPortalPage(page);
   if (item === "dashboard") loadDashboard();
   else if (item === "profile") loadProfile();
+  else if (item === "kyc") loadKyc();
   else if (item === "genealogy") loadGenealogy();
   else if (item === "products") loadProducts();
 }
@@ -1079,7 +1100,7 @@ async function restoreSession() {
     // Restore the member page that was open before refresh.
     const hash = location.hash.replace(/^#/, "");
     const allowedPages = [
-      "home","dashboard","profile","genealogy","registration",
+      "home","dashboard","profile","kyc","genealogy","registration",
       "portalProducts","orders","wallet","bank","withdrawals",
       "coupons","password","help","reports"
     ];
@@ -1098,6 +1119,7 @@ async function restoreSession() {
 
     if (page === "home") loadMemberWelcome();
     else if (page === "dashboard") loadDashboard();
+    else if (page === "kyc") loadKyc();
     else if (page === "genealogy") loadGenealogy();
     else if (page === "portalProducts") loadProducts();
 
@@ -1127,7 +1149,7 @@ function showPortalPage(page, fromHistory = false) {
     return;
   }
   showMessage("portalMessage", "");
-  const headings = {home:"Home",dashboard:"Dashboard",profile:"My Profile",genealogy:"My Genealogy",registration:"New Member Registration",portalProducts:"Products",orders:"My Orders",wallet:"My Wallet",bank:"Bank Details",withdrawals:"Withdrawals",coupons:"My Coupons",password:"Change Password",help:"Help Line",reports:"Report"};
+  const headings = {home:"Home",dashboard:"Dashboard",profile:"My Profile",kyc:"KYC Verification",genealogy:"My Genealogy",registration:"New Member Registration",portalProducts:"Products",orders:"My Orders",wallet:"My Wallet",bank:"Bank Details",withdrawals:"Withdrawals",coupons:"My Coupons",password:"Change Password",help:"Help Line",reports:"Report"};
   const heading = selected.querySelector("h2");
   if (heading && headings[page]) heading.setAttribute("aria-label", headings[page]);
   selected.scrollIntoView({behavior:"auto",block:"start"});
@@ -1226,6 +1248,24 @@ async function loadProfile() {
     showMessage("profileMessage","");
   } catch(error) {
     showMessage("profileMessage",error.message || "Unable to load your profile.",true);
+  }
+}
+
+
+async function loadKyc() {
+  showMessage("kycMessage","Loading your KYC status...");
+  try {
+    const data=await api("me");
+    const m=data.member || {};
+    const pan=String(m.pan_verification_status || m.pan_status || "Not submitted");
+    const aadhaar=String(m.aadhaar_verification_status || m.aadhaar_status || "Not submitted");
+    const verified=value=>value.toLowerCase()==="verified" || value.toLowerCase()==="approved";
+    document.getElementById("kycPanStatus").textContent=pan;
+    document.getElementById("kycAadhaarStatus").textContent=aadhaar;
+    document.getElementById("kycOverallStatus").textContent=(verified(pan)||verified(aadhaar))?"Verified":"Pending";
+    showMessage("kycMessage","");
+  } catch(error) {
+    showMessage("kycMessage",error.message || "Unable to load KYC status.",true);
   }
 }
 
