@@ -310,6 +310,15 @@ footer .logo {color:white}
 .profile-top-row{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin:0 0 18px;padding:16px;background:var(--card,#fff);border:1px solid #e8e8e8;border-radius:12px}.profile-top-row .profile-photo-control{max-width:220px}.profile-top-row .profile-member-badge{min-width:150px;margin-top:2px}
 .profile-photo-control{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0}.profile-photo-control label{font-weight:600}.profile-photo-control input{max-width:100%;font-size:14px}.profile-photo-preview{width:104px;height:104px;border-radius:50%;object-fit:cover;border:2px solid #ddd}.profile-member-badge{display:flex;flex-direction:column;gap:8px;align-items:flex-start}.profile-member-badge strong{font-size:20px;letter-spacing:.5px}.member-status-indicator{display:inline-flex;align-items:center;gap:7px;font-size:13px}.member-status-indicator i{width:10px;height:10px;border-radius:50%;background:#999;display:inline-block}.member-status-indicator.active i{background:#16a34a;box-shadow:0 0 0 3px #16a34a22}.member-status-indicator.inactive i{background:#dc2626}
 .profile-section{margin:16px 0}.profile-section h3{margin:0 0 16px;color:var(--text,#222)}.profile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px}.profile-grid>div{min-width:0;padding:10px 0;border-bottom:1px solid #e8e8e8}.profile-grid small{display:block;color:#777;margin-bottom:5px}.profile-grid strong{display:block;overflow-wrap:anywhere;font-weight:600}.profile-note{font-size:13px;color:#777;margin-top:14px}.profile-section button{margin-top:16px}@media(max-width:420px){.profile-grid{grid-template-columns:1fr 1fr;gap:10px}}
+.profile-edit-form{margin:18px 0;padding:22px;text-align:left}
+.profile-edit-form h3{margin:22px 0 12px;color:var(--navy)}
+.profile-edit-form h3:first-child{margin-top:0}
+.profile-edit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.profile-edit-grid label{display:block;font-size:13px;font-weight:700;color:#444}
+.profile-edit-grid input,.profile-edit-grid select,.profile-edit-grid textarea{display:block;width:100%;margin:7px 0 5px;padding:12px;border:1px solid #ccc;border-radius:6px;font:inherit;font-weight:400}
+.profile-edit-wide{grid-column:1/-1}
+.profile-edit-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:18px}
+
 
 .photo-crop-modal{position:fixed;inset:0;z-index:10000;background:#09051dcc;display:none;align-items:center;justify-content:center;padding:14px}
 .photo-crop-modal.open{display:flex}
@@ -579,7 +588,6 @@ footer .logo {color:white}
         <div><small>Gender</small><strong id="profileGender">—</strong></div>
         <div><small>Email address</small><strong id="profileEmail">—</strong></div>
         <div><small>Mobile number</small><strong id="profilePhone">—</strong></div>
-
       </div>
     </section>
     <section class="card profile-section">
@@ -605,8 +613,41 @@ footer .logo {color:white}
         <div><small>Complete address</small><strong id="profileNomineeAddress">—</strong></div>
         <div><small>ID proof type</small><strong id="profileNomineeIdType">—</strong></div>
       </div>
-      <p class="profile-note">Nominee information is displayed from your member record. Please contact OCTO7 support to add or change nominee details until secure nominee editing is connected.</p>
     </section>
+    <button type="button" class="btn" id="editProfileButton" onclick="toggleProfileEdit(true)">EDIT PROFILE DETAILS</button>
+    <form id="profileEditForm" class="card profile-edit-form" hidden onsubmit="saveProfileDetails(event)">
+      <h3>Edit Personal &amp; Contact Details</h3>
+      <p class="profile-note">Your registered name and login email are protected. Contact OCTO7 support if either needs correction.</p>
+      <div class="profile-edit-grid">
+        <label>Date of birth<input name="date_of_birth" id="editDob" type="date"></label>
+        <label>Gender<select name="gender" id="editGender"><option value="">Select</option><option>Female</option><option>Male</option><option>Other</option><option>Prefer not to say</option></select></label>
+        <label>Mobile number<input name="phone" id="editPhone" type="tel" maxlength="20" autocomplete="tel"></label>
+      </div>
+      <h3>Address Details</h3>
+      <div class="profile-edit-grid">
+        <label>House / building<input name="house_name" id="editHouse" maxlength="150"></label>
+        <label>Street / locality<input name="street" id="editStreet" maxlength="150"></label>
+        <label>City<input name="city" id="editCity" maxlength="100"></label>
+        <label>District<input name="district" id="editDistrict" maxlength="100"></label>
+        <label>State<input name="state" id="editState" maxlength="100"></label>
+        <label>PIN code<input name="pin_code" id="editPin" inputmode="numeric" maxlength="12"></label>
+        <label>Country<input name="country" id="editCountry" maxlength="100"></label>
+      </div>
+      <h3>Nominee Details</h3>
+      <div class="profile-edit-grid">
+        <label>Nominee full name<input name="nominee_full_name" id="editNomineeName" maxlength="150"></label>
+        <label>Relationship<input name="nominee_relationship" id="editNomineeRelationship" maxlength="60"></label>
+        <label>Nominee date of birth<input name="nominee_date_of_birth" id="editNomineeDob" type="date"></label>
+        <label>Nominee mobile number<input name="nominee_phone" id="editNomineePhone" type="tel" maxlength="20"></label>
+        <label>Nominee email<input name="nominee_email" id="editNomineeEmail" type="email" maxlength="254"></label>
+        <label>Nominee ID proof type<input name="nominee_id_proof_type" id="editNomineeIdType" maxlength="80" placeholder="e.g. PAN / Voter ID"></label>
+        <label class="profile-edit-wide">Nominee complete address<textarea name="nominee_address" id="editNomineeAddress" rows="3" maxlength="500"></textarea></label>
+      </div>
+      <div class="profile-edit-actions">
+        <button type="button" class="secondary-button" onclick="toggleProfileEdit(false)">CANCEL</button>
+        <button type="submit" class="btn" id="saveProfileButton">SAVE PROFILE DETAILS</button>
+      </div>
+    </form>
     <section class="card profile-section">
       <h3>OCTO7 Membership Details</h3>
       <div class="profile-grid">
@@ -616,7 +657,7 @@ footer .logo {color:white}
         <div><small>Date of joining</small><strong id="profileJoined">—</strong></div>
         <div><small>Account status</small><strong id="profileStatus">—</strong></div>
       </div>
-      <p class="profile-note">Your Member ID, Sponsor ID, joining date and account status are managed by OCTO7 and cannot be changed here.</p>
+      <p class="profile-note">Member ID, Sponsor ID, joining date and account status are managed by OCTO7 and cannot be edited here.</p>
     </section>
     <section class="card profile-section">
       <h3>Account Security</h3>
@@ -626,7 +667,6 @@ footer .logo {color:white}
       </div>
       <button type="button" class="secondary-button" onclick="goMemberMenu('password')">CHANGE PASSWORD</button>
     </section>
-    <p class="profile-note">Profile information is shown from your OCTO7 member record. Contact OCTO7 support if any detail needs correction.</p>
   </div>
   <div id="genealogyView" class="portal-view"><h2>My Genealogy</h2><div id="genealogyTree"></div></div>
   <div id="registrationView" class="portal-view"><h2>New Member Registration</h2><div class="card"><p>Member registration and sponsor placement will be available in the registration stage.</p></div></div>
@@ -1031,7 +1071,7 @@ async function updatePassword() {
 
 // API CONNECTION
 
-async function api(action) {
+async function api(action, payload = {}) {
   if (!accessToken) {
     throw new Error("Your session has expired. Please log in again.");
   }
@@ -1043,7 +1083,7 @@ async function api(action) {
       "apikey":SUPABASE_KEY,
       "Authorization":"Bearer " + accessToken
     },
-    body:JSON.stringify({action:action})
+    body:JSON.stringify({action:action,...payload})
   });
 
   const data = await response.json().catch(() => ({}));
@@ -1309,6 +1349,19 @@ async function loadProfile() {
     put("nomineeEmail",m.nominee_email);
     put("nomineeAddress",m.nominee_address);
     put("nomineeIdType",m.nominee_id_proof_type);
+    const editValues={
+      editDob:m.date_of_birth,editGender:m.gender,editPhone:m.phone,
+      editHouse:m.house_name,editStreet:m.street,editCity:m.city,
+      editDistrict:m.district,editState:m.state,editPin:m.pin_code,editCountry:m.country,
+      editNomineeName:m.nominee_full_name,editNomineeRelationship:m.nominee_relationship,
+      editNomineeDob:m.nominee_date_of_birth,editNomineePhone:m.nominee_phone,
+      editNomineeEmail:m.nominee_email,editNomineeAddress:m.nominee_address,
+      editNomineeIdType:m.nominee_id_proof_type
+    };
+    Object.entries(editValues).forEach(([id,value])=>{
+      const field=document.getElementById(id);
+      if(field && !field.matches(":focus")) field.value=value || "";
+    });
     put("photoStatus",savedPhotoUrl ? "Photo on file" : "Not provided");
     put("emailVerified",m.email_verified === true ? "Verified" : "Not verified / unavailable");
     put("phoneVerified",m.phone_verified === true ? "Verified" : "Not verified / unavailable");
@@ -1318,6 +1371,37 @@ async function loadProfile() {
   }
 }
 
+
+function toggleProfileEdit(open){
+  const form=document.getElementById("profileEditForm");
+  const button=document.getElementById("editProfileButton");
+  if(!form)return;
+  form.hidden=!open;
+  if(button)button.hidden=open;
+  if(open)form.scrollIntoView({behavior:"smooth",block:"start"});
+}
+async function saveProfileDetails(event){
+  event.preventDefault();
+  const form=document.getElementById("profileEditForm");
+  const button=document.getElementById("saveProfileButton");
+  if(!form || !form.reportValidity())return;
+  const payload={};
+  new FormData(form).forEach((value,key)=>{payload[key]=String(value).trim();});
+  button.disabled=true;
+  button.textContent="SAVING...";
+  showMessage("profileMessage","Saving your profile details securely...");
+  try{
+    await api("update_profile",{profile:payload});
+    await loadProfile();
+    toggleProfileEdit(false);
+    showMessage("profileMessage","Your profile details have been saved successfully.");
+  }catch(error){
+    showMessage("profileMessage",error.message || "Unable to save profile details.",true);
+  }finally{
+    button.disabled=false;
+    button.textContent="SAVE PROFILE DETAILS";
+  }
+}
 
 async function loadKyc() {
   showMessage("kycMessage","Loading your KYC status...");
