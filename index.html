@@ -743,7 +743,8 @@ document.addEventListener("keydown", (event) => {
 function toggleMemberMenu(open) {
   const drawer=document.getElementById("memberMenuDrawer");
   const shade=document.getElementById("memberMenuShade");
-  const toggle=document.querySelector(".menu-toggle");
+  const toggle=document.querySelector(".member-menu-link");
+  if (!drawer || !shade || !toggle) return;
   drawer.classList.toggle("open",open);
   shade.classList.toggle("open",open);
   drawer.setAttribute("aria-hidden",String(!open));
@@ -1021,9 +1022,15 @@ async function restoreSession() {
       "portalProducts","orders","wallet","bank","withdrawals",
       "coupons","password","help","reports"
     ];
-    const savedPage = hash.startsWith("member-")
+    let savedPage = hash.startsWith("member-")
       ? hash.slice("member-".length)
       : "";
+    // Keep the last selected member screen even if the mobile browser
+    // refreshes the page and drops or changes the URL fragment.
+    if (!allowedPages.includes(savedPage)) {
+      try { savedPage = sessionStorage.getItem("octo7MemberPage") || ""; }
+      catch (storageError) { savedPage = ""; }
+    }
     const page = allowedPages.includes(savedPage) ? savedPage : "home";
 
     showPortalPage(page, true);
@@ -1043,6 +1050,7 @@ async function restoreSession() {
 
 function showPortalPage(page, fromHistory = false) {
   if (!fromHistory) history.pushState({octo7Page:"member",page}, "", location.pathname + location.search + "#member-" + page);
+  try { sessionStorage.setItem("octo7MemberPage", page); } catch (storageError) {}
   showPageLoader();
   const views = document.querySelectorAll("#memberPortal .portal-view");
   const selected = document.getElementById(page + "View");
