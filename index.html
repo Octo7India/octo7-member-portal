@@ -414,9 +414,9 @@ footer .logo {color:white}
   <div class="login-box" id="loginBox">
     <h3 style="text-align:center;color:#49306c">Member Login</h3>
 
-    <label for="email">Email Address</label>
-    <input id="email" type="email" autocomplete="username"
-           placeholder="Enter your registered email">
+    <label for="email">Email Address or Phone Number</label>
+    <input id="email" type="text" inputmode="email" autocomplete="username"
+           placeholder="Enter registered email or phone number">
 
     <label for="password">Password</label>
     <div class="password-box">
@@ -960,10 +960,13 @@ async function login() {
   showMessage("loginMessage","Signing in...");
 
   try {
-    const { data,error } = await client.auth.signInWithPassword({
-      email:email,
-      password:password
-    });
+    const isEmail = email.includes("@");
+    const phone = email.replace(/[\\s()-]/g, "");
+    const { data,error } = await client.auth.signInWithPassword(
+      isEmail
+        ? { email:email, password:password }
+        : { phone: phone.startsWith("+") ? phone : (phone.startsWith("91") ? "+" + phone : "+91" + phone), password:password }
+    );
 
     if (error) throw error;
 
