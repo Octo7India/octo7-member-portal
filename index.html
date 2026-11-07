@@ -638,6 +638,8 @@ function hidePageLoaderSoon(){
 // PUBLIC WELCOME-PAGE MENU DRAWER
 function showPublicPage(pageId, fromHistory = false) {
   if (!fromHistory) history.pushState({octo7Page:"public",page:pageId}, "", location.pathname + location.search + (pageId === "home" ? "" : "#" + pageId));
+  const publicHeader = document.querySelector("body > header");
+  if (publicHeader) publicHeader.hidden = false;
   showPageLoader();
   const ids = ["home","about","products","opportunity","join","contact","member-login"];
   ids.forEach(id => {
@@ -654,6 +656,9 @@ function showPublicPage(pageId, fromHistory = false) {
 }
 
 function showMemberPortal() {
+  // In the member area, show only the OCTO7 India brand and member hamburger menu.
+  const publicHeader = document.querySelector("body > header");
+  if (publicHeader) publicHeader.hidden = true;
   showPageLoader();
   ["home","about","products","opportunity","join","contact","member-login"].forEach(id => {
     const page = document.getElementById(id);
