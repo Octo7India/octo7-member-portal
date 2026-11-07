@@ -282,6 +282,16 @@ footer .logo {color:white}
 
 .menu-emblem{display:inline-flex;flex-direction:column;gap:4px;width:22px}
 .menu-emblem i{display:block;width:22px;height:2px;border-radius:2px;background:currentColor}
+.member-welcome-card{display:flex;align-items:center;gap:22px;max-width:760px;margin:28px auto;padding:28px;border:1px solid #e8e1ef;border-radius:16px;background:#fff;box-shadow:0 8px 28px rgba(35,20,55,.08);color:#302044}
+.member-welcome-photo{width:104px;height:104px;flex:0 0 104px;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#f0eaf6;border:3px solid var(--gold);font-size:44px}
+.member-welcome-photo img{width:100%;height:100%;object-fit:cover}
+.member-welcome-details h2{margin:5px 0 10px}
+.member-welcome-details p{margin:6px 0}
+.welcome-kicker{font-size:11px;letter-spacing:1.5px;font-weight:800;color:#76539a}
+.welcome-status{display:inline-block;margin-top:9px;padding:7px 13px;border-radius:20px;font-size:12px;font-weight:800;text-transform:uppercase}
+.welcome-status.active{background:#e5f7eb;color:#16743b}
+.welcome-status.pending{background:#fff3d9;color:#946200}
+@media(max-width:520px){.member-welcome-card{align-items:flex-start;gap:15px;padding:20px 16px}.member-welcome-photo{width:76px;height:76px;flex-basis:76px;font-size:34px}.member-welcome-details h2{font-size:21px}}
 /* OCTO7 page transition loader */
 #octo7PageLoader{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;background:rgba(255,255,255,.94);backdrop-filter:blur(3px)}
 #octo7PageLoader.show{display:flex}
@@ -507,9 +517,16 @@ footer .logo {color:white}
   <div id="portalMessage" class="message" aria-live="polite"></div>
 
   <div id="homeView" class="portal-view">
-    <h2>Welcome to OCTO7 India</h2>
-    <p class="subtitle">Your member account and business tools are available from the menu.</p>
-    <div class="card"><h3>Member Portal</h3><p>Choose a section from the menu to continue.</p></div>
+    <div class="member-welcome-card">
+      <div class="member-welcome-photo" id="welcomeMemberPhoto" aria-label="Member profile picture">👤</div>
+      <div class="member-welcome-details">
+        <p class="welcome-kicker">OCTO7 INDIA MEMBER PORTAL</p>
+        <h2 id="welcomeMemberName">Welcome, Member</h2>
+        <p>Member ID: <strong id="welcomeMemberId">Loading...</strong></p>
+        <span id="welcomeAccountStatus" class="welcome-status pending">Checking account status...</span>
+      </div>
+    </div>
+    <div id="welcomeMessage" class="message" aria-live="polite"></div>
   </div>
 
   <div id="dashboardView" class="portal-view" hidden>
@@ -956,9 +973,9 @@ async function login() {
     document.getElementById("loginBox").hidden = true;
     showMemberPortal();
 
-    // After sign-in, open the member Home page. Dashboard loads only
-    // when the member explicitly selects Dashboard from the menu.
+    // Open the member welcome screen and load the signed-in member's details.
     showPortalPage("home");
+    loadMemberWelcome();
 
   } catch(error) {
     showMessage("loginMessage",error.message || "Login failed.",true);
@@ -1086,6 +1103,41 @@ async function loadDashboard() {
   } catch(error) {
     document.getElementById("dashboardCards").innerHTML = "";
     showMessage("portalMessage",error.message,true);
+  }
+}
+
+
+async function loadMemberWelcome() {
+  const nameEl = document.getElementById("welcomeMemberName");
+  const idEl = document.getElementById("welcomeMemberId");
+  const statusEl = document.getElementById("welcomeAccountStatus");
+  const photoEl = document.getElementById("welcomeMemberPhoto");
+  try {
+    const data = await api("me");
+    const member = data.member || {};
+    const name = member.full_name || member.name || "OCTO7 Member";
+    nameEl.textContent = "Welcome, " + name;
+    idEl.textContent = member.member_id || member.id || "Not assigned";
+    const status = String(member.status || "Pending");
+    statusEl.textContent = status;
+    statusEl.className = "welcome-status " + (status.toLowerCase() === "active" ? "active" : "pending");
+    const photo = member.profile_picture_url || member.avatar_url || member.photo_url || member.profile_image;
+    if (photo) {
+      const img = document.createElement("img");
+      img.src = photo;
+      img.alt = name + " profile picture";
+      img.onerror = () => { photoEl.textContent = "👤"; };
+      photoEl.textContent = "";
+      photoEl.appendChild(img);
+    } else {
+      photoEl.textContent = name.trim().split(/\\s+/).map(part => part[0]).slice(0,2).join("").toUpperCase() || "👤";
+    }
+  } catch (error) {
+    nameEl.textContent = "Welcome, OCTO7 Member";
+    idEl.textContent = "Unavailable";
+    statusEl.textContent = "Status unavailable";
+    statusEl.className = "welcome-status pending";
+    showMessage("welcomeMessage", error.message || "Unable to load member details.", true);
   }
 }
 
