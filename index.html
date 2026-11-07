@@ -310,8 +310,20 @@ footer .logo {color:white}
 .profile-top-row{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin:0 0 18px;padding:16px;background:var(--card,#fff);border:1px solid #e8e8e8;border-radius:12px}.profile-top-row .profile-photo-control{max-width:220px}.profile-top-row .profile-member-badge{min-width:150px;margin-top:2px}
 .profile-photo-control{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0}.profile-photo-control label{font-weight:600}.profile-photo-control input{max-width:100%;font-size:14px}.profile-photo-preview{width:104px;height:104px;border-radius:50%;object-fit:cover;border:2px solid #ddd}.profile-member-badge{display:flex;flex-direction:column;gap:8px;align-items:flex-start}.profile-member-badge strong{font-size:20px;letter-spacing:.5px}.member-status-indicator{display:inline-flex;align-items:center;gap:7px;font-size:13px}.member-status-indicator i{width:10px;height:10px;border-radius:50%;background:#999;display:inline-block}.member-status-indicator.active i{background:#16a34a;box-shadow:0 0 0 3px #16a34a22}.member-status-indicator.inactive i{background:#dc2626}
 .profile-section{margin:16px 0}.profile-section h3{margin:0 0 16px;color:var(--text,#222)}.profile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px}.profile-grid>div{min-width:0;padding:10px 0;border-bottom:1px solid #e8e8e8}.profile-grid small{display:block;color:#777;margin-bottom:5px}.profile-grid strong{display:block;overflow-wrap:anywhere;font-weight:600}.profile-note{font-size:13px;color:#777;margin-top:14px}.profile-section button{margin-top:16px}@media(max-width:420px){.profile-grid{grid-template-columns:1fr 1fr;gap:10px}}
+
+.photo-crop-modal{position:fixed;inset:0;z-index:10000;background:#09051dcc;display:none;align-items:center;justify-content:center;padding:14px}
+.photo-crop-modal.open{display:flex}
+.photo-crop-panel{width:min(520px,100%);max-height:94vh;overflow:auto;background:#fff;border-radius:16px;padding:18px;box-shadow:0 12px 40px #0005}
+.photo-crop-panel h3{margin:0 0 8px;color:#241443;text-align:center}
+.photo-crop-panel p{margin:0 0 14px;text-align:center;color:#666;font-size:13px}
+.photo-crop-stage{height:min(58vh,430px);background:#17152e;overflow:hidden}
+.photo-crop-stage img{display:block;max-width:100%;max-height:100%}
+.photo-crop-actions{display:flex;gap:10px;justify-content:center;margin-top:15px}
+.photo-crop-actions button{border:0;border-radius:7px;padding:12px 18px;font-weight:700;cursor:pointer}
+.photo-crop-cancel{background:#eee;color:#333}.photo-crop-apply{background:#7040b5;color:#fff}
+.photo-crop-panel .cropper-view-box,.photo-crop-panel .cropper-face{border-radius:50%}
 </style>
-</head>
+\n<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">\n</head>
 
 <body>
 <div id="octo7PageLoader" role="status" aria-live="polite" aria-label="Loading page"><div class="loader-box"><div class="spinner"></div>LOADING OCTO7...</div></div>
@@ -1265,60 +1277,15 @@ async function loadProfile() {
     const photoInput=document.getElementById("profilePhotoInput");
     if(photoInput && !photoInput.dataset.previewBound){
       photoInput.dataset.previewBound="1";
-      photoInput.addEventListener("change", async ()=>{
-        const file=photoInput.files && photoInput.files[0];
-        if(!file)return;
-        if(!["image/jpeg","image/png","image/webp"].includes(file.type) || file.size>5*1024*1024){
+      photoInput.addEventListener("change",()=>{
+        const selectedFile=photoInput.files && photoInput.files[0];
+        if(!selectedFile)return;
+        if(!["image/jpeg","image/png","image/webp"].includes(selectedFile.type) || selectedFile.size>5*1024*1024){
           showMessage("profileMessage","Choose a JPG, PNG or WebP image up to 5 MB.",true);
           photoInput.value="";
           return;
         }
-        photoInput.disabled=true;
-        showMessage("profileMessage","Connecting securely...");
-        let uploadedPhotoUrl="";
-        try{
-          const { data: sessionData, error: sessionError } = await client.auth.getSession();
-          if(sessionError)throw sessionError;
-          const session=sessionData.session;
-          if(!session || !session.user)throw new Error("Your session has expired. Please log in again.");
-          const userId=session.user.id;
-          const extension=file.type==="image/png"?"png":(file.type==="image/webp"?"webp":"jpg");
-          const filePath=userId+"/profile-"+Date.now()+"."+extension;
-          showMessage("profileMessage","Uploading your profile photo...");
-          const controller=new AbortController();
-          const timeout=setTimeout(()=>controller.abort(),45000);
-          let uploadResponse;
-          try{
-            uploadResponse=await fetch(SUPABASE_URL+"/storage/v1/object/member-profile-photos/"+filePath.split("/").map(encodeURIComponent).join("/"),{
-              method:"POST",
-              headers:{
-                "apikey":SUPABASE_KEY,
-                "Authorization":"Bearer "+session.access_token,
-                "Content-Type":file.type,
-                "x-upsert":"false"
-              },
-              body:file,
-              signal:controller.signal
-            });
-          } finally {
-            clearTimeout(timeout);
-          }
-          const uploadBody=await uploadResponse.json().catch(()=>({}));
-          if(!uploadResponse.ok)throw new Error(uploadBody.message || uploadBody.error || "Storage upload failed (HTTP "+uploadResponse.status+").");
-          uploadedPhotoUrl=SUPABASE_URL+"/storage/v1/object/public/member-profile-photos/"+filePath.split("/").map(encodeURIComponent).join("/");
-          preview.src=uploadedPhotoUrl;
-          preview.hidden=false;
-          showMessage("profileMessage","Photo uploaded. Saving it to your member profile...");
-          const { error: updateError } = await client.auth.updateUser({data:{avatar_url:uploadedPhotoUrl}});
-          if(updateError)throw new Error("Photo uploaded, but the profile link could not be saved: "+updateError.message);
-          showMessage("profileMessage","Profile photo uploaded and saved successfully.");
-          photoInput.value="";
-        }catch(error){
-          const message=error.name==="AbortError"?"Upload timed out. Check your internet connection and try again.":(error.message || "Unable to upload your profile photo.");
-          showMessage("profileMessage",message,true);
-        }finally{
-          photoInput.disabled=false;
-        }
+        openPhotoCropper(selectedFile);
       });
     }
     put("nomineeName",m.nominee_full_name || m.nominee_name);
@@ -1623,6 +1590,119 @@ window.addEventListener("popstate", () => {
 // public sections stacked underneath it. A saved login is restored next.
 showPublicPage("home");
 restoreSession();
+
+</script>
+
+<div id="photoCropModal" class="photo-crop-modal" role="dialog" aria-modal="true" aria-labelledby="photoCropTitle">
+  <div class="photo-crop-panel">
+    <h3 id="photoCropTitle">Adjust your profile photo</h3>
+    <p>Move the photo and pinch or zoom to fit your face inside the circle.</p>
+    <div class="photo-crop-stage"><img id="photoCropImage" alt="Photo to crop"></div>
+    <div class="photo-crop-actions">
+      <button type="button" class="photo-crop-cancel" onclick="cancelPhotoCrop()">Cancel</button>
+      <button type="button" class="photo-crop-apply" id="applyPhotoCrop" onclick="applyPhotoCrop()">Crop &amp; Upload</button>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js">
+let octo7PhotoCropper=null;
+let octo7PhotoObjectUrl="";
+let octo7SelectedPhoto=null;
+
+function openPhotoCropper(file){
+  if(typeof Cropper==="undefined"){
+    showMessage("profileMessage","Photo crop tool is still loading. Please try again.",true);
+    return;
+  }
+  octo7SelectedPhoto=file;
+  const image=document.getElementById("photoCropImage");
+  if(octo7PhotoObjectUrl)URL.revokeObjectURL(octo7PhotoObjectUrl);
+  octo7PhotoObjectUrl=URL.createObjectURL(file);
+  image.src=octo7PhotoObjectUrl;
+  document.getElementById("photoCropModal").classList.add("open");
+  if(octo7PhotoCropper){octo7PhotoCropper.destroy();octo7PhotoCropper=null;}
+  image.onload=()=>{
+    octo7PhotoCropper=new Cropper(image,{
+      aspectRatio:1,viewMode:1,dragMode:"move",autoCropArea:.85,
+      responsive:true,restore:false, guides:true,center:true,
+      highlight:false,background:false,modal:true,movable:true,
+      zoomable:true,zoomOnTouch:true,zoomOnWheel:true,
+      cropBoxMovable:false,cropBoxResizable:false,toggleDragModeOnDblclick:false
+    });
+  };
+}
+
+function cancelPhotoCrop(){
+  document.getElementById("photoCropModal").classList.remove("open");
+  if(octo7PhotoCropper){octo7PhotoCropper.destroy();octo7PhotoCropper=null;}
+  if(octo7PhotoObjectUrl)URL.revokeObjectURL(octo7PhotoObjectUrl);
+  octo7PhotoObjectUrl="";
+  octo7SelectedPhoto=null;
+  const input=document.getElementById("profilePhotoInput");
+  if(input)input.value="";
+}
+
+async function applyPhotoCrop(){
+  if(!octo7PhotoCropper || !octo7SelectedPhoto)return;
+  const button=document.getElementById("applyPhotoCrop");
+  button.disabled=true;
+  button.textContent="Preparing...";
+  try{
+    const canvas=octo7PhotoCropper.getCroppedCanvas({width:800,height:800,imageSmoothingEnabled:true,imageSmoothingQuality:"high",fillColor:"#ffffff"});
+    const blob=await new Promise((resolve,reject)=>canvas.toBlob(result=>result?resolve(result):reject(new Error("Could not prepare the cropped photo.")),"image/jpeg",.9));
+    const croppedFile=new File([blob],"octo7-profile.jpg",{type:"image/jpeg",lastModified:Date.now()});
+    document.getElementById("photoCropModal").classList.remove("open");
+    if(octo7PhotoCropper){octo7PhotoCropper.destroy();octo7PhotoCropper=null;}
+    if(octo7PhotoObjectUrl)URL.revokeObjectURL(octo7PhotoObjectUrl);
+    octo7PhotoObjectUrl="";
+    octo7SelectedPhoto=null;
+    await uploadCroppedProfilePhoto(croppedFile);
+  }catch(error){
+    showMessage("profileMessage",error.message || "Unable to crop this photo.",true);
+  }finally{
+    button.disabled=false;
+    button.textContent="Crop & Upload";
+  }
+}
+
+async function uploadCroppedProfilePhoto(file){
+  const photoInput=document.getElementById("profilePhotoInput");
+  const preview=document.getElementById("profilePhotoPreview");
+  photoInput.disabled=true;
+  showMessage("profileMessage","Connecting securely...");
+  try{
+    const {data:sessionData,error:sessionError}=await client.auth.getSession();
+    if(sessionError)throw sessionError;
+    const session=sessionData.session;
+    if(!session || !session.user)throw new Error("Your session has expired. Please log in again.");
+    const userId=session.user.id;
+    const filePath=userId+"/profile-"+Date.now()+".jpg";
+    showMessage("profileMessage","Uploading your cropped profile photo...");
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),45000);
+    let uploadResponse;
+    try{
+      uploadResponse=await fetch(SUPABASE_URL+"/storage/v1/object/member-profile-photos/"+filePath.split("/").map(encodeURIComponent).join("/"),{
+        method:"POST",
+        headers:{"apikey":SUPABASE_KEY,"Authorization":"Bearer "+session.access_token,"Content-Type":"image/jpeg","x-upsert":"false"},
+        body:file,signal:controller.signal
+      });
+    }finally{clearTimeout(timeout);}
+    const uploadBody=await uploadResponse.json().catch(()=>({}));
+    if(!uploadResponse.ok)throw new Error(uploadBody.message || uploadBody.error || "Storage upload failed (HTTP "+uploadResponse.status+").");
+    const uploadedPhotoUrl=SUPABASE_URL+"/storage/v1/object/public/member-profile-photos/"+filePath.split("/").map(encodeURIComponent).join("/");
+    preview.src=uploadedPhotoUrl;
+    preview.hidden=false;
+    showMessage("profileMessage","Photo uploaded. Saving it to your member profile...");
+    const {error:updateError}=await client.auth.updateUser({data:{avatar_url:uploadedPhotoUrl}});
+    if(updateError)throw new Error("Photo uploaded, but the profile link could not be saved: "+updateError.message);
+    showMessage("profileMessage","Cropped profile photo uploaded and saved successfully.");
+    photoInput.value="";
+  }catch(error){
+    const message=error.name==="AbortError"?"Upload timed out. Check your internet connection and try again.":(error.message || "Unable to upload your profile photo.");
+    showMessage("profileMessage",message,true);
+  }finally{photoInput.disabled=false;}
+}
 
 </script>
 </body>
