@@ -615,7 +615,8 @@ function hidePageLoaderSoon(){
 }
 
 // PUBLIC WELCOME-PAGE MENU DRAWER
-function showPublicPage(pageId) {
+function showPublicPage(pageId, fromHistory = false) {
+  if (!fromHistory) history.pushState({octo7Page:"public",page:pageId}, "", location.pathname + location.search + (pageId === "home" ? "" : "#" + pageId));
   showPageLoader();
   const ids = ["home","about","products","opportunity","join","contact","member-login"];
   ids.forEach(id => {
@@ -628,7 +629,6 @@ function showPublicPage(pageId) {
   if (footer) footer.hidden = true;
   const target = document.getElementById(pageId);
   if (target) target.scrollIntoView({behavior:"auto",block:"start"});
-  history.replaceState(null, "", location.pathname + location.search + (pageId === "home" ? "" : "#" + pageId));
   hidePageLoaderSoon();
 }
 
@@ -994,7 +994,8 @@ async function restoreSession() {
 
 // SWITCH PORTAL SCREENS
 
-function showPortalPage(page) {
+function showPortalPage(page, fromHistory = false) {
+  if (!fromHistory) history.pushState({octo7Page:"member",page}, "", location.pathname + location.search + "#member-" + page);
   showPageLoader();
   const views = document.querySelectorAll("#memberPortal .portal-view");
   const selected = document.getElementById(page + "View");
@@ -1282,6 +1283,19 @@ async function logout() {
   document.getElementById("member-login").scrollIntoView();
 }
 
+
+// Browser Back/Forward: restore the previous public or member page.
+window.addEventListener("popstate", () => {
+  const hash = location.hash.replace(/^#/, "");
+  if (hash.startsWith("member-")) {
+    const page = hash.slice("member-".length) || "home";
+    showMemberPortal();
+    showPortalPage(page, true);
+    return;
+  }
+  const publicPage = ["home","about","products","opportunity","join","contact","member-login"].includes(hash) ? hash : "home";
+  showPublicPage(publicPage, true);
+});
 
 // START APPLICATION
 // Show only the welcome page on first load; do not leave the other
