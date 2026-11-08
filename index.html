@@ -162,15 +162,12 @@ input {
 .binary-status{font-size:8px;font-weight:800;margin-top:2px;line-height:1}
 .binary-status.active{color:#168344}.binary-status.inactive{color:#d22}
 .binary-card.root .binary-status.active{color:#65e99a}.binary-card.root .binary-status.inactive{color:#ff8888}
-.binary-children{display:flex;justify-content:center;align-items:flex-start;gap:120px;position:relative;padding-top:28px}
-.binary-children:before{content:"";position:absolute;top:0;left:50%;height:28px;border-left:2px solid var(--purple);z-index:1}
-.binary-children:after{content:"";position:absolute;top:28px;left:50%;transform:translateX(-50%);width:300px;border-top:2px solid var(--purple);z-index:1}
-.binary-child-slot{position:relative;padding-top:29px;flex:0 0 90px;width:90px;display:flex;justify-content:center;box-sizing:border-box}
-.binary-child-slot:before{content:"";position:absolute;top:0;left:50%;height:29px;border-left:2px solid var(--purple);z-index:1}
-/* Genealogy cards use a clean, line-free layout at every depth. */
-.binary-children:before,.binary-children:after,.binary-child-slot:before{content:none!important;display:none!important}
-.binary-children{padding-top:18px;gap:24px}
-.binary-child-slot{padding-top:0}
+/* Binary genealogy connectors: one parent trunk, one crossbar, and two child stems. */
+.binary-children{display:flex;justify-content:center;align-items:flex-start;gap:40px;position:relative;padding-top:28px}
+.binary-children:before{content:"";position:absolute;top:0;left:50%;height:14px;border-left:2px solid var(--purple);z-index:1}
+.binary-children:after{content:"";position:absolute;top:14px;left:45px;width:calc(100% - 90px);border-top:2px solid var(--purple);z-index:1}
+.binary-child-slot{position:relative;padding-top:28px;flex:0 0 90px;width:90px;display:flex;justify-content:center;box-sizing:border-box}
+.binary-child-slot:before{content:"";position:absolute;top:0;left:50%;height:28px;border-left:2px solid var(--purple);z-index:1}
 .binary-subtree{min-width:90px}
 .binary-card[data-genealogy-member]{cursor:pointer;touch-action:manipulation}
 .binary-card[data-genealogy-member]:focus{outline:3px solid #7040b555;outline-offset:3px}
@@ -190,6 +187,7 @@ input {
 .registration-verification label{display:block;margin-top:10px}
 .registration-verification .message{padding:8px 0;text-align:left}
 .genealogy-legend{font-size:12px;color:#666;margin:10px 0}
+.genealogy-vacancy-list{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:10px 0}.genealogy-vacancy-list .binary-empty{width:145px;height:64px}
 @media(max-width:650px){.genealogy-viewport{height:62vh;min-height:330px}.genealogy-canvas{padding:25px 18px 45px}}
 footer {
   background:var(--navy);
@@ -1502,6 +1500,21 @@ function renderGenealogyNode(node,isRoot){
 }
 let genealogyCurrentMemberId=null;
 let genealogyNavigationStack=[];
+async function loadAllGenealogyVacancies(){
+  const button=document.getElementById("genealogyVacancies");
+  const results=document.getElementById("genealogyVacancyResults");
+  if(!button||!results)return;
+  button.disabled=true;button.textContent="Searching...";
+  results.textContent="Searching the selected member's full downline for vacant Left and Right positions...";
+  try{
+    const data=await api("find_vacant_positions",{root_member_id:String(genealogyCurrentMemberId),limit:500});
+    const vacancies=Array.isArray(data.vacant_positions)?data.vacant_positions:[];
+    if(!vacancies.length){results.textContent="No vacant positions were found in this member's downline.";return;}
+    results.innerHTML='<strong>Vacant positions found ('+vacancies.length+' shown; maximum 500 per search):</strong><div class="genealogy-vacancy-list">'+vacancies.map(v=>'<button type="button" class="binary-empty" onclick="openMemberRegistration('+Number(v.parent_position_id)+', '+JSON.stringify(String(v.side))+')">OCTO7 '+escapeHTML(String(v.parent_member_id))+'<small>'+escapeHTML(String(v.side).toUpperCase())+' · Level '+escapeHTML(String(v.depth))+'</small></button>').join('')+'</div>';
+  }catch(error){results.textContent="Unable to find vacant positions: "+(error.message||"Please try again.");}
+  finally{button.disabled=false;button.textContent="Show all vacant positions";}
+}
+
 async function openGenealogyMember(memberId){
   const selected=String(memberId||"").trim();
   if(!selected||selected===String(genealogyCurrentMemberId||""))return;
@@ -1708,8 +1721,9 @@ async function loadGenealogy(rootMemberId=null,navigationMode="reset"){
     if(navigationMode==="reset")genealogyNavigationStack=[];
     const binary=profile.binary||genealogy.binary||{};
     const backButton=genealogyNavigationStack.length?'<button type="button" id="genealogyBack" onclick="genealogyGoBack()">‹ Back</button>':'';
-    box.innerHTML='<div class="genealogy-tree"><div class="genealogy-toolbar">'+backButton+'<span class="genealogy-current">Viewing OCTO7 / '+escapeHTML(genealogyCurrentMemberId)+'</span><button type="button" id="genealogyZoomOut">−</button><span id="genealogyZoomLabel">100%</span><button type="button" id="genealogyZoomIn">＋</button><button type="button" id="genealogyFit">Fit to Screen</button></div><div class="genealogy-viewport" id="genealogyViewport"><div class="genealogy-canvas" id="genealogyCanvas">'+renderGenealogyNode(tree.root,true)+'</div></div><div class="genealogy-legend">Tap any Member ID to open that ID and its immediate downline. Horizontal gap: 120 px · Vertical gap: 57 px · LBV: '+escapeHTML(String(binary.left_available_bv??0))+' · RBV: '+escapeHTML(String(binary.right_available_bv??0))+'</div></div>';
+    box.innerHTML='<div class="genealogy-tree"><div class="genealogy-toolbar">'+backButton+'<span class="genealogy-current">Viewing OCTO7 / '+escapeHTML(genealogyCurrentMemberId)+'</span><button type="button" id="genealogyZoomOut">−</button><span id="genealogyZoomLabel">100%</span><button type="button" id="genealogyZoomIn">＋</button><button type="button" id="genealogyFit">Fit to Screen</button><button type="button" id="genealogyVacancies">Show all vacant positions</button></div><div class="genealogy-viewport" id="genealogyViewport"><div class="genealogy-canvas" id="genealogyCanvas">'+renderGenealogyNode(tree.root,true)+'</div></div><div id="genealogyVacancyResults" class="genealogy-legend" aria-live="polite"></div><div class="genealogy-legend">Tap any Member ID to open that ID and its immediate downline. Vacant slots in the full downline can be listed separately. LBV: '+escapeHTML(String(binary.left_available_bv??0))+' · RBV: '+escapeHTML(String(binary.right_available_bv??0))+'</div></div>';
     setupGenealogyControls();
+    document.getElementById("genealogyVacancies").addEventListener("click",loadAllGenealogyVacancies);
     const canvas=document.getElementById("genealogyCanvas");
     canvas.addEventListener("click",event=>{
       const card=event.target.closest("[data-genealogy-member]");
