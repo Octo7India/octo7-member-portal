@@ -173,6 +173,9 @@ input {
 .registration-card{max-width:650px;margin:20px auto;padding:24px;text-align:left}
 .registration-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
 .registration-grid label{display:block;font-size:13px;font-weight:700;color:#444}
+.octo7-id-display{width:100%;min-height:48px;margin:7px 0 5px;padding:8px 12px;border:1px solid #ccc;border-radius:6px;background:#f7f5fa;color:#21143d;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;line-height:1.15;font-weight:800;letter-spacing:.5px}
+.octo7-id-display span:first-child{font-size:11px;letter-spacing:1.5px}
+.octo7-id-display span:last-child{font-size:16px}
 .registration-grid input,.registration-grid select{width:100%;padding:12px;margin:7px 0 5px;border:1px solid #ccc;border-radius:6px;font:inherit}
 .registration-note{padding:12px;background:#fff8e8;border-left:4px solid #d6b46a;color:#694f1b;font-size:13px;line-height:1.5}
 .registration-verification{grid-column:1/-1;padding:16px;border:1px solid #e5dcef;border-radius:9px;background:#faf8fd}
@@ -607,7 +610,7 @@ footer .logo {color:white}
       <div id="registrationMessage" class="message" aria-live="polite"></div>
       <form id="newMemberRegistrationForm" onsubmit="submitNewMemberRegistration(event)">
         <div class="registration-grid">
-          <label>Sponsor Member ID<input id="newMemberSponsorId" readonly></label>
+          <label>Sponsor Member ID<div id="newMemberSponsorId" class="octo7-id-display" aria-label="Sponsor Member ID">—</div></label>
           <label>Placement Parent ID<input id="newMemberParentId" readonly></label>
           <label>Selected Position<input id="newMemberPlacementSide" readonly></label>
           <label>Full Name<input id="newMemberFullName" type="text" autocomplete="name" maxlength="120" required></label>
@@ -1247,7 +1250,15 @@ function renderDashboard(data) {
   `;
 }
 
-async function loadProfile() {
+async function setOcto7IdDisplay(element,value){
+  if(!element)return;
+  const raw=String(value??"").trim().replace(/^OCTO7\\s*/i,"");
+  if(!raw){element.textContent="Not provided";return;}
+  element.innerHTML="<span>OCTO7</span><span>"+escapeHTML(raw)+"</span>";
+  element.setAttribute("aria-label","OCTO7 "+raw);
+}
+
+function loadProfile() {
   const ids = {
     fullName:"full_name", dob:"date_of_birth", gender:"gender",
     email:"email", phone:"phone", house:"house_name", street:"street",
@@ -1269,7 +1280,7 @@ async function loadProfile() {
     put("house",m.house_name || m.house_number || m.address_line1);
     put("street",m.street || m.locality || m.address_line2);
     put("pin",m.pin_code || m.pincode || m.postal_code);
-    put("sponsorId",m.sponsor_id || m.sponsor_member_id);
+    setOcto7IdDisplay(document.getElementById("profileSponsorId"),m.sponsor_member_id || m.sponsor_id);
     put("sponsorName",m.sponsor_name || m.sponsor_full_name);
     put("joined",m.joined_at || m.created_at || m.date_of_joining);
     put("status",m.status || "Pending");
@@ -1497,7 +1508,7 @@ async function openMemberRegistration(parentId,side){
   }
   document.getElementById("newMemberParentId").value=String(parent);
   document.getElementById("newMemberPlacementSide").value=selectedSide.toUpperCase();
-  document.getElementById("newMemberSponsorId").value="Loading...";
+  setOcto7IdDisplay(document.getElementById("newMemberSponsorId"),"Loading...");
   document.getElementById("newMemberFullName").value="";
   document.getElementById("newMemberEmail").value="";
   document.getElementById("newMemberPhone").value="";
@@ -1509,9 +1520,9 @@ async function openMemberRegistration(parentId,side){
   try{
     const profile=await api("me");
     const member=profile.member||{};
-    document.getElementById("newMemberSponsorId").value=String(member.member_id||member.id||"");
+    setOcto7IdDisplay(document.getElementById("newMemberSponsorId"),member.member_id||member.id||"");
   }catch(error){
-    document.getElementById("newMemberSponsorId").value="Unavailable";
+    setOcto7IdDisplay(document.getElementById("newMemberSponsorId"),"Unavailable");
     showMessage("registrationMessage",error.message||"Unable to load sponsor details.",true);
   }
 }
