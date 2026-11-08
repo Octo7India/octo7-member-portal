@@ -611,7 +611,7 @@ footer .logo {color:white}
       <form id="newMemberRegistrationForm" onsubmit="submitNewMemberRegistration(event)">
         <div class="registration-grid">
           <label>Sponsor Member ID<div id="newMemberSponsorId" class="octo7-id-display" aria-label="Sponsor Member ID">—</div></label>
-          <label>Placement Parent ID<input id="newMemberParentId" readonly></label>
+          <label>Placement Parent ID<div id="newMemberParentIdDisplay" class="octo7-id-display" aria-label="Placement Parent ID">—</div><input id="newMemberParentId" type="hidden" readonly></label>
           <label>Selected Position<input id="newMemberPlacementSide" readonly></label>
           <label>Full Name<input id="newMemberFullName" type="text" autocomplete="name" maxlength="120" required></label>
           <label>Email Address<input id="newMemberEmail" type="email" autocomplete="email" maxlength="254" required></label>
@@ -1507,6 +1507,7 @@ async function openMemberRegistration(parentId,side){
     return;
   }
   document.getElementById("newMemberParentId").value=String(parent);
+  setOcto7IdDisplay(document.getElementById("newMemberParentIdDisplay"),parent);
   document.getElementById("newMemberPlacementSide").value=selectedSide.toUpperCase();
   setOcto7IdDisplay(document.getElementById("newMemberSponsorId"),"Loading...");
   document.getElementById("newMemberFullName").value="";
