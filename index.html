@@ -162,14 +162,13 @@ input {
 .binary-status{font-size:8px;font-weight:800;margin-top:2px;line-height:1}
 .binary-status.active{color:#168344}.binary-status.inactive{color:#d22}
 .binary-card.root .binary-status.active{color:#65e99a}.binary-card.root .binary-status.inactive{color:#ff8888}
-/* Each parent's connector spans only its own Left and Right child branches. */
+/* Equal-width child lanes keep every parent centered between its own Left and Right IDs. */
 .binary-card-wrap{position:relative;z-index:2;display:block;width:90px;height:58px;line-height:0;flex:0 0 58px}
 .binary-children{display:flex;justify-content:center;align-items:flex-start;gap:40px;width:max-content;position:relative;padding:28px 0 0;margin:0 auto;box-sizing:border-box}
 .binary-children:before{content:"";position:absolute;top:0;left:50%;height:14px;border-left:2px solid var(--purple);z-index:1}
-.binary-child-slot{position:relative;padding-top:28px;flex:0 0 auto;width:max-content;min-width:90px;display:flex;justify-content:center;box-sizing:border-box}
+.binary-children:after{content:"";position:absolute;top:14px;left:calc(var(--branch-width, 90px) / 2);width:calc(var(--branch-width, 90px) + 40px);border-top:2px solid var(--purple);z-index:1}
+.binary-child-slot{position:relative;padding-top:28px;flex:0 0 var(--branch-width, 90px);width:var(--branch-width, 90px);min-width:90px;display:flex;justify-content:center;box-sizing:border-box}
 .binary-child-slot:before{content:"";position:absolute;top:14px;left:50%;height:14px;border-left:2px solid var(--purple);z-index:1}
-.binary-child-slot:first-child:after{content:"";position:absolute;top:14px;left:50%;right:-20px;border-top:2px solid var(--purple);z-index:1}
-.binary-child-slot:last-child:after{content:"";position:absolute;top:14px;left:-20px;right:50%;border-top:2px solid var(--purple);z-index:1}
 .binary-card[data-genealogy-member]{cursor:pointer;touch-action:manipulation}
 .binary-card[data-genealogy-member]:focus{outline:3px solid #7040b555;outline-offset:3px}
 .binary-empty{position:relative;z-index:3;pointer-events:auto;touch-action:manipulation;width:90px;height:58px;box-sizing:border-box;border:2px dashed #aaa;border-radius:3px;background:#fff;color:#7040b5;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;font-weight:700;line-height:1.4;cursor:pointer;font-family:inherit}
@@ -1490,6 +1489,29 @@ function buildGenealogyMap(nodes){
   }
   return {root};
 }
+function sizeGenealogySubtree(subtree){
+  const children=subtree.querySelector(":scope > .binary-children");
+  if(!children)return 90;
+  const slots=Array.from(children.querySelectorAll(":scope > .binary-child-slot"));
+  if(slots.length!==2)return 90;
+  const widths=slots.map(slot=>{
+    const child=slot.querySelector(":scope > .binary-subtree");
+    return child?sizeGenealogySubtree(child):90;
+  });
+  const branchWidth=Math.max(90,widths[0],widths[1]);
+  slots.forEach(slot=>{
+    slot.style.width=branchWidth+"px";
+    slot.style.flexBasis=branchWidth+"px";
+  });
+  children.style.setProperty("--branch-width",branchWidth+"px");
+  children.style.width=(branchWidth*2+40)+"px";
+  return Math.max(90,branchWidth*2+40);
+}
+function layoutGenealogyTree(){
+  const canvas=document.getElementById("genealogyCanvas");
+  const root=canvas?.querySelector(":scope > .binary-subtree");
+  if(root)sizeGenealogySubtree(root);
+}
 function renderGenealogyNode(node,isRoot){
   const active=String(node.status||"").toLowerCase()==="active";
   const memberId=String(node.member_id??"-");
@@ -1727,6 +1749,7 @@ async function loadGenealogy(rootMemberId=null,navigationMode="reset"){
     const binary=profile.binary||genealogy.binary||{};
     const backButton=genealogyNavigationStack.length?'<button type="button" id="genealogyBack" onclick="genealogyGoBack()">‹ Back</button>':'';
     box.innerHTML='<div class="genealogy-tree"><div class="genealogy-toolbar">'+backButton+'<span class="genealogy-current">Viewing OCTO7 / '+escapeHTML(genealogyCurrentMemberId)+'</span><button type="button" id="genealogyZoomOut">−</button><span id="genealogyZoomLabel">100%</span><button type="button" id="genealogyZoomIn">＋</button><button type="button" id="genealogyFit">Fit to Screen</button><button type="button" id="genealogyVacancies">Show all vacant positions</button></div><div class="genealogy-viewport" id="genealogyViewport"><div class="genealogy-canvas" id="genealogyCanvas">'+renderGenealogyNode(tree.root,true)+'</div></div><div id="genealogyVacancyResults" class="genealogy-legend" aria-live="polite"></div><div class="genealogy-legend">Tap any Member ID to open that ID and its immediate downline. Vacant slots in the full downline can be listed separately. LBV: '+escapeHTML(String(binary.left_available_bv??0))+' · RBV: '+escapeHTML(String(binary.right_available_bv??0))+'</div></div>';
+    layoutGenealogyTree();
     setupGenealogyControls();
     document.getElementById("genealogyVacancies").addEventListener("click",loadAllGenealogyVacancies);
     const canvas=document.getElementById("genealogyCanvas");
