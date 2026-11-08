@@ -165,7 +165,7 @@ input {
 .binary-children{display:flex;justify-content:center;align-items:flex-start;gap:120px;position:relative;padding-top:28px}
 .binary-children:before{content:"";position:absolute;top:0;left:50%;height:28px;border-left:2px solid var(--purple);z-index:1}
 .binary-children:after{content:"";position:absolute;top:28px;left:50%;transform:translateX(-50%);width:var(--branch-width,210px);border-top:2px solid var(--purple);z-index:1}
-.binary-child-slot{position:relative;padding-top:28px;flex:0 0 auto;box-sizing:border-box}
+.binary-child-slot{position:relative;padding-top:28px;flex:0 0 var(--child-width,90px);width:var(--child-width,90px);display:flex;justify-content:center;box-sizing:border-box}
 .binary-child-slot:before{content:"";position:absolute;top:0;left:50%;height:28px;border-left:2px solid var(--purple);z-index:1}
 .binary-empty{width:90px;height:58px;box-sizing:border-box;border:2px dashed #aaa;border-radius:3px;background:#fff;color:#7040b5;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;font-weight:700;line-height:1.4;cursor:pointer;font-family:inherit}
 .binary-empty small{font-size:8px;font-weight:500}
@@ -1481,11 +1481,11 @@ function buildGenealogyMap(nodes){
 }
 function genealogySubtreeWidth(node){
   if(!node)return 90;
-  // Every existing member renders two child positions, even when both are empty.
-  // Include those visible slots when measuring the subtree so connector lines
-  // reach the actual left/right child centres without breaking.
+  // Each member has two equal-width child columns. This keeps the parent
+  // centred exactly over the midpoint of its left and right child positions,
+  // even when one side contains a much wider subtree than the other.
   const lw=genealogySubtreeWidth(node.left),rw=genealogySubtreeWidth(node.right);
-  return Math.max(90,lw+120+rw);
+  return 2*Math.max(lw,rw)+120;
 }
 function renderGenealogyNode(node,isRoot){
   const active=String(node.status||"").toLowerCase()==="active";
@@ -1494,8 +1494,9 @@ function renderGenealogyNode(node,isRoot){
   const left=node.left?renderGenealogyNode(node.left,false):'<button type="button" class="binary-empty" aria-label="Create a member in the available left position" onclick="openMemberRegistration('+parentId+', \'left\')">LEFT<small>Position Available</small></button>';
   const right=node.right?renderGenealogyNode(node.right,false):'<button type="button" class="binary-empty" aria-label="Create a member in the available right position" onclick="openMemberRegistration('+parentId+', \'right\')">RIGHT<small>Position Available</small></button>';
   const lw=genealogySubtreeWidth(node.left),rw=genealogySubtreeWidth(node.right);
-  const branch=lw/2+120+rw/2;
-  return '<div class="binary-subtree"><div>'+card+'</div><div class="binary-children" style="--branch-width:'+branch+'px"><div class="binary-child-slot">'+left+'</div><div class="binary-child-slot">'+right+'</div></div></div>';
+  const childWidth=Math.max(lw,rw);
+  const branch=childWidth+120;
+  return '<div class="binary-subtree"><div>'+card+'</div><div class="binary-children" style="--child-width:'+childWidth+'px;--branch-width:'+branch+'px"><div class="binary-child-slot">'+left+'</div><div class="binary-child-slot">'+right+'</div></div></div>';
 }
 function setupGenealogyControls(){
   const view=document.getElementById("genealogyViewport"),canvas=document.getElementById("genealogyCanvas");
