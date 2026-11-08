@@ -164,9 +164,11 @@ input {
 .binary-card.root .binary-status.active{color:#65e99a}.binary-card.root .binary-status.inactive{color:#ff8888}
 .binary-children{display:flex;justify-content:center;align-items:flex-start;gap:120px;position:relative;padding-top:28px}
 .binary-children:before{content:"";position:absolute;top:0;left:50%;height:28px;border-left:2px solid var(--purple);z-index:1}
-.binary-children:after{content:"";position:absolute;top:28px;left:50%;transform:translateX(-50%);width:var(--branch-width,210px);border-top:2px solid var(--purple);z-index:1}
-.binary-child-slot{position:relative;padding-top:28px;flex:0 0 var(--child-width,90px);width:var(--child-width,90px);display:flex;justify-content:center;box-sizing:border-box}
-.binary-child-slot:before{content:"";position:absolute;top:0;left:50%;height:28px;border-left:2px solid var(--purple);z-index:1}
+.binary-children:after{content:"";position:absolute;top:28px;left:50%;transform:translateX(-50%);width:300px;border-top:2px solid var(--purple);z-index:1}
+.binary-child-slot{position:relative;padding-top:29px;flex:0 0 90px;width:90px;display:flex;justify-content:center;box-sizing:border-box}
+.binary-child-slot:before{content:"";position:absolute;top:0;left:50%;height:29px;border-left:2px solid var(--purple);z-index:1}
+.binary-card[data-genealogy-member]{cursor:pointer;touch-action:manipulation}
+.binary-card[data-genealogy-member]:focus{outline:3px solid #7040b555;outline-offset:3px}
 .binary-empty{position:relative;z-index:3;pointer-events:auto;touch-action:manipulation;width:90px;height:58px;box-sizing:border-box;border:2px dashed #aaa;border-radius:3px;background:#fff;color:#7040b5;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;font-weight:700;line-height:1.4;cursor:pointer;font-family:inherit}
 .binary-empty small{font-size:8px;font-weight:500}
 .binary-empty:hover,.binary-empty:focus{background:#f1eaff;border-color:#7040b5;outline:2px solid #7040b544;outline-offset:2px}
@@ -1480,24 +1482,27 @@ function buildGenealogyMap(nodes){
   }
   return {root};
 }
-function genealogySubtreeWidth(node){
-  if(!node)return 90;
-  // Each member has two equal-width child columns. This keeps the parent
-  // centred exactly over the midpoint of its left and right child positions,
-  // even when one side contains a much wider subtree than the other.
-  const lw=genealogySubtreeWidth(node.left),rw=genealogySubtreeWidth(node.right);
-  return 2*Math.max(lw,rw)+120;
-}
 function renderGenealogyNode(node,isRoot){
   const active=String(node.status||"").toLowerCase()==="active";
-  const card='<div class="binary-card '+(isRoot?'root':'')+'"><span class="binary-brand">OCTO7</span><span class="binary-id">'+escapeHTML(String(node.member_id??"-"))+'</span><span class="binary-status '+(active?'active':'inactive')+'">'+(active?'ACTIVE':'INACTIVE')+'</span></div>';
+  const memberId=String(node.member_id??"-");
+  const card='<button type="button" class="binary-card '+(isRoot?'root':'')+'" data-genealogy-member="'+escapeHTML(memberId)+'" aria-label="Open genealogy for OCTO7 '+escapeHTML(memberId)+'"><span class="binary-brand">OCTO7</span><span class="binary-id">'+escapeHTML(memberId)+'</span><span class="binary-status '+(active?'active':'inactive')+'">'+(active?'ACTIVE':'INACTIVE')+'</span></button>';
   const parentId=Number(node.id);
   const left=node.left?renderGenealogyNode(node.left,false):'<button type="button" class="binary-empty" aria-label="Create a member in the available left position" onclick="openMemberRegistration('+parentId+', \'left\')">LEFT<small>Position Available</small></button>';
   const right=node.right?renderGenealogyNode(node.right,false):'<button type="button" class="binary-empty" aria-label="Create a member in the available right position" onclick="openMemberRegistration('+parentId+', \'right\')">RIGHT<small>Position Available</small></button>';
-  const lw=genealogySubtreeWidth(node.left),rw=genealogySubtreeWidth(node.right);
-  const childWidth=Math.max(lw,rw);
-  const branch=childWidth+120;
-  return '<div class="binary-subtree"><div>'+card+'</div><div class="binary-children" style="--child-width:'+childWidth+'px;--branch-width:'+branch+'px"><div class="binary-child-slot">'+left+'</div><div class="binary-child-slot">'+right+'</div></div></div>';
+  return '<div class="binary-subtree"><div>'+card+'</div><div class="binary-children"><div class="binary-child-slot">'+left+'</div><div class="binary-child-slot">'+right+'</div></div></div>';
+}
+let genealogyCurrentMemberId=null;
+let genealogyNavigationStack=[];
+async function openGenealogyMember(memberId){
+  const selected=String(memberId||"").trim();
+  if(!selected||selected===String(genealogyCurrentMemberId||""))return;
+  genealogyNavigationStack.push(genealogyCurrentMemberId);
+  await loadGenealogy(selected,"navigate");
+}
+async function genealogyGoBack(){
+  if(!genealogyNavigationStack.length)return;
+  const previous=genealogyNavigationStack.pop();
+  await loadGenealogy(previous,"back");
 }
 function setupGenealogyControls(){
   const view=document.getElementById("genealogyViewport"),canvas=document.getElementById("genealogyCanvas");
@@ -1506,7 +1511,7 @@ function setupGenealogyControls(){
   const apply=()=>{canvas.style.transform="scale("+scale+")";document.getElementById("genealogyZoomLabel").textContent=Math.round(scale*100)+"%";};
   document.getElementById("genealogyZoomIn").onclick=()=>{scale=Math.min(2.2,scale+.15);apply();};
   document.getElementById("genealogyZoomOut").onclick=()=>{scale=Math.max(.35,scale-.15);apply();};
-  document.getElementById("genealogyFit").onclick=()=>{scale=Math.max(.35,Math.min(1,(view.clientWidth-30)/(canvas.scrollWidth||canvas.offsetWidth)));apply();view.scrollLeft=0;view.scrollTop=0;};
+  document.getElementById("genealogyFit").onclick=()=>{const w=(canvas.scrollWidth||canvas.offsetWidth),h=(canvas.scrollHeight||canvas.offsetHeight);scale=Math.max(.35,Math.min(1,(view.clientWidth-30)/w,(view.clientHeight-30)/h));apply();view.scrollLeft=0;view.scrollTop=0;};
   view.addEventListener("pointerdown",e=>{if(e.target.closest("button"))return;drag=true;x=e.clientX;y=e.clientY;left=view.scrollLeft;top=view.scrollTop;view.classList.add("dragging");view.setPointerCapture(e.pointerId);});
   view.addEventListener("pointermove",e=>{if(drag){view.scrollLeft=left-(e.clientX-x);view.scrollTop=top-(e.clientY-y);}});
   const stop=()=>{drag=false;view.classList.remove("dragging");};
@@ -1681,19 +1686,29 @@ function cancelMemberRegistration(){
   loadGenealogy();
 }
 
-async function loadGenealogy(){
+async function loadGenealogy(rootMemberId=null,navigationMode="reset"){
   showPortalPage("genealogy");
   const box=document.getElementById("genealogyTree");
   box.innerHTML='<div class="card">Loading OCTO7 genealogy...</div>';
   try{
-    const [profile,genealogy]=await Promise.all([api("me"),api("my_genealogy")]);
+    const profile=await api("me");
+    const payload=rootMemberId?{root_member_id:String(rootMemberId)}:{};
+    const genealogy=await api("my_genealogy",payload);
     const nodes=Array.isArray(genealogy.nodes)?genealogy.nodes:[];
     if(!nodes.length)throw new Error("No genealogy positions were returned for this member.");
     const tree=buildGenealogyMap(nodes);
     if(!tree.root)throw new Error("The genealogy root position is missing.");
+    genealogyCurrentMemberId=String(genealogy.root?.member_id||tree.root.member_id);
+    if(navigationMode==="reset")genealogyNavigationStack=[];
     const binary=profile.binary||genealogy.binary||{};
-    box.innerHTML='<div class="genealogy-tree"><div class="genealogy-toolbar"><button type="button" id="genealogyZoomOut">−</button><span id="genealogyZoomLabel">100%</span><button type="button" id="genealogyZoomIn">＋</button><button type="button" id="genealogyFit">Fit to Tree</button></div><div class="genealogy-viewport" id="genealogyViewport"><div class="genealogy-canvas" id="genealogyCanvas">'+renderGenealogyNode(tree.root,true)+'</div></div><div class="genealogy-legend">Drag to move · Use zoom controls · LBV: '+escapeHTML(String(binary.left_available_bv??0))+' · RBV: '+escapeHTML(String(binary.right_available_bv??0))+'</div></div>';
+    const backButton=genealogyNavigationStack.length?'<button type="button" id="genealogyBack" onclick="genealogyGoBack()">‹ Back</button>':'';
+    box.innerHTML='<div class="genealogy-tree"><div class="genealogy-toolbar">'+backButton+'<span class="genealogy-current">Viewing OCTO7 / '+escapeHTML(genealogyCurrentMemberId)+'</span><button type="button" id="genealogyZoomOut">−</button><span id="genealogyZoomLabel">100%</span><button type="button" id="genealogyZoomIn">＋</button><button type="button" id="genealogyFit">Fit to Screen</button></div><div class="genealogy-viewport" id="genealogyViewport"><div class="genealogy-canvas" id="genealogyCanvas">'+renderGenealogyNode(tree.root,true)+'</div></div><div class="genealogy-legend">Tap any Member ID to open that ID and its immediate downline. Horizontal gap: 120 px · Vertical gap: 57 px · LBV: '+escapeHTML(String(binary.left_available_bv??0))+' · RBV: '+escapeHTML(String(binary.right_available_bv??0))+'</div></div>';
     setupGenealogyControls();
+    const canvas=document.getElementById("genealogyCanvas");
+    canvas.addEventListener("click",event=>{
+      const card=event.target.closest("[data-genealogy-member]");
+      if(card)openGenealogyMember(card.getAttribute("data-genealogy-member"));
+    });
   }catch(error){
     box.innerHTML='<div class="card">Unable to load genealogy: '+escapeHTML(error.message)+'</div>';
   }
