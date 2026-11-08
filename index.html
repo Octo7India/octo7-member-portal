@@ -630,8 +630,18 @@ footer .logo {color:white}
             <button type="button" class="btn" id="verifyRegistrationOtpButton" onclick="verifyRegistrationOtp()" hidden>VERIFY OTP</button>
             <div id="registrationVerificationStatus" class="message" role="status" aria-live="polite">Choose email or SMS verification and send an OTP.</div>
           </div>
-          <label>Create Password<input id="newMemberPassword" type="password" autocomplete="new-password" minlength="8" maxlength="72" required></label>
-          <label>Confirm Password<input id="newMemberConfirmPassword" type="password" autocomplete="new-password" minlength="8" maxlength="72" required></label>
+          <label>Create Password
+            <div class="password-box">
+              <input id="newMemberPassword" type="password" autocomplete="new-password" minlength="8" maxlength="72" required>
+              <button type="button" class="eye-button" onclick="togglePassword('newMemberPassword',this)" aria-label="Show password">👁</button>
+            </div>
+          </label>
+          <label>Confirm Password
+            <div class="password-box">
+              <input id="newMemberConfirmPassword" type="password" autocomplete="new-password" minlength="8" maxlength="72" required>
+              <button type="button" class="eye-button" onclick="togglePassword('newMemberConfirmPassword',this)" aria-label="Show password">👁</button>
+            </div>
+          </label>
         </div>
         <p class="registration-note">The new Member ID will be generated automatically. New registrations remain pending until OCTO7 activates the membership. Keep the password confidential.</p>
         <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:18px">
