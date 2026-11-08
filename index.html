@@ -1252,7 +1252,7 @@ function renderDashboard(data) {
 
 async function setOcto7IdDisplay(element,value){
   if(!element)return;
-  const raw=String(value??"").trim().replace(/^OCTO7\\s*/i,"");
+  const raw=String(value??"").trim().replace(/^OCTO7\s*/i,"");
   if(!raw){element.textContent="Not provided";return;}
   element.innerHTML="<span>OCTO7</span><span>"+escapeHTML(raw)+"</span>";
   element.setAttribute("aria-label","OCTO7 "+raw);
