@@ -234,6 +234,7 @@ footer .logo {color:white}
 .member-welcome-details h2{margin:5px 0 10px}
 .member-welcome-details p{margin:6px 0}
 .welcome-kicker{font-size:11px;letter-spacing:1.5px;font-weight:800;color:#76539a}
+.welcome-member-id{margin-top:8px;font-size:13px;color:#665779;font-weight:700}
 .welcome-status{display:inline-block;margin-top:9px;padding:7px 13px;border-radius:20px;font-size:12px;font-weight:800;text-transform:uppercase}
 .welcome-status.active{background:#e5f7eb;color:#16743b}
 .welcome-status.pending{background:#fff3d9;color:#946200}
@@ -494,7 +495,10 @@ footer .logo {color:white}
   <div id="homeView" class="portal-view">
     <div class="member-welcome-simple">
       <h2>Welcome</h2>
-      <h1 id="welcomeMemberName">Varghese Thomas</h1>
+      <h1 id="welcomeMemberName">Loading member...</h1>
+      <div id="welcomeMemberId" class="welcome-member-id"></div>
+      <div id="welcomeAccountStatus" class="welcome-status pending" hidden></div>
+      <div id="welcomeMemberPhoto" hidden aria-hidden="true"></div>
     </div>
     <div id="welcomeMessage" class="message" aria-live="polite"></div>
   </div>
@@ -1437,32 +1441,47 @@ async function loadMemberWelcome() {
   const idEl = document.getElementById("welcomeMemberId");
   const statusEl = document.getElementById("welcomeAccountStatus");
   const photoEl = document.getElementById("welcomeMemberPhoto");
+  if (!nameEl) return;
+  nameEl.textContent = "Loading member...";
   try {
     const data = await api("me");
     const member = data.member || {};
-    const name = member.full_name || member.name || "OCTO7 Member";
+    const name = String(member.full_name || member.name || "").trim();
+    if (!name) throw new Error("Your member name is not available in your profile yet.");
     nameEl.textContent = name;
-    idEl.textContent = member.member_id || member.id || "Not assigned";
-    const status = String(member.status || "Pending");
-    statusEl.textContent = status;
-    statusEl.className = "welcome-status " + (status.toLowerCase() === "active" ? "active" : "pending");
-    const { data: welcomeAuth } = await client.auth.getUser();
-    const photo = welcomeAuth.user?.user_metadata?.avatar_url || member.profile_picture_url || member.avatar_url || member.photo_url || member.profile_image;
-    if (photo) {
-      const img = document.createElement("img");
-      img.src = photo;
-      img.alt = name + " profile picture";
-      img.onerror = () => { photoEl.textContent = "👤"; };
-      photoEl.textContent = "";
-      photoEl.appendChild(img);
-    } else {
-      photoEl.textContent = name.trim().split(/\\s+/).map(part => part[0]).slice(0,2).join("").toUpperCase() || "👤";
+    if (idEl) idEl.textContent = "OCTO7 Member ID: " + String(member.member_id || member.id || "Not assigned");
+    if (statusEl) {
+      const status = String(member.status || "Pending");
+      statusEl.textContent = status;
+      statusEl.className = "welcome-status " + (status.toLowerCase() === "active" ? "active" : "pending");
+      statusEl.hidden = false;
     }
+    if (photoEl) {
+      const { data: welcomeAuth } = await client.auth.getUser();
+      const photo = welcomeAuth.user?.user_metadata?.avatar_url || member.profile_picture_url || member.avatar_url || member.photo_url || member.profile_image;
+      if (photo) {
+        const img = document.createElement("img");
+        img.src = photo;
+        img.alt = name + " profile picture";
+        img.onerror = () => { photoEl.textContent = ""; };
+        photoEl.textContent = "";
+        photoEl.appendChild(img);
+        photoEl.hidden = false;
+      }
+    }
+    showMessage("welcomeMessage", "");
   } catch (error) {
-    nameEl.textContent = "Welcome, OCTO7 Member";
-    idEl.textContent = "Unavailable";
-    statusEl.textContent = "Status unavailable";
-    statusEl.className = "welcome-status pending";
+    // Keep a valid name already loaded; optional display fields must never break the greeting.
+    if (nameEl.textContent === "Loading member..." || !nameEl.textContent.trim()) {
+      try {
+        const { data: authData } = await client.auth.getUser();
+        const metadata = authData.user?.user_metadata || {};
+        const fallbackName = String(metadata.full_name || metadata.name || "").trim();
+        nameEl.textContent = fallbackName || "OCTO7 Member";
+      } catch (_) {
+        nameEl.textContent = "OCTO7 Member";
+      }
+    }
     showMessage("welcomeMessage", error.message || "Unable to load member details.", true);
   }
 }
