@@ -1486,6 +1486,7 @@ function renderGenealogyNode(node,isRoot){
   const active=String(node.status||"").toLowerCase()==="active";
   const memberId=String(node.member_id??"-");
   const card='<button type="button" class="binary-card '+(isRoot?'root':'')+'" data-genealogy-member="'+escapeHTML(memberId)+'" aria-label="Open genealogy for OCTO7 '+escapeHTML(memberId)+'"><span class="binary-brand">OCTO7</span><span class="binary-id">'+escapeHTML(memberId)+'</span><span class="binary-status '+(active?'active':'inactive')+'">'+(active?'ACTIVE':'INACTIVE')+'</span></button>';
+  if(!isRoot)return '<div class="binary-subtree"><div>'+card+'</div></div>';
   const parentId=Number(node.id);
   const left=node.left?renderGenealogyNode(node.left,false):'<button type="button" class="binary-empty" aria-label="Create a member in the available left position" onclick="openMemberRegistration('+parentId+', \'left\')">LEFT<small>Position Available</small></button>';
   const right=node.right?renderGenealogyNode(node.right,false):'<button type="button" class="binary-empty" aria-label="Create a member in the available right position" onclick="openMemberRegistration('+parentId+', \'right\')">RIGHT<small>Position Available</small></button>';
