@@ -162,13 +162,14 @@ input {
 .binary-status{font-size:8px;font-weight:800;margin-top:2px;line-height:1}
 .binary-status.active{color:#168344}.binary-status.inactive{color:#d22}
 .binary-card.root .binary-status.active{color:#65e99a}.binary-card.root .binary-status.inactive{color:#ff8888}
-/* Binary genealogy connectors: one parent trunk, one crossbar, and two child stems. */
-.binary-children{display:flex;justify-content:center;align-items:flex-start;gap:40px;position:relative;padding-top:28px}
+/* Binary tree geometry: each parent has its own two independent child branches. */
+.binary-card-wrap{display:block;width:90px;height:58px;line-height:0;flex:0 0 58px}
+.binary-children{display:flex;justify-content:center;align-items:flex-start;gap:40px;width:220px;position:relative;padding:28px 0 0;margin:0 auto;box-sizing:border-box}
 .binary-children:before{content:"";position:absolute;top:0;left:50%;height:14px;border-left:2px solid var(--purple);z-index:1}
-.binary-children:after{content:"";position:absolute;top:14px;left:45px;width:calc(100% - 90px);border-top:2px solid var(--purple);z-index:1}
-.binary-child-slot{position:relative;padding-top:28px;flex:0 0 90px;width:90px;display:flex;justify-content:center;box-sizing:border-box}
-.binary-child-slot:before{content:"";position:absolute;top:0;left:50%;height:28px;border-left:2px solid var(--purple);z-index:1}
-.binary-subtree{min-width:90px}
+.binary-children:after{content:"";position:absolute;top:14px;left:45px;width:130px;border-top:2px solid var(--purple);z-index:1}
+.binary-child-slot{position:relative;padding-top:28px;flex:0 0 90px;width:90px;min-width:90px;display:flex;justify-content:center;box-sizing:border-box}
+.binary-child-slot:before{content:"";position:absolute;top:14px;left:50%;height:14px;border-left:2px solid var(--purple);z-index:1}
+.binary-subtree{min-width:90px;flex:0 0 auto}
 .binary-card[data-genealogy-member]{cursor:pointer;touch-action:manipulation}
 .binary-card[data-genealogy-member]:focus{outline:3px solid #7040b555;outline-offset:3px}
 .binary-empty{position:relative;z-index:3;pointer-events:auto;touch-action:manipulation;width:90px;height:58px;box-sizing:border-box;border:2px dashed #aaa;border-radius:3px;background:#fff;color:#7040b5;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;font-weight:700;line-height:1.4;cursor:pointer;font-family:inherit}
@@ -1515,7 +1516,7 @@ function renderGenealogyNode(node,isRoot){
   const right=node.right
     ?renderGenealogyNode(node.right,false)
     :'<button type="button" class="binary-empty" aria-label="Create a member in the available right position" onclick="openMemberRegistration('+parentId+', \'right\')">RIGHT<small>Position Available</small></button>';
-  return '<div class="binary-subtree"><div>'+card+'</div><div class="binary-children"><div class="binary-child-slot">'+left+'</div><div class="binary-child-slot">'+right+'</div></div></div>';
+  return '<div class="binary-subtree"><div class="binary-card-wrap">'+card+'</div><div class="binary-children"><div class="binary-child-slot">'+left+'</div><div class="binary-child-slot">'+right+'</div></div></div>';
 }
 let genealogyCurrentMemberId=null;
 let genealogyNavigationStack=[];
