@@ -167,6 +167,11 @@ input {
 .binary-children:after{content:"";position:absolute;top:28px;left:50%;transform:translateX(-50%);width:300px;border-top:2px solid var(--purple);z-index:1}
 .binary-child-slot{position:relative;padding-top:29px;flex:0 0 90px;width:90px;display:flex;justify-content:center;box-sizing:border-box}
 .binary-child-slot:before{content:"";position:absolute;top:0;left:50%;height:29px;border-left:2px solid var(--purple);z-index:1}
+/* Genealogy cards use a clean, line-free layout at every depth. */
+.binary-children:before,.binary-children:after,.binary-child-slot:before{content:none!important;display:none!important}
+.binary-children{padding-top:18px;gap:24px}
+.binary-child-slot{padding-top:0}
+.binary-subtree{min-width:90px}
 .binary-card[data-genealogy-member]{cursor:pointer;touch-action:manipulation}
 .binary-card[data-genealogy-member]:focus{outline:3px solid #7040b555;outline-offset:3px}
 .binary-empty{position:relative;z-index:3;pointer-events:auto;touch-action:manipulation;width:90px;height:58px;box-sizing:border-box;border:2px dashed #aaa;border-radius:3px;background:#fff;color:#7040b5;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;font-weight:700;line-height:1.4;cursor:pointer;font-family:inherit}
@@ -1486,10 +1491,13 @@ function renderGenealogyNode(node,isRoot){
   const active=String(node.status||"").toLowerCase()==="active";
   const memberId=String(node.member_id??"-");
   const card='<button type="button" class="binary-card '+(isRoot?'root':'')+'" data-genealogy-member="'+escapeHTML(memberId)+'" aria-label="Open genealogy for OCTO7 '+escapeHTML(memberId)+'"><span class="binary-brand">OCTO7</span><span class="binary-id">'+escapeHTML(memberId)+'</span><span class="binary-status '+(active?'active':'inactive')+'">'+(active?'ACTIVE':'INACTIVE')+'</span></button>';
-  if(!isRoot)return '<div class="binary-subtree"><div>'+card+'</div></div>';
   const parentId=Number(node.id);
-  const left=node.left?renderGenealogyNode(node.left,false):'<button type="button" class="binary-empty" aria-label="Create a member in the available left position" onclick="openMemberRegistration('+parentId+', \'left\')">LEFT<small>Position Available</small></button>';
-  const right=node.right?renderGenealogyNode(node.right,false):'<button type="button" class="binary-empty" aria-label="Create a member in the available right position" onclick="openMemberRegistration('+parentId+', \'right\')">RIGHT<small>Position Available</small></button>';
+  const left=node.left
+    ?renderGenealogyNode(node.left,false)
+    :'<button type="button" class="binary-empty" aria-label="Create a member in the available left position" onclick="openMemberRegistration('+parentId+', \'left\')">LEFT<small>Position Available</small></button>';
+  const right=node.right
+    ?renderGenealogyNode(node.right,false)
+    :'<button type="button" class="binary-empty" aria-label="Create a member in the available right position" onclick="openMemberRegistration('+parentId+', \'right\')">RIGHT<small>Position Available</small></button>';
   return '<div class="binary-subtree"><div>'+card+'</div><div class="binary-children"><div class="binary-child-slot">'+left+'</div><div class="binary-child-slot">'+right+'</div></div></div>';
 }
 let genealogyCurrentMemberId=null;
