@@ -1581,7 +1581,7 @@ async function verifyRegistrationOtp(){
   const code=document.getElementById("newMemberOtp").value.trim();
   if(!registrationVerificationId){showMessage("registrationVerificationStatus","Send an OTP first.",true);return;}
   if(registrationDetailsSnapshot()!==registrationVerificationSnapshot){resetRegistrationVerification("Your details changed. Send a new OTP.");return;}
-  if(!/^\\d{6}$/.test(code)){showMessage("registrationVerificationStatus","Enter the six-digit OTP.",true);return;}
+  if(!/^\d{6}$/.test(code)){showMessage("registrationVerificationStatus","Enter the six-digit OTP.",true);return;}
   const method=document.getElementById("newMemberVerificationMethod").value;
   button.disabled=true;button.textContent="VERIFYING...";
   try{
