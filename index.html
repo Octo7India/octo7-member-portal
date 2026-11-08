@@ -1564,10 +1564,12 @@ async function sendRegistrationOtp(){
   const button=document.getElementById("sendRegistrationOtpButton");
   const method=document.getElementById("newMemberVerificationMethod").value;
   const fullName=document.getElementById("newMemberFullName").value.trim();
-  const email=document.getElementById("newMemberEmail").value.trim();
+  const emailField=document.getElementById("newMemberEmail");
+  const email=emailField.value.trim();
+  emailField.value=email;
   const phone=document.getElementById("newMemberPhone").value.trim();
   if(fullName.length<2){showMessage("registrationVerificationStatus","Enter the full name first.",true);return;}
-  if(!document.getElementById("newMemberEmail").checkValidity()){showMessage("registrationVerificationStatus","Enter a valid email address. Both email and phone are required.",true);return;}
+  if(!emailField.checkValidity()||!email){showMessage("registrationVerificationStatus","Enter a valid email address (example: name@gmail.com).",true);return;}
   if(!document.getElementById("newMemberPhone").checkValidity()||!phone){showMessage("registrationVerificationStatus","Enter a valid mobile number. Both email and phone are required.",true);return;}
   resetRegistrationVerification("Requesting "+(method==="email"?"email":"SMS")+" OTP...");
   button.disabled=true;button.textContent="SENDING...";
