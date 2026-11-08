@@ -614,7 +614,7 @@ footer .logo {color:white}
           <label>Placement Parent ID<div id="newMemberParentIdDisplay" class="octo7-id-display" aria-label="Placement Parent ID">—</div><input id="newMemberParentId" type="hidden" readonly></label>
           <label>Selected Position<input id="newMemberPlacementSide" readonly></label>
           <label>Full Name<input id="newMemberFullName" type="text" autocomplete="name" maxlength="120" required></label>
-          <label>Email Address<input id="newMemberEmail" type="email" autocomplete="email" maxlength="254" required></label>
+          <label>Email Address<input id="newMemberEmail" type="text" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="254" required></label>
           <label>Mobile Number<input id="newMemberPhone" type="tel" autocomplete="tel" maxlength="20" required></label>
           <label>Verification Method
             <select id="newMemberVerificationMethod" onchange="resetRegistrationVerification('Choose the verification method, then request a new code.')">
@@ -1569,7 +1569,7 @@ async function sendRegistrationOtp(){
   emailField.value=email;
   const phone=document.getElementById("newMemberPhone").value.trim();
   if(fullName.length<2){showMessage("registrationVerificationStatus","Enter the full name first.",true);return;}
-  if(!emailField.checkValidity()||!email){showMessage("registrationVerificationStatus","Enter a valid email address (example: name@gmail.com).",true);return;}
+  if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){showMessage("registrationVerificationStatus","Enter a valid email address (example: name@gmail.com).",true);return;}
   if(!document.getElementById("newMemberPhone").checkValidity()||!phone){showMessage("registrationVerificationStatus","Enter a valid mobile number. Both email and phone are required.",true);return;}
   resetRegistrationVerification("Requesting "+(method==="email"?"email":"SMS")+" OTP...");
   button.disabled=true;button.textContent="SENDING...";
