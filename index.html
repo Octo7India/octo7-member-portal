@@ -499,7 +499,6 @@ footer .logo {color:white}
       <h1 id="welcomeMemberName">Loading member...</h1>
       <div id="welcomeMemberId" class="welcome-member-id"></div>
       <div id="welcomeAccountStatus" class="welcome-status pending" hidden></div>
-      <div id="welcomeMemberPhoto" hidden aria-hidden="true"></div>
     </div>
     <div id="welcomeMessage" class="message" aria-live="polite"></div>
   </div>
@@ -1441,7 +1440,6 @@ async function loadMemberWelcome() {
   const nameEl = document.getElementById("welcomeMemberName");
   const idEl = document.getElementById("welcomeMemberId");
   const statusEl = document.getElementById("welcomeAccountStatus");
-  const photoEl = document.getElementById("welcomeMemberPhoto");
   if (!nameEl) return;
   nameEl.textContent = "Loading member...";
   try {
@@ -1456,19 +1454,6 @@ async function loadMemberWelcome() {
       statusEl.textContent = status;
       statusEl.className = "welcome-status " + (status.toLowerCase() === "active" ? "active" : "pending");
       statusEl.hidden = false;
-    }
-    if (photoEl) {
-      const { data: welcomeAuth } = await client.auth.getUser();
-      const photo = welcomeAuth.user?.user_metadata?.avatar_url || member.profile_picture_url || member.avatar_url || member.photo_url || member.profile_image;
-      if (photo) {
-        const img = document.createElement("img");
-        img.src = photo;
-        img.alt = name + " profile picture";
-        img.onerror = () => { photoEl.textContent = ""; };
-        photoEl.textContent = "";
-        photoEl.appendChild(img);
-        photoEl.hidden = false;
-      }
     }
     showMessage("welcomeMessage", "");
   } catch (error) {
