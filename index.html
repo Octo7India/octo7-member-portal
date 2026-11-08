@@ -175,6 +175,10 @@ input {
 .registration-grid label{display:block;font-size:13px;font-weight:700;color:#444}
 .registration-grid input,.registration-grid select{width:100%;padding:12px;margin:7px 0 5px;border:1px solid #ccc;border-radius:6px;font:inherit}
 .registration-note{padding:12px;background:#fff8e8;border-left:4px solid #d6b46a;color:#694f1b;font-size:13px;line-height:1.5}
+.registration-verification{grid-column:1/-1;padding:16px;border:1px solid #e5dcef;border-radius:9px;background:#faf8fd}
+.registration-verification>button{width:100%;margin:6px 0}
+.registration-verification label{display:block;margin-top:10px}
+.registration-verification .message{padding:8px 0;text-align:left}
 .genealogy-legend{font-size:12px;color:#666;margin:10px 0}
 @media(max-width:650px){.genealogy-viewport{height:62vh;min-height:330px}.genealogy-canvas{padding:25px 18px 45px}}
 footer {
@@ -609,13 +613,27 @@ footer .logo {color:white}
           <label>Full Name<input id="newMemberFullName" type="text" autocomplete="name" maxlength="120" required></label>
           <label>Email Address<input id="newMemberEmail" type="email" autocomplete="email" maxlength="254" required></label>
           <label>Mobile Number<input id="newMemberPhone" type="tel" autocomplete="tel" maxlength="20" required></label>
+          <label>Verification Method
+            <select id="newMemberVerificationMethod" onchange="resetRegistrationVerification('Choose the verification method, then request a new code.')">
+              <option value="email">Email verification</option>
+              <option value="phone">SMS verification</option>
+            </select>
+          </label>
+          <div class="registration-verification">
+            <button type="button" class="btn" id="sendRegistrationOtpButton" onclick="sendRegistrationOtp()">SEND OTP</button>
+            <label id="registrationOtpLabel" hidden>Enter OTP
+              <input id="newMemberOtp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="Enter 6-digit OTP">
+            </label>
+            <button type="button" class="btn" id="verifyRegistrationOtpButton" onclick="verifyRegistrationOtp()" hidden>VERIFY OTP</button>
+            <div id="registrationVerificationStatus" class="message" role="status" aria-live="polite">Choose email or SMS verification and send an OTP.</div>
+          </div>
           <label>Create Password<input id="newMemberPassword" type="password" autocomplete="new-password" minlength="8" maxlength="72" required></label>
           <label>Confirm Password<input id="newMemberConfirmPassword" type="password" autocomplete="new-password" minlength="8" maxlength="72" required></label>
         </div>
         <p class="registration-note">The new Member ID will be generated automatically. New registrations remain pending until OCTO7 activates the membership. Keep the password confidential.</p>
         <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:18px">
           <button type="button" class="secondary-button" onclick="cancelMemberRegistration()">BACK TO GENEALOGY</button>
-          <button type="submit" class="btn" id="submitNewMemberButton">CREATE MEMBER</button>
+          <button type="submit" class="btn" id="submitNewMemberButton" disabled>CREATE MEMBER</button>
         </div>
       </form>
     </div>
@@ -1483,6 +1501,9 @@ async function openMemberRegistration(parentId,side){
   document.getElementById("newMemberFullName").value="";
   document.getElementById("newMemberEmail").value="";
   document.getElementById("newMemberPhone").value="";
+  document.getElementById("newMemberOtp").value="";
+  document.getElementById("newMemberVerificationMethod").value="email";
+  resetRegistrationVerification("Choose email or SMS verification and send an OTP.");
   showPortalPage("registration");
   showMessage("registrationMessage","Selected "+selectedSide.toUpperCase()+" position under parent ID "+parent+".");
   try{
@@ -1494,10 +1515,99 @@ async function openMemberRegistration(parentId,side){
     showMessage("registrationMessage",error.message||"Unable to load sponsor details.",true);
   }
 }
+let registrationVerificationId="";
+let registrationVerified=false;
+let registrationVerificationSnapshot="";
+
+function registrationDetailsSnapshot(){
+  return JSON.stringify({
+    full_name:document.getElementById("newMemberFullName").value.trim(),
+    email:document.getElementById("newMemberEmail").value.trim().toLowerCase(),
+    phone:document.getElementById("newMemberPhone").value.trim(),
+    verification_method:document.getElementById("newMemberVerificationMethod").value
+  });
+}
+function resetRegistrationVerification(message){
+  registrationVerificationId="";
+  registrationVerified=false;
+  registrationVerificationSnapshot="";
+  const createButton=document.getElementById("submitNewMemberButton");
+  if(createButton)createButton.disabled=true;
+  const otp=document.getElementById("newMemberOtp");
+  const otpLabel=document.getElementById("registrationOtpLabel");
+  const verifyButton=document.getElementById("verifyRegistrationOtpButton");
+  if(otp){otp.value="";otp.disabled=false;}
+  if(otpLabel)otpLabel.hidden=true;
+  if(verifyButton){verifyButton.hidden=true;verifyButton.disabled=false;verifyButton.textContent="VERIFY OTP";}
+  const sendButton=document.getElementById("sendRegistrationOtpButton");
+  if(sendButton){sendButton.disabled=false;sendButton.textContent="SEND OTP";}
+  const status=document.getElementById("registrationVerificationStatus");
+  if(status)showMessage("registrationVerificationStatus",message||"Details changed. Send a new OTP to verify again.",true);
+}
+["newMemberFullName","newMemberEmail","newMemberPhone"].forEach(id=>{
+  const field=document.getElementById(id);
+  if(field)field.addEventListener("input",()=>resetRegistrationVerification());
+});
+async function sendRegistrationOtp(){
+  const button=document.getElementById("sendRegistrationOtpButton");
+  const method=document.getElementById("newMemberVerificationMethod").value;
+  const fullName=document.getElementById("newMemberFullName").value.trim();
+  const email=document.getElementById("newMemberEmail").value.trim();
+  const phone=document.getElementById("newMemberPhone").value.trim();
+  if(fullName.length<2){showMessage("registrationVerificationStatus","Enter the full name first.",true);return;}
+  if(!document.getElementById("newMemberEmail").checkValidity()){showMessage("registrationVerificationStatus","Enter a valid email address. Both email and phone are required.",true);return;}
+  if(!document.getElementById("newMemberPhone").checkValidity()||!phone){showMessage("registrationVerificationStatus","Enter a valid mobile number. Both email and phone are required.",true);return;}
+  resetRegistrationVerification("Requesting "+(method==="email"?"email":"SMS")+" OTP...");
+  button.disabled=true;button.textContent="SENDING...";
+  try{
+    const result=await api("start_registration_verification",{
+      full_name:fullName,email:email,phone:phone,verification_method:method
+    });
+    if(!result.verification_id)throw new Error("The verification service did not return a verification session. Please try again.");
+    registrationVerificationId=String(result.verification_id);
+    registrationVerificationSnapshot=registrationDetailsSnapshot();
+    document.getElementById("registrationOtpLabel").hidden=false;
+    document.getElementById("verifyRegistrationOtpButton").hidden=false;
+    document.getElementById("newMemberOtp").focus();
+    showMessage("registrationVerificationStatus",result.message+" Sent to "+(result.destination||"your selected channel")+". Enter the six-digit code.");
+    button.textContent="OTP SENT";
+  }catch(error){
+    button.disabled=false;button.textContent="SEND OTP";
+    showMessage("registrationVerificationStatus",error.message||"Unable to send OTP.",true);
+  }
+}
+async function verifyRegistrationOtp(){
+  const button=document.getElementById("verifyRegistrationOtpButton");
+  const code=document.getElementById("newMemberOtp").value.trim();
+  if(!registrationVerificationId){showMessage("registrationVerificationStatus","Send an OTP first.",true);return;}
+  if(registrationDetailsSnapshot()!==registrationVerificationSnapshot){resetRegistrationVerification("Your details changed. Send a new OTP.");return;}
+  if(!/^\\d{6}$/.test(code)){showMessage("registrationVerificationStatus","Enter the six-digit OTP.",true);return;}
+  const method=document.getElementById("newMemberVerificationMethod").value;
+  button.disabled=true;button.textContent="VERIFYING...";
+  try{
+    const action=method==="email"?"verify_registration_email_otp":"verify_registration_sms_otp";
+    const result=await api(action,{verification_id:registrationVerificationId,code:code});
+    if(result.verified!==true)throw new Error("The OTP was not verified. Please try again.");
+    registrationVerified=true;
+    document.getElementById("submitNewMemberButton").disabled=false;
+    document.getElementById("newMemberOtp").disabled=true;
+    button.textContent="VERIFIED";
+    showMessage("registrationVerificationStatus",result.message||"Verification successful. You can now create the member.");
+  }catch(error){
+    button.disabled=false;button.textContent="VERIFY OTP";
+    showMessage("registrationVerificationStatus",error.message||"OTP verification failed.",true);
+  }
+}
+
 async function submitNewMemberRegistration(event){
   event.preventDefault();
   const form=document.getElementById("newMemberRegistrationForm");
   const button=document.getElementById("submitNewMemberButton");
+  if(!registrationVerified||!registrationVerificationId||registrationDetailsSnapshot()!==registrationVerificationSnapshot){
+    button.disabled=true;
+    showMessage("registrationMessage","Verify the selected email or SMS channel before creating the member.",true);
+    return;
+  }
   const password=document.getElementById("newMemberPassword").value;
   const confirmPassword=document.getElementById("newMemberConfirmPassword").value;
   if(password!==confirmPassword){
@@ -1518,6 +1628,7 @@ async function submitNewMemberRegistration(event){
       full_name:document.getElementById("newMemberFullName").value.trim(),
       email:document.getElementById("newMemberEmail").value.trim(),
       phone:document.getElementById("newMemberPhone").value.trim(),
+      verification_id:registrationVerificationId,
       password:password
     });
     const member=result.member||{};
