@@ -1258,7 +1258,7 @@ async function setOcto7IdDisplay(element,value){
   element.setAttribute("aria-label","OCTO7 "+raw);
 }
 
-function loadProfile() {
+async function loadProfile() {
   const ids = {
     fullName:"full_name", dob:"date_of_birth", gender:"gender",
     email:"email", phone:"phone", house:"house_name", street:"street",
