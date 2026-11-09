@@ -147,12 +147,13 @@ class Octo7WebsiteHomeScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
+            // Corrected to spell OCTO directly with globe as O
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: const [
                 Text('🌎', style: TextStyle(fontSize: 36)),
                 Text(
-                  'CTO',
+                  'OCTO',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 40,
