@@ -413,7 +413,7 @@ footer .logo {color:white}
     </div>
     <input id="email" type="text" inputmode="email" autocomplete="username"
            placeholder="Enter your registered email address">
-    <small class="login-hint" id="loginIdentifierHint">For phone login, include your country code (India: +91).</small>
+    <small class="login-hint" id="loginIdentifierHint" hidden>Include your country code (India: +91).</small>
 
     <label for="password">Password</label>
     <div class="password-box">
@@ -1158,10 +1158,8 @@ function setLoginMode(mode) {
   input.inputMode = phoneMode ? "tel" : "email";
   input.autocomplete = phoneMode ? "tel" : "email";
   if (memberMode) memberNumberInput.value = "";
-  hint.hidden = memberMode;
-  hint.textContent = phoneMode
-    ? "Include your country code (India: +91)."
-    : "Enter the email address registered with OCTO7.";
+  hint.hidden = !phoneMode;
+  hint.textContent = "Include your country code (India: +91).";
   emailButton.classList.toggle("active", loginMode === "email");
   phoneButton.classList.toggle("active", phoneMode);
   memberButton.classList.toggle("active", memberMode);
