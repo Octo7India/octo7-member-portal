@@ -1120,11 +1120,11 @@ function setLoginMode(mode) {
   const memberButton = document.getElementById("memberIdLoginMode");
 
   label.textContent = memberMode ? "OCTO7 User ID" : phoneMode ? "Phone Number" : "Email Address";
-  input.placeholder = memberMode ? "Enter your OCTO7 User ID" : phoneMode ? "Enter phone number (e.g. +91 9876543210)" : "Enter your registered email address";
+  input.placeholder = memberMode ? "Enter OCTO7 3" : phoneMode ? "Enter phone number (e.g. +91 9876543210)" : "Enter your registered email address";
   input.inputMode = memberMode || phoneMode ? "numeric" : "email";
   input.autocomplete = memberMode || phoneMode ? "username" : "email";
   hint.textContent = memberMode
-    ? "Enter the Member ID issued by OCTO7."
+    ? "Format: OCTO7 followed by your member number (example: OCTO7 3)."
     : phoneMode
       ? "Include your country code (India: +91)."
       : "Enter the email address registered with OCTO7.";
@@ -1165,7 +1165,7 @@ async function login() {
         },
         body: JSON.stringify({
           action: "member_login",
-          member_id: identifier,
+          member_id: identifier.replace(/^OCTO7\s*/i, "").trim(),
           password: password
         })
       });
@@ -1559,7 +1559,7 @@ async function loadMemberWelcome() {
     const name = String(member.full_name || member.name || "").trim();
     if (!name) throw new Error("Your member name is not available in your profile yet.");
     nameEl.textContent = name;
-    if (idEl) idEl.textContent = "OCTO7 Member ID: " + String(member.member_id || member.id || "Not assigned");
+    if (idEl) { const rawId = String(member.member_id || member.id || "Not assigned").trim(); const formattedId = /^OCTO7\s*/i.test(rawId) ? rawId.toUpperCase() : "OCTO7 " + rawId; idEl.textContent = "User ID: " + formattedId; }
     if (statusEl) {
       const status = String(member.status || "Pending");
       statusEl.textContent = status;
