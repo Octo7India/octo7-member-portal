@@ -943,6 +943,135 @@ class TransactionHistoryScreen extends StatelessWidget {
   }
 }
 
+// --- RANK ADVANCEMENT & QUALIFICATION SCREEN ---
+class RankTrackerScreen extends StatelessWidget {
+  const RankTrackerScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF052411),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF060D1A),
+        title: const Text('Rank Advancement Tracker', style: TextStyle(color: Colors.white, fontSize: 18)),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF060D1A),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFD97706)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.workspace_premium, size: 45, color: Color(0xFFD97706)),
+                  const SizedBox(width: 15),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Text('Current Rank: Gold Executive', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                      SizedBox(height: 4),
+                      Text('Next Target: Pearl Executive', style: TextStyle(color: Color(0xFF10B981), fontSize: 13, fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text('Qualification Progress', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            _rankProgressCard('Left Leg BV Requirement', 12400, 20000, Colors.blue),
+            const SizedBox(height: 10),
+            _rankProgressCard('Right Leg BV Requirement', 15800, 20000, Colors.green),
+            const SizedBox(height: 10),
+            _rankProgressCard('Personal Purchase PV', 3200, 5000, Colors.amber),
+            const SizedBox(height: 25),
+            const Text('OCTO7 Executive Ranks Hierarchy', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            _rankHierarchyItem('Gold Executive', 'Active Rank', '10,000 BV Pair', true),
+            _rankHierarchyItem('Pearl Executive', '62% Completed', '20,000 BV Pair', false),
+            _rankHierarchyItem('Ruby Executive', 'Locked', '50,000 BV Pair', false),
+            _rankHierarchyItem('Diamond Executive', 'Locked', '100,000 BV Pair', false),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static Widget _rankProgressCard(String label, int current, int target, Color color) {
+    double progress = (current / target).clamp(0.0, 1.0);
+    int percentage = (progress * 100).round();
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF060D1A),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(label, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+              Text('$percentage%', style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          LinearProgressIndicator(
+            value: progress,
+            backgroundColor: Colors.white10,
+            valueColor: AlwaysStoppedAnimation<Color>(color),
+            minHeight: 8,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          const SizedBox(height: 8),
+          Text('$current / $target BV', style: const TextStyle(color: Colors.grey, fontSize: 11)),
+        ],
+      ),
+    );
+  }
+
+  static Widget _rankHierarchyItem(String rank, String status, String requirement, bool isCurrent) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isCurrent ? const Color(0xFF064E3B) : const Color(0xFF060D1A),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: isCurrent ? const Color(0xFF10B981) : Colors.white12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Icon(isCurrent ? Icons.check_circle : Icons.stars, color: isCurrent ? const Color(0xFF10B981) : Colors.grey, size: 20),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(rank, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                  Text(requirement, style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                ],
+              ),
+            ],
+          ),
+          Text(status, style: TextStyle(color: isCurrent ? const Color(0xFF10B981) : Colors.white54, fontSize: 12, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+}
+
 // --- MEMBER REGISTRATION SCREEN ---
 class MemberRegistrationScreen extends StatefulWidget {
   const MemberRegistrationScreen({super.key});
@@ -1293,12 +1422,40 @@ class MemberDashboardScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(child: _metricCard('Direct Referrals', '14 Members', Icons.group, Colors.orange)),
-                const SizedBox(width: 12),
-                Expanded(child: _metricCard('Monthly Rank BV', '3,200 PV', Icons.star, Colors.amber)),
-              ],
+            GestureDetector(
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const RankTrackerScreen()));
+              },
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF060D1A),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFD97706).withOpacity(0.5)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: const [
+                        Text('Rank Qualification Progress', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                        Text('62%', style: TextStyle(color: Color(0xFFD97706), fontWeight: FontWeight.bold, fontSize: 13)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    LinearProgressIndicator(
+                      value: 0.62,
+                      backgroundColor: Colors.white10,
+                      valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFD97706)),
+                      minHeight: 6,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text('Tap to view next target: Pearl Executive', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: 25),
             const Text('Quick Distributor Actions', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
@@ -1314,7 +1471,9 @@ class MemberDashboardScreen extends StatelessWidget {
                 _actionButton(Icons.person_add, 'Add Member', (context) {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const MemberRegistrationScreen()));
                 }),
-                _actionButton(Icons.share, 'Referral Link', (context) {}),
+                _actionButton(Icons.stars, 'Rank Tracker', (context) {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const RankTrackerScreen()));
+                }),
                 _actionButton(Icons.history_edu, 'Earnings Log', (context) {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const TransactionHistoryScreen()));
                 }),
