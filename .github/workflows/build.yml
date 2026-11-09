@@ -31,6 +31,9 @@ jobs:
       - name: Accept Android Licenses
         run: yes | flutter doctor --android-licenses
 
+      - name: Generate Android Files
+        run: flutter create . --platforms=android
+
       - name: Build Release APK
         run: flutter build apk --release
 
