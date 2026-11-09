@@ -1154,7 +1154,7 @@ function setLoginMode(mode) {
   label.textContent = memberMode ? "User ID" : phoneMode ? "Phone Number" : "Email Address";
   userIdInput.hidden = !memberMode;
   input.hidden = memberMode;
-  input.placeholder = phoneMode ? "Enter phone number (e.g. +91 9876543210)" : "Enter your registered email address";
+  input.placeholder = phoneMode ? "Enter your mobile number" : "Enter your registered email address";
   input.inputMode = phoneMode ? "tel" : "email";
   input.autocomplete = phoneMode ? "tel" : "email";
   if (memberMode) memberNumberInput.value = "";
