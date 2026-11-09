@@ -31,11 +31,6 @@ jobs:
       - name: Accept Android Licenses
         run: yes | flutter doctor --android-licenses
 
-      - name: Generate Splash and Icons
-        run: |
-          flutter pub run flutter_native_splash:create --flavors=production || flutter pub run flutter_native_splash:create
-          flutter pub run flutter_launcher_icons:main --platform android
-
       - name: Build Release APK
         run: flutter build apk --release
 
