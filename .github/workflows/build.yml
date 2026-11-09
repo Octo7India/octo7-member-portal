@@ -5,6 +5,7 @@ on:
     branches: [ main ]
 
 jobs:
+  build:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -29,9 +30,6 @@ jobs:
 
       - name: Accept Android Licenses
         run: yes | flutter doctor --android-licenses
-
-      - name: Generate Android Platform Files
-        run: flutter create . --platforms=android
 
       - name: Build Release APK
         run: flutter build apk --release
