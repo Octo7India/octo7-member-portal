@@ -33,7 +33,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
 
   final List<Widget> _pages = [
     const Octo7WebsiteHomeScreen(),
-    const Center(child: Text('Binary Tree View', style: TextStyle(color: Colors.white, fontSize: 18))),
+    const BinaryTreeViewScreen(), // Integrated Binary Tree View!
     const Center(child: Text('Products Catalog', style: TextStyle(color: Colors.white, fontSize: 18))),
     const MemberDashboardScreen(),
   ];
@@ -254,6 +254,193 @@ class Octo7WebsiteHomeScreen extends StatelessWidget {
           fontSize: 12,
           fontWeight: FontWeight.w500,
         ),
+      ),
+    );
+  }
+}
+
+// --- BINARY TREE NETWORK VIEW SCREEN ---
+class BinaryTreeViewScreen extends StatelessWidget {
+  const BinaryTreeViewScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF052411),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF060D1A),
+        title: const Text('Binary Network Tree', style: TextStyle(color: Colors.white, fontSize: 18)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search, color: Colors.white),
+            onPressed: () {},
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // Volume Summary Bar
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            color: const Color(0xFF060D1A),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _treeStat('Left Leg Volume', '12,400 BV', Colors.blue),
+                Container(height: 25, width: 1, color: Colors.white24),
+                _treeStat('Total Team', '38 Members', Colors.amber),
+                Container(height: 25, width: 1, color: Colors.white24),
+                _treeStat('Right Leg Volume', '15,800 BV', Colors.green),
+              ],
+            ),
+          ),
+          
+          // Visual Tree Section
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  // ROOT NODE (You)
+                  _memberNode('You (Rajesh)', 'OCT7-89210', const Color(0xFFD97706), true),
+                  _connectorVertical(),
+                  
+                  // LEVEL 1 CONNECTOR
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(width: 140, height: 2, color: Colors.white54),
+                    ],
+                  ),
+                  
+                  // LEVEL 1 NODES (Left & Right)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Column(
+                        children: [
+                          _connectorVertical(),
+                          _memberNode('Aarav S.', 'OCT7-91001', const Color(0xFF10B981), false),
+                          _connectorVertical(),
+                          Row(
+                            children: [
+                              Container(width: 70, height: 2, color: Colors.white54),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              Column(
+                                children: [
+                                  _connectorVertical(),
+                                  _memberNode('Priya M.', 'OCT7-92011', const Color(0xFF10B981), false),
+                                ],
+                              ),
+                              const SizedBox(width: 12),
+                              Column(
+                                children: [
+                                  _connectorVertical(),
+                                  _emptySlotNode(),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          _connectorVertical(),
+                          _memberNode('Suresh K.', 'OCT7-91002', const Color(0xFF10B981), false),
+                          _connectorVertical(),
+                          Row(
+                            children: [
+                              Container(width: 70, height: 2, color: Colors.white54),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              Column(
+                                children: [
+                                  _connectorVertical(),
+                                  _memberNode('Neha G.', 'OCT7-93040', const Color(0xFFF59E0B), false),
+                                ],
+                              ),
+                              const SizedBox(width: 12),
+                              Column(
+                                children: [
+                                  _connectorVertical(),
+                                  _emptySlotNode(),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Widget _treeStat(String label, String value, Color color) {
+    return Column(
+      children: [
+        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
+        const SizedBox(height: 4),
+        Text(value, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13)),
+      ],
+    );
+  }
+
+  static Widget _connectorVertical() {
+    return Container(width: 2, height: 20, color: Colors.white54);
+  }
+
+  static Widget _memberNode(String name, String id, Color badgeColor, bool isRoot) {
+    return Container(
+      width: isRoot ? 130 : 100,
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF060D1A),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: badgeColor, width: isRoot ? 2 : 1),
+      ),
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: isRoot ? 18 : 14,
+            backgroundColor: badgeColor,
+            child: Icon(Icons.person, size: isRoot ? 20 : 16, color: Colors.white),
+          ),
+          const SizedBox(height: 4),
+          Text(name, style: TextStyle(color: Colors.white, fontSize: isRoot ? 12 : 10, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+          Text(id, style: const TextStyle(color: Colors.grey, fontSize: 8)),
+        ],
+      ),
+    );
+  }
+
+  static Widget _emptySlotNode() {
+    return Container(
+      width: 90,
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.white10,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white30, style: BorderStyle.solid),
+      ),
+      child: Column(
+        children: const [
+          Icon(Icons.add_circle_outline, color: Colors.white54, size: 22),
+          SizedBox(height: 4),
+          Text('Add Member', style: TextStyle(color: Colors.white54, fontSize: 9)),
+        ],
       ),
     );
   }
