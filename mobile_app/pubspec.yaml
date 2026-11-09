@@ -1,0 +1,36 @@
+name: octo7_app
+description: OCTO7 India Member Portal Mobile App
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.3.1
+
+flutter:
+  uses-material-design: true
+
+flutter_launcher_icons:
+  image_path: "../OCTO7_emblem_transparent-2.png"
+  android: true
+  ios: true
+
+flutter_native_splash:
+  color: "#0F5127"
+  image: "../OCTO7_emblem_transparent-2.png"
+  color_dark: "#0F5127"
+  android_12:
+    color: "#0F5127"
+    image: "../OCTO7_emblem_transparent-2.png"
+  web: false
