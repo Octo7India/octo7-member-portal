@@ -33,8 +33,8 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
 
   final List<Widget> _pages = [
     const Octo7WebsiteHomeScreen(),
-    const BinaryTreeViewScreen(), // Integrated Binary Tree View!
-    const Center(child: Text('Products Catalog', style: TextStyle(color: Colors.white, fontSize: 18))),
+    const BinaryTreeViewScreen(),
+    const ProductCatalogScreen(), // Integrated Multi-Sector Product Catalog!
     const MemberDashboardScreen(),
   ];
 
@@ -279,7 +279,6 @@ class BinaryTreeViewScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
-          // Volume Summary Bar
           Container(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             color: const Color(0xFF060D1A),
@@ -294,27 +293,20 @@ class BinaryTreeViewScreen extends StatelessWidget {
               ],
             ),
           ),
-          
-          // Visual Tree Section
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
                   const SizedBox(height: 10),
-                  // ROOT NODE (You)
                   _memberNode('You (Rajesh)', 'OCT7-89210', const Color(0xFFD97706), true),
                   _connectorVertical(),
-                  
-                  // LEVEL 1 CONNECTOR
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(width: 140, height: 2, color: Colors.white54),
                     ],
                   ),
-                  
-                  // LEVEL 1 NODES (Left & Right)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -440,6 +432,203 @@ class BinaryTreeViewScreen extends StatelessWidget {
           Icon(Icons.add_circle_outline, color: Colors.white54, size: 22),
           SizedBox(height: 4),
           Text('Add Member', style: TextStyle(color: Colors.white54, fontSize: 9)),
+        ],
+      ),
+    );
+  }
+}
+
+// --- MULTI-SECTOR PRODUCT CATALOG SCREEN ---
+class ProductCatalogScreen extends StatefulWidget {
+  const ProductCatalogScreen({super.key});
+
+  @override
+  State<ProductCatalogScreen> createState() => _ProductCatalogScreenState();
+}
+
+class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
+  int _selectedCategoryIndex = 0;
+
+  final List<String> _categories = ['All Sectors', 'Apparel & Dress', 'IT Solutions', 'Dining Vouchers', 'Saloon & Spa'];
+
+  final List> _products = [
+    {
+      'title': 'Premium Cotton Dress Combo',
+      'category': 'Apparel & Dress',
+      'price': '₹ 2,499',
+      'pv': '50 PV',
+      'icon': Icons.checkroom,
+      'color': Colors.deepOrangeAccent,
+    },
+    {
+      'title': 'Stitched Designer Salwar Set',
+      'category': 'Apparel & Dress',
+      'price': '₹ 1,899',
+      'pv': '35 PV',
+      'icon': Icons.dry_cleaning,
+      'color': Colors.pinkAccent,
+    },
+    {
+      'title': 'OCTO7 POS & Billing Software',
+      'category': 'IT Solutions',
+      'price': '₹ 4,999',
+      'pv': '120 PV',
+      'icon': Icons.laptop_mac,
+      'color': Colors.blueAccent,
+    },
+    {
+      'title': 'OCTO7 Dining Privilege Card',
+      'category': 'Dining Vouchers',
+      'price': '₹ 1,200',
+      'pv': '25 PV',
+      'icon': Icons.restaurant,
+      'color': Colors.amber,
+    },
+    {
+      'title': 'Luxury Spa & Salon Pass',
+      'category': 'Saloon & Spa',
+      'price': '₹ 1,500',
+      'pv': '30 PV',
+      'icon': Icons.spa,
+      'color': Colors.tealAccent,
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final filteredProducts = _selectedCategoryIndex == 0
+        ? _products
+        : _products.where((p) => p['category'] == _categories[_selectedCategoryIndex]).toList();
+
+    return Scaffold(
+      backgroundColor: const Color(0xFF052411),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF060D1A),
+        title: const Text('OCTO7 Products Catalog', style: TextStyle(color: Colors.white, fontSize: 18)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.shopping_cart, color: Color(0xFFD97706)),
+            onPressed: () {},
+          )
+        ],
+      ),
+      body: Column(
+        children: [
+          // Category Selector Chips
+          Container(
+            height: 55,
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            color: const Color(0xFF060D1A),
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _categories.length,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              itemBuilder: (context, index) {
+                final isSelected = _selectedCategoryIndex == index;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: ChoiceChip(
+                    label: Text(_categories[index]),
+                    selected: isSelected,
+                    selectedColor: const Color(0xFFD97706),
+                    backgroundColor: Colors.white10,
+                    labelStyle: TextStyle(
+                      color: isSelected ? Colors.white : Colors.grey.shade300,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                    onSelected: (selected) {
+                      setState(() => _selectedCategoryIndex = index);
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // Products Grid
+          Expanded(
+            child: GridView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: filteredProducts.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 0.75,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+              ),
+              itemBuilder: (context, index) {
+                final item = filteredProducts[index];
+                return Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF060D1A),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.05),
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                          ),
+                          child: Center(
+                            child: Icon(item['icon'] as IconData, size: 50, color: item['color'] as Color),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item['title'] as String,
+                              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(item['price'] as String, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF10B981).withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    item['pv'] as String,
+                                    style: const TextStyle(color: Color(0xFF10B981), fontSize: 11, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 30,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFD97706),
+                                  padding: EdgeInsets.zero,
+                                ),
+                                onPressed: () {},
+                                child: const Text('Add to Cart', style: TextStyle(color: Colors.white, fontSize: 11)),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
