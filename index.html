@@ -1732,7 +1732,7 @@ async function openMemberRegistration(parentId,side){
   document.getElementById("newMemberParentId").value=String(parent);
   setOcto7IdDisplay(document.getElementById("newMemberParentIdDisplay"),parent);
   document.getElementById("newMemberPlacementSide").value=selectedSide.toUpperCase();
-  document.getElementById("newMemberSponsorId").value=String(genealogyCurrentMemberId||"");
+  document.getElementById("newMemberSponsorId").value="";
   document.getElementById("newMemberFullName").value="";
   document.getElementById("newMemberEmail").value="";
   document.getElementById("newMemberPhone").value="";
@@ -1740,6 +1740,7 @@ async function openMemberRegistration(parentId,side){
   document.getElementById("newMemberVerificationMethod").value="email";
   resetRegistrationVerification("Choose email or SMS verification and send an OTP.");
   showPortalPage("registration");
+  document.getElementById("newMemberSponsorId").focus();
   showMessage("registrationMessage","Selected "+selectedSide.toUpperCase()+" position under parent ID "+parent+".");
   // Sponsor ID is editable; the API validates it against the logged-in member's genealogy.
 }
