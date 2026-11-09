@@ -1843,9 +1843,14 @@ window.addEventListener("popstate", () => {
 });
 
 // START APPLICATION
-// Show only the welcome page on first load; do not leave the other
-// public sections stacked underneath it. A saved login is restored next.
-showPublicPage("home");
+// Restore the public page from the URL fragment on refresh.
+// Member pages are restored by restoreSession() after Supabase checks the session.
+const initialHash = location.hash.replace(/^#/, "");
+const publicPages = ["home","about","products","opportunity","join","contact","member-login"];
+if (!initialHash.startsWith("member-")) {
+  const initialPublicPage = publicPages.includes(initialHash) ? initialHash : "home";
+  showPublicPage(initialPublicPage, true);
+}
 restoreSession();
 
 </script>
