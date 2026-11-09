@@ -816,6 +816,133 @@ class _CartCheckoutScreenState extends State<CartCheckoutScreen> {
   }
 }
 
+// --- COMMISSION & PAYOUT HISTORY SCREEN ---
+class TransactionHistoryScreen extends StatelessWidget {
+  const TransactionHistoryScreen({super.key});
+
+  final List> _transactions = const [
+    {
+      'title': 'Federal Bank Withdrawal',
+      'date': 'Oct 24, 2026',
+      'amount': '- ₹ 12,000.00',
+      'type': 'Payout',
+      'status': 'Credited',
+      'color': Colors.greenAccent,
+      'icon': Icons.account_balance,
+    },
+    {
+      'title': 'Binary Matching Bonus',
+      'date': 'Oct 21, 2026',
+      'amount': '+ ₹ 8,400.00',
+      'type': 'Commission',
+      'status': 'Completed',
+      'color': Color(0xFF10B981),
+      'icon': Icons.account_tree,
+    },
+    {
+      'title': 'Direct Sponsor Income (Aarav S.)',
+      'date': 'Oct 18, 2026',
+      'amount': '+ ₹ 1,250.00',
+      'type': 'Referral',
+      'status': 'Completed',
+      'color': Color(0xFF10B981),
+      'icon': Icons.person_add_alt_1,
+    },
+    {
+      'title': 'Federal Bank Withdrawal',
+      'date': 'Oct 12, 2026',
+      'amount': '- ₹ 15,000.00',
+      'type': 'Payout',
+      'status': 'Credited',
+      'color': Colors.greenAccent,
+      'icon': Icons.account_balance,
+    },
+    {
+      'title': 'Apparel Sector Team Bonus',
+      'date': 'Oct 05, 2026',
+      'amount': '+ ₹ 4,200.00',
+      'type': 'Sector Bonus',
+      'status': 'Completed',
+      'color': Color(0xFF10B981),
+      'icon': Icons.shopping_bag,
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF052411),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF060D1A),
+        title: const Text('Commission & Payout History', style: TextStyle(color: Colors.white, fontSize: 18)),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _transactions.length,
+        itemBuilder: (context, index) {
+          final tx = _transactions[index];
+          final isPayout = tx['type'] == 'Payout';
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFF060D1A),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.white12),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: isPayout ? Colors.amber.withOpacity(0.2) : const Color(0xFF10B981).withOpacity(0.2),
+                  child: Icon(tx['icon'] as IconData, color: isPayout ? const Color(0xFFD97706) : const Color(0xFF10B981), size: 20),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(tx['title'] as String, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                      const SizedBox(height: 3),
+                      Text('${tx['date']} • ${tx['type']}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      tx['amount'] as String,
+                      style: TextStyle(
+                        color: isPayout ? const Color(0xFFD97706) : const Color(0xFF10B981),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white10,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        tx['status'] as String,
+                        style: const TextStyle(color: Colors.white70, fontSize: 9, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
 // --- MEMBER REGISTRATION SCREEN ---
 class MemberRegistrationScreen extends StatefulWidget {
   const MemberRegistrationScreen({super.key});
@@ -1143,7 +1270,12 @@ class MemberDashboardScreen extends StatelessWidget {
                       ),
                       OutlinedButton.icon(
                         style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.white54)),
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const TransactionHistoryScreen()),
+                          );
+                        },
                         icon: const Icon(Icons.history, size: 16, color: Colors.white),
                         label: const Text('History', style: TextStyle(color: Colors.white)),
                       ),
@@ -1183,8 +1315,8 @@ class MemberDashboardScreen extends StatelessWidget {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const MemberRegistrationScreen()));
                 }),
                 _actionButton(Icons.share, 'Referral Link', (context) {}),
-                _actionButton(Icons.shopping_bag, 'Multi-Sector Shop', (context) {
-                  // Navigates back or lets user switch tab
+                _actionButton(Icons.history_edu, 'Earnings Log', (context) {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const TransactionHistoryScreen()));
                 }),
                 _actionButton(Icons.account_balance_wallet, 'Bank Details', (context) => _showWithdrawalModal(context)),
               ],
