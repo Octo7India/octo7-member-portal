@@ -227,6 +227,9 @@ footer .logo {color:white}
 .menu-emblem{display:inline-flex;flex-direction:column;gap:4px;width:22px}
 .menu-emblem i{display:block;width:22px;height:2px;border-radius:2px;background:currentColor}
 .login-hint{display:block;margin:5px 0 14px;color:#777;font-size:12px}
+.user-id-input{display:flex;align-items:stretch;margin:8px 0 16px}
+.user-id-prefix{display:flex;align-items:center;padding:0 15px;background:#eee;border:1px solid #ccc;border-right:0;border-radius:5px 0 0 5px;font-weight:700;color:#49306c;letter-spacing:.4px}
+.user-id-input input{flex:1;min-width:0;width:0;margin:0;border-radius:0 5px 5px 0}
 .login-mode-switch{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:0 0 20px}.login-mode-switch button{padding:8px 4px;font-size:13px}
 .login-mode-switch button{min-height:44px;border:1px solid #7040b5;border-radius:7px;background:#fff;color:#7040b5;font-weight:700;cursor:pointer}
 .login-mode-switch button.active{background:#7040b5;color:#fff}
@@ -402,6 +405,11 @@ footer .logo {color:white}
       <button type="button" id="memberIdLoginMode" aria-pressed="false" onclick="setLoginMode('member')">User ID</button>
     </div>
     <label for="email" id="loginIdentifierLabel">Email Address or Phone Number</label>
+    <div class="user-id-input" id="userIdInput" hidden>
+      <span class="user-id-prefix">OCTO7</span>
+      <input id="memberNumberInput" type="text" inputmode="numeric" autocomplete="username"
+             placeholder="Enter your number" aria-label="Member number">
+    </div>
     <input id="email" type="text" inputmode="email" autocomplete="username"
            placeholder="Email or phone number (e.g. +91 9876543210)">
     <small class="login-hint" id="loginIdentifierHint">For phone login, include your country code (India: +91).</small>
@@ -1113,6 +1121,8 @@ function setLoginMode(mode) {
   const memberMode = loginMode === "member";
   const phoneMode = loginMode === "phone";
   const input = document.getElementById("email");
+  const userIdInput = document.getElementById("userIdInput");
+  const memberNumberInput = document.getElementById("memberNumberInput");
   const label = document.getElementById("loginIdentifierLabel");
   const hint = document.getElementById("loginIdentifierHint");
   const emailButton = document.getElementById("emailLoginMode");
@@ -1120,11 +1130,14 @@ function setLoginMode(mode) {
   const memberButton = document.getElementById("memberIdLoginMode");
 
   label.textContent = memberMode ? "OCTO7 User ID" : phoneMode ? "Phone Number" : "Email Address";
-  input.placeholder = memberMode ? "Enter OCTO7 3" : phoneMode ? "Enter phone number (e.g. +91 9876543210)" : "Enter your registered email address";
-  input.inputMode = memberMode || phoneMode ? "numeric" : "email";
-  input.autocomplete = memberMode || phoneMode ? "username" : "email";
+  userIdInput.hidden = !memberMode;
+  input.hidden = memberMode;
+  input.placeholder = phoneMode ? "Enter phone number (e.g. +91 9876543210)" : "Enter your registered email address";
+  input.inputMode = phoneMode ? "tel" : "email";
+  input.autocomplete = phoneMode ? "tel" : "email";
+  if (memberMode) memberNumberInput.value = "";
   hint.textContent = memberMode
-    ? "Format: OCTO7 followed by your member number (example: OCTO7 3)."
+    ? "OCTO7 is fixed. Enter only your member number."
     : phoneMode
       ? "Include your country code (India: +91)."
       : "Enter the email address registered with OCTO7.";
@@ -1137,7 +1150,9 @@ function setLoginMode(mode) {
 }
 
 async function login() {
-  const identifier = document.getElementById("email").value.trim();
+  const identifier = (loginMode === "member"
+    ? document.getElementById("memberNumberInput").value.trim()
+    : document.getElementById("email").value.trim());
   const password = document.getElementById("password").value;
   const button = document.getElementById("loginButton");
 
@@ -1165,7 +1180,7 @@ async function login() {
         },
         body: JSON.stringify({
           action: "member_login",
-          member_id: identifier.replace(/^OCTO7\s*/i, "").trim(),
+          member_id: identifier.replace(/\D/g, ""),
           password: password
         })
       });
