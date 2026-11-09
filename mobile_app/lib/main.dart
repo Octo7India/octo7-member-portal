@@ -453,6 +453,7 @@ class ProductCatalogScreen extends StatefulWidget {
 
 class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
   int _selectedCategoryIndex = 0;
+  final List> _cartItems = [];
 
   final List<String> _categories = ['All Sectors', 'Apparel & Dress', 'IT Solutions', 'Dining Vouchers', 'Saloon & Spa'];
 
@@ -460,40 +461,40 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
     {
       'title': 'Premium Cotton Dress Combo',
       'category': 'Apparel & Dress',
-      'price': '₹ 2,499',
-      'pv': '50 PV',
+      'price': 2499,
+      'pv': 50,
       'icon': Icons.checkroom,
       'color': Colors.deepOrangeAccent,
     },
     {
       'title': 'Stitched Designer Salwar Set',
       'category': 'Apparel & Dress',
-      'price': '₹ 1,899',
-      'pv': '35 PV',
+      'price': 1899,
+      'pv': 35,
       'icon': Icons.dry_cleaning,
       'color': Colors.pinkAccent,
     },
     {
       'title': 'OCTO7 POS & Billing Software',
       'category': 'IT Solutions',
-      'price': '₹ 4,999',
-      'pv': '120 PV',
+      'price': 4999,
+      'pv': 120,
       'icon': Icons.laptop_mac,
       'color': Colors.blueAccent,
     },
     {
       'title': 'OCTO7 Dining Privilege Card',
       'category': 'Dining Vouchers',
-      'price': '₹ 1,200',
-      'pv': '25 PV',
+      'price': 1200,
+      'pv': 25,
       'icon': Icons.restaurant,
       'color': Colors.amber,
     },
     {
       'title': 'Luxury Spa & Salon Pass',
       'category': 'Saloon & Spa',
-      'price': '₹ 1,500',
-      'pv': '30 PV',
+      'price': 1500,
+      'pv': 30,
       'icon': Icons.spa,
       'color': Colors.tealAccent,
     },
@@ -511,9 +512,34 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
         backgroundColor: const Color(0xFF060D1A),
         title: const Text('OCTO7 Products Catalog', style: TextStyle(color: Colors.white, fontSize: 18)),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart, color: Color(0xFFD97706)),
-            onPressed: () {},
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.shopping_cart, color: Color(0xFFD97706)),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CartCheckoutScreen(cartItems: _cartItems),
+                    ),
+                  );
+                },
+              ),
+              if (_cartItems.isNotEmpty)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                    child: Text(
+                      '${_cartItems.length}',
+                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+            ],
           )
         ],
       ),
@@ -554,7 +580,7 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
               itemCount: filteredProducts.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                childAspectRatio: 0.75,
+                childAspectRatio: 0.72,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
               ),
@@ -595,7 +621,7 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(item['price'] as String, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                                Text('₹ ${item['price']}', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
@@ -603,7 +629,7 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
-                                    item['pv'] as String,
+                                    '${item['pv']} PV',
                                     style: const TextStyle(color: Color(0xFF10B981), fontSize: 11, fontWeight: FontWeight.bold),
                                   ),
                                 ),
@@ -618,7 +644,14 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
                                   backgroundColor: const Color(0xFFD97706),
                                   padding: EdgeInsets.zero,
                                 ),
-                                onPressed: () {},
+                                onPressed: () {
+                                  setState(() {
+                                    _cartItems.add(item);
+                                  });
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('${item['title']} added to cart!')),
+                                  );
+                                },
                                 child: const Text('Add to Cart', style: TextStyle(color: Colors.white, fontSize: 11)),
                               ),
                             ),
@@ -633,6 +666,152 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+// --- CART & CHECKOUT SCREEN ---
+class CartCheckoutScreen extends StatefulWidget {
+  final List> cartItems;
+  const CartCheckoutScreen({super.key, required this.cartItems});
+
+  @override
+  State<CartCheckoutScreen> createState() => _CartCheckoutScreenState();
+}
+
+class _CartCheckoutScreenState extends State<CartCheckoutScreen> {
+  @override
+  Widget build(BuildContext context) {
+    int totalPrice = widget.cartItems.fold(0, (sum, item) => sum + (item['price'] as int));
+    int totalPv = widget.cartItems.fold(0, (sum, item) => sum + (item['pv'] as int));
+
+    return Scaffold(
+      backgroundColor: const Color(0xFF052411),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF060D1A),
+        title: const Text('Cart & Checkout', style: TextStyle(color: Colors.white, fontSize: 18)),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: widget.cartItems.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(Icons.shopping_cart_outlined, size: 70, color: Colors.white30),
+                  SizedBox(height: 15),
+                  Text('Your cart is empty', style: TextStyle(color: Colors.white, fontSize: 16)),
+                  SizedBox(height: 5),
+                  Text('Add items from the multi-sector catalog', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                ],
+              ),
+            )
+          : Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: widget.cartItems.length,
+                    itemBuilder: (context, index) {
+                      final item = widget.cartItems[index];
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF060D1A),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.white12),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(item['icon'] as IconData, size: 36, color: item['color'] as Color),
+                            const SizedBox(width: 15),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(item['title'] as String, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                  const SizedBox(height: 4),
+                                  Text('₹ ${item['price']}  |  ${item['pv']} PV', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                              onPressed: () {
+                                setState(() {
+                                  widget.cartItems.removeAt(index);
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF060D1A),
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Total Amount:', style: TextStyle(color: Colors.grey, fontSize: 14)),
+                          Text('₹ $totalPrice', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Total Point Volume (PV):', style: TextStyle(color: Colors.grey, fontSize: 14)),
+                          Text('$totalPv PV', style: const TextStyle(color: Color(0xFF10B981), fontSize: 16, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      const Divider(color: Colors.white24, height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF10B981),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                backgroundColor: const Color(0xFF060D1A),
+                                title: const Text('Order Successful!', style: TextStyle(color: Colors.white)),
+                                content: Text('Your order totaling ₹ $totalPrice has been placed. $totalPv PV has been credited to your account!', style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(ctx);
+                                      setState(() {
+                                        widget.cartItems.clear();
+                                      });
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text('OK', style: TextStyle(color: Color(0xFF10B981))),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                          child: const Text('Proceed to Checkout', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }
@@ -1004,7 +1183,9 @@ class MemberDashboardScreen extends StatelessWidget {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const MemberRegistrationScreen()));
                 }),
                 _actionButton(Icons.share, 'Referral Link', (context) {}),
-                _actionButton(Icons.shopping_bag, 'Multi-Sector Shop', (context) {}),
+                _actionButton(Icons.shopping_bag, 'Multi-Sector Shop', (context) {
+                  // Navigates back or lets user switch tab
+                }),
                 _actionButton(Icons.account_balance_wallet, 'Bank Details', (context) => _showWithdrawalModal(context)),
               ],
             ),
