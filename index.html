@@ -643,10 +643,10 @@ footer .logo {color:white}
           <label>Placement Parent ID<div id="newMemberParentIdDisplay" class="octo7-id-display" aria-label="Placement Parent ID">—</div><input id="newMemberParentId" type="hidden" readonly></label>
           <label>Selected Position<input id="newMemberPlacementSide" readonly></label>
           <label>Full Name<input id="newMemberFullName" type="text" autocomplete="name" maxlength="120" required></label>
-          <label>Email Address<input id="newMemberEmail" type="text" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="254" required></label>
+          <label><span id="newMemberEmailLabel">Email Address (required for email verification)</span><input id="newMemberEmail" type="text" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="254"></label>
           <label>Mobile Number<input id="newMemberPhone" type="tel" autocomplete="tel" maxlength="20" required></label>
           <label>Verification Method
-            <select id="newMemberVerificationMethod" onchange="resetRegistrationVerification('Choose the verification method, then request a new code.')">
+            <select id="newMemberVerificationMethod" onchange="updateRegistrationEmailRequirement();resetRegistrationVerification('Choose the verification method, then request a new code.')">
               <option value="email">Email verification</option>
               <option value="phone">SMS verification</option>
             </select>
@@ -1733,6 +1733,7 @@ async function openMemberRegistration(parentId,side){
   setOcto7IdDisplay(document.getElementById("newMemberParentIdDisplay"),parent);
   document.getElementById("newMemberPlacementSide").value=selectedSide.toUpperCase();
   document.getElementById("newMemberSponsorId").value="";
+  updateRegistrationEmailRequirement();
   document.getElementById("newMemberFullName").value="";
   document.getElementById("newMemberEmail").value="";
   document.getElementById("newMemberPhone").value="";
@@ -1748,6 +1749,15 @@ let registrationVerificationId="";
 let registrationVerified=false;
 let registrationVerificationSnapshot="";
 
+function updateRegistrationEmailRequirement(){
+  const method=document.getElementById("newMemberVerificationMethod").value;
+  const email=document.getElementById("newMemberEmail");
+  const label=document.getElementById("newMemberEmailLabel");
+  const emailRequired=method==="email";
+  email.required=emailRequired;
+  email.placeholder=emailRequired?"Enter email address for OTP":"Optional if using SMS verification";
+  if(label)label.textContent=emailRequired?"Email Address (required for email verification)":"Email Address (optional for SMS verification)";
+}
 function registrationDetailsSnapshot(){
   return JSON.stringify({
     full_name:document.getElementById("newMemberFullName").value.trim(),
@@ -1789,13 +1799,14 @@ async function sendRegistrationOtp(){
   const sponsorMemberId=document.getElementById("newMemberSponsorId").value.trim();
   if(!/^[0-9]{1,20}$/.test(sponsorMemberId)){showMessage("registrationVerificationStatus","Enter the Sponsor Member ID.",true);return;}
   if(fullName.length<2){showMessage("registrationVerificationStatus","Enter the full name first.",true);return;}
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showMessage("registrationVerificationStatus","Enter a valid email address (example: name@gmail.com).",true);return;}
-  if(!document.getElementById("newMemberPhone").checkValidity()||!phone){showMessage("registrationVerificationStatus","Enter a valid mobile number. Both email and phone are required.",true);return;}
+  if(method==="email"&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showMessage("registrationVerificationStatus","Enter a valid email address for email verification.",true);return;}
+  if(method==="phone"&&email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showMessage("registrationVerificationStatus","Enter a valid email address or leave it blank.",true);return;}
+  if(!document.getElementById("newMemberPhone").checkValidity()||!phone){showMessage("registrationVerificationStatus","Enter a valid mobile number.",true);return;}
   resetRegistrationVerification("Requesting "+(method==="email"?"email":"SMS")+" OTP...");
   button.disabled=true;button.textContent="SENDING...";
   try{
     const result=await api("start_registration_verification",{
-      full_name:fullName,sponsor_member_id:sponsorMemberId,email:email,phone:phone,verification_method:method
+      full_name:fullName,sponsor_member_id:sponsorMemberId,email:email||null,phone:phone,verification_method:method
     });
     if(!result.verification_id)throw new Error("The verification service did not return a verification session. Please try again.");
     registrationVerificationId=String(result.verification_id);
@@ -1861,7 +1872,7 @@ async function submitNewMemberRegistration(event){
       parent_position_id:Number(document.getElementById("newMemberParentId").value),
       placement_side:document.getElementById("newMemberPlacementSide").value.toLowerCase(),
       full_name:document.getElementById("newMemberFullName").value.trim(),
-      email:document.getElementById("newMemberEmail").value.trim(),
+      email:document.getElementById("newMemberEmail").value.trim()||null,
       phone:document.getElementById("newMemberPhone").value.trim(),
       verification_id:registrationVerificationId,
       password:password
