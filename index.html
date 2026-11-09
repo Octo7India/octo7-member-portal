@@ -229,10 +229,7 @@ footer .logo {color:white}
 .login-hint{display:block;margin:5px 0 14px;color:#777;font-size:12px}
 .user-id-input{display:flex;align-items:center;gap:8px;margin:8px 0 16px;min-height:48px}
 .user-id-prefix{flex:0 0 auto;font-weight:800;color:#49306c;letter-spacing:.5px;font-size:16px}
-.user-id-cursor{flex:0 0 auto;color:#7040b5;font-size:22px;font-weight:700;line-height:1;animation:octo7CursorBlink 1s steps(2,start) infinite}
 .user-id-input input{flex:1;min-width:0;width:0;margin:0;border-radius:5px}
-@keyframes octo7CursorBlink{to{visibility:hidden}}
-@media(prefers-reduced-motion:reduce){.user-id-cursor{animation:none}}
 .login-mode-switch{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:0 0 20px}.login-mode-switch button{padding:8px 4px;font-size:13px}
 .login-mode-switch button{min-height:44px;border:1px solid #7040b5;border-radius:7px;background:#fff;color:#7040b5;font-weight:700;cursor:pointer}
 .login-mode-switch button.active{background:#7040b5;color:#fff}
@@ -410,7 +407,6 @@ footer .logo {color:white}
     <label for="email" id="loginIdentifierLabel">Email Address</label>
     <div class="user-id-input" id="userIdInput" hidden>
       <span class="user-id-prefix">OCTO7</span>
-      <span class="user-id-cursor" aria-hidden="true">|</span>
       <input id="memberNumberInput" type="text" inputmode="numeric" autocomplete="username"
              placeholder="Enter your User ID number" aria-label="Enter your User ID number">
     </div>
