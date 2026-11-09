@@ -34,7 +34,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   final List<Widget> _pages = [
     const Octo7WebsiteHomeScreen(),
     const BinaryTreeViewScreen(),
-    const ProductCatalogScreen(), // Integrated Multi-Sector Product Catalog!
+    const ProductCatalogScreen(),
     const MemberDashboardScreen(),
   ];
 
@@ -332,7 +332,7 @@ class BinaryTreeViewScreen extends StatelessWidget {
                               Column(
                                 children: [
                                   _connectorVertical(),
-                                  _emptySlotNode(),
+                                  _emptySlotNode(context),
                                 ],
                               ),
                             ],
@@ -361,7 +361,7 @@ class BinaryTreeViewScreen extends StatelessWidget {
                               Column(
                                 children: [
                                   _connectorVertical(),
-                                  _emptySlotNode(),
+                                  _emptySlotNode(context),
                                 ],
                               ),
                             ],
@@ -418,21 +418,26 @@ class BinaryTreeViewScreen extends StatelessWidget {
     );
   }
 
-  static Widget _emptySlotNode() {
-    return Container(
-      width: 90,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.white10,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white30, style: BorderStyle.solid),
-      ),
-      child: Column(
-        children: const [
-          Icon(Icons.add_circle_outline, color: Colors.white54, size: 22),
-          SizedBox(height: 4),
-          Text('Add Member', style: TextStyle(color: Colors.white54, fontSize: 9)),
-        ],
+  static Widget _emptySlotNode(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const MemberRegistrationScreen()));
+      },
+      child: Container(
+        width: 90,
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white10,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.white30, style: BorderStyle.solid),
+        ),
+        child: Column(
+          children: const [
+            Icon(Icons.add_circle_outline, color: Color(0xFF10B981), size: 22),
+            SizedBox(height: 4),
+            Text('Add Member', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+          ],
+        ),
       ),
     );
   }
@@ -514,7 +519,6 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
       ),
       body: Column(
         children: [
-          // Category Selector Chips
           Container(
             height: 55,
             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -544,8 +548,6 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
               },
             ),
           ),
-
-          // Products Grid
           Expanded(
             child: GridView.builder(
               padding: const EdgeInsets.all(16),
@@ -630,6 +632,140 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// --- MEMBER REGISTRATION SCREEN ---
+class MemberRegistrationScreen extends StatefulWidget {
+  const MemberRegistrationScreen({super.key});
+
+  @override
+  State<MemberRegistrationScreen> createState() => _MemberRegistrationScreenState();
+}
+
+class _MemberRegistrationScreenState extends State<MemberRegistrationScreen> {
+  String _selectedLeg = 'Left Leg';
+  String _selectedPackage = 'Apparel & Dress Starter (₹2,499)';
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF052411),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF060D1A),
+        title: const Text('Register New Member', style: TextStyle(color: Colors.white, fontSize: 18)),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Sponsor Details', style: TextStyle(color: Color(0xFFD97706), fontWeight: FontWeight.bold, fontSize: 15)),
+            const SizedBox(height: 10),
+            _buildTextField('Sponsor ID', 'OCT7-89210 (Rajesh Kumar)', true),
+            const SizedBox(height: 15),
+            
+            const Text('Placement Leg', style: TextStyle(color: Color(0xFFD97706), fontWeight: FontWeight.bold, fontSize: 15)),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: RadioListTile<String>(
+                    title: const Text('Left Leg', style: TextStyle(color: Colors.white, fontSize: 14)),
+                    value: 'Left Leg',
+                    groupValue: _selectedLeg,
+                    activeColor: const Color(0xFF10B981),
+                    onChanged: (val) => setState(() => _selectedLeg = val!),
+                  ),
+                ),
+                Expanded(
+                  child: RadioListTile<String>(
+                    title: const Text('Right Leg', style: TextStyle(color: Colors.white, fontSize: 14)),
+                    value: 'Right Leg',
+                    groupValue: _selectedLeg,
+                    activeColor: const Color(0xFF10B981),
+                    onChanged: (val) => setState(() => _selectedLeg = val!),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 15),
+
+            const Text('New Member Personal Info', style: TextStyle(color: Color(0xFFD97706), fontWeight: FontWeight.bold, fontSize: 15)),
+            const SizedBox(height: 10),
+            _buildTextField('Full Name', 'Enter full legal name', false),
+            const SizedBox(height: 12),
+            _buildTextField('Mobile Number', 'Enter 10-digit mobile number', false),
+            const SizedBox(height: 12),
+            _buildTextField('Email Address', 'Enter email address', false),
+            const SizedBox(height: 15),
+
+            const Text('Select Starter Package', style: TextStyle(color: Color(0xFFD97706), fontWeight: FontWeight.bold, fontSize: 15)),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF060D1A),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.white24),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _selectedPackage,
+                  dropdownColor: const Color(0xFF060D1A),
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  isExpanded: true,
+                  items: [
+                    'Apparel & Dress Starter (₹2,499)',
+                    'IT Solutions Starter (₹4,999)',
+                    'Dining Privilege Starter (₹1,200)',
+                    'Saloon & Spa Starter (₹1,500)',
+                  ].map((pkg) => DropdownMenuItem(value: pkg, child: Text(pkg))).toList(),
+                  onChanged: (val) => setState(() => _selectedPackage = val!),
+                ),
+              ),
+            ),
+            const SizedBox(height: 30),
+
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF10B981),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                onPressed: () {
+                  ScaffoldMessenger.contextOf(context)?.showSnackBar(
+                    const SnackBar(content: Text('Member Registered Successfully!')),
+                  );
+                  Navigator.pop(context);
+                },
+                child: const Text('Complete Registration & Generate ID', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static Widget _buildTextField(String label, String hint, bool isReadOnly) {
+    return TextField(
+      readOnly: isReadOnly,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.grey, fontSize: 13),
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.white30, fontSize: 13),
+        filled: true,
+        fillColor: const Color(0xFF060D1A),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
       ),
     );
   }
@@ -748,10 +884,12 @@ class MemberDashboardScreen extends StatelessWidget {
               mainAxisSpacing: 12,
               childAspectRatio: 2.5,
               children: [
-                _actionButton(Icons.person_add, 'Add Member', () {}),
-                _actionButton(Icons.share, 'Referral Link', () {}),
-                _actionButton(Icons.shopping_bag, 'Multi-Sector Shop', () {}),
-                _actionButton(Icons.account_balance_wallet, 'Bank Details', () {}),
+                _actionButton(Icons.person_add, 'Add Member', (context) {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const MemberRegistrationScreen()));
+                }),
+                _actionButton(Icons.share, 'Referral Link', (context) {}),
+                _actionButton(Icons.shopping_bag, 'Multi-Sector Shop', (context) {}),
+                _actionButton(Icons.account_balance_wallet, 'Bank Details', (context) {}),
               ],
             ),
           ],
@@ -784,19 +922,21 @@ class MemberDashboardScreen extends StatelessWidget {
     );
   }
 
-  static Widget _actionButton(IconData icon, String label, VoidCallback onPressed) {
-    return ElevatedButton.icon(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF060D1A),
-        foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: const BorderSide(color: Colors.white24),
+  static Widget _actionButton(IconData icon, String label, Function(BuildContext) onPressed) {
+    return Builder(
+      builder: (context) => ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF060D1A),
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: const BorderSide(color: Colors.white24),
+          ),
         ),
+        onPressed: () => onPressed(context),
+        icon: Icon(icon, size: 18, color: const Color(0xFF10B981)),
+        label: Text(label, style: const TextStyle(fontSize: 13)),
       ),
-      onPressed: onPressed,
-      icon: Icon(icon, size: 18, color: const Color(0xFF10B981)),
-      label: Text(label, style: const TextStyle(fontSize: 13)),
     );
   }
 }
