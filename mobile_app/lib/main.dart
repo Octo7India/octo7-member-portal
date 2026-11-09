@@ -739,7 +739,7 @@ class _MemberRegistrationScreenState extends State<MemberRegistrationScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
                 onPressed: () {
-                  ScaffoldMessenger.contextOf(context)?.showSnackBar(
+                  ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Member Registered Successfully!')),
                   );
                   Navigator.pop(context);
@@ -774,6 +774,122 @@ class _MemberRegistrationScreenState extends State<MemberRegistrationScreen> {
 // --- MEMBER BACK-OFFICE & DASHBOARD SCREEN ---
 class MemberDashboardScreen extends StatelessWidget {
   const MemberDashboardScreen({super.key});
+
+  void _showWithdrawalModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF060D1A),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            top: 20,
+            left: 20,
+            right: 20,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('E-Wallet Payout Request', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white54),
+                      onPressed: () => Navigator.pop(ctx),
+                    )
+                  ],
+                ),
+                const Divider(color: Colors.white24),
+                const SizedBox(height: 10),
+                const Text('Available Balance: ₹ 45,850.00', style: TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.bold, fontSize: 14)),
+                const SizedBox(height: 15),
+                TextField(
+                  style: const TextStyle(color: Colors.white),
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Withdrawal Amount (₹)',
+                    labelStyle: const TextStyle(color: Colors.grey, fontSize: 13),
+                    hintText: 'Enter amount (e.g. 5000)',
+                    hintStyle: const TextStyle(color: Colors.white30, fontSize: 13),
+                    filled: true,
+                    fillColor: const Color(0xFF052411),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
+                  ),
+                ),
+                const SizedBox(height: 15),
+                const Text('Banking Details', style: TextStyle(color: Color(0xFFD97706), fontWeight: FontWeight.bold, fontSize: 14)),
+                const SizedBox(height: 8),
+                TextField(
+                  readOnly: true,
+                  controller: TextEditingController(text: 'Federal Bank'),
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Bank Name',
+                    labelStyle: const TextStyle(color: Colors.grey, fontSize: 13),
+                    filled: true,
+                    fillColor: const Color(0xFF052411),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Account Number',
+                    labelStyle: const TextStyle(color: Colors.grey, fontSize: 13),
+                    hintText: 'Enter Federal Bank account number',
+                    hintStyle: const TextStyle(color: Colors.white30, fontSize: 13),
+                    filled: true,
+                    fillColor: const Color(0xFF052411),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'IFSC Code',
+                    labelStyle: const TextStyle(color: Colors.grey, fontSize: 13),
+                    hintText: 'FDRL000XXXX',
+                    hintStyle: const TextStyle(color: Colors.white30, fontSize: 13),
+                    filled: true,
+                    fillColor: const Color(0xFF052411),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
+                  ),
+                ),
+                const SizedBox(height: 25),
+                SizedBox(
+                  width: double.infinity,
+                  height: 46,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFD97706)),
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Payout request submitted successfully!')),
+                      );
+                    },
+                    child: const Text('Submit Payout Request', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -842,7 +958,7 @@ class MemberDashboardScreen extends StatelessWidget {
                     children: [
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFD97706)),
-                        onPressed: () {},
+                        onPressed: () => _showWithdrawalModal(context),
                         icon: const Icon(Icons.account_balance, size: 16, color: Colors.white),
                         label: const Text('Withdraw', style: TextStyle(color: Colors.white)),
                       ),
@@ -889,7 +1005,7 @@ class MemberDashboardScreen extends StatelessWidget {
                 }),
                 _actionButton(Icons.share, 'Referral Link', (context) {}),
                 _actionButton(Icons.shopping_bag, 'Multi-Sector Shop', (context) {}),
-                _actionButton(Icons.account_balance_wallet, 'Bank Details', (context) {}),
+                _actionButton(Icons.account_balance_wallet, 'Bank Details', (context) => _showWithdrawalModal(context)),
               ],
             ),
           ],
