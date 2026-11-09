@@ -227,6 +227,9 @@ footer .logo {color:white}
 .menu-emblem{display:inline-flex;flex-direction:column;gap:4px;width:22px}
 .menu-emblem i{display:block;width:22px;height:2px;border-radius:2px;background:currentColor}
 .login-hint{display:block;margin:5px 0 14px;color:#777;font-size:12px}
+.login-mode-switch{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 20px}
+.login-mode-switch button{min-height:44px;border:1px solid #7040b5;border-radius:7px;background:#fff;color:#7040b5;font-weight:700;cursor:pointer}
+.login-mode-switch button.active{background:#7040b5;color:#fff}
 .member-welcome-simple{text-align:center;max-width:760px;margin:42px auto;padding:0 16px;color:#302044}
 .member-welcome-simple h2{margin:0 0 10px;font-size:clamp(26px,4vw,36px);font-weight:500}
 .member-welcome-simple h1{margin:0;font-size:clamp(30px,5vw,46px);font-weight:800}
@@ -393,10 +396,14 @@ footer .logo {color:white}
   <div class="login-box" id="loginBox">
     <h3 style="text-align:center;color:#49306c">Member Login</h3>
 
-    <label for="email">Email Address or Phone Number</label>
+    <div class="login-mode-switch" role="group" aria-label="Choose login method">
+      <button type="button" id="emailLoginMode" class="active" aria-pressed="true" onclick="setLoginMode('email')">Email / Phone</button>
+      <button type="button" id="memberIdLoginMode" aria-pressed="false" onclick="setLoginMode('member')">Member ID</button>
+    </div>
+    <label for="email" id="loginIdentifierLabel">Email Address or Phone Number</label>
     <input id="email" type="text" inputmode="email" autocomplete="username"
            placeholder="Email or phone number (e.g. +91 9876543210)">
-    <small class="login-hint">For phone login, include your country code (India: +91).</small>
+    <small class="login-hint" id="loginIdentifierHint">For phone login, include your country code (India: +91).</small>
 
     <label for="password">Password</label>
     <div class="password-box">
@@ -724,6 +731,8 @@ const client = window.supabase.createClient(
 );
 
 let accessToken = null;
+let memberIdSession = false;
+let loginMode = "email";
 
 
 // PASSWORD SHOW / HIDE
@@ -1097,42 +1106,90 @@ async function api(action, payload = {}) {
 
 // MEMBER LOGIN
 
+function setLoginMode(mode) {
+  loginMode = mode === "member" ? "member" : "email";
+  const memberMode = loginMode === "member";
+  const input = document.getElementById("email");
+  const label = document.getElementById("loginIdentifierLabel");
+  const hint = document.getElementById("loginIdentifierHint");
+  const emailButton = document.getElementById("emailLoginMode");
+  const memberButton = document.getElementById("memberIdLoginMode");
+
+  label.textContent = memberMode ? "OCTO7 Member ID" : "Email Address or Phone Number";
+  input.placeholder = memberMode ? "Enter your OCTO7 Member ID" : "Email or phone number (e.g. +91 9876543210)";
+  input.inputMode = memberMode ? "numeric" : "email";
+  hint.textContent = memberMode
+    ? "Enter the Member ID issued by OCTO7."
+    : "For phone login, include your country code (India: +91).";
+  emailButton.classList.toggle("active", !memberMode);
+  memberButton.classList.toggle("active", memberMode);
+  emailButton.setAttribute("aria-pressed", String(!memberMode));
+  memberButton.setAttribute("aria-pressed", String(memberMode));
+}
+
 async function login() {
-  const email = document.getElementById("email").value.trim();
+  const identifier = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
   const button = document.getElementById("loginButton");
 
-  if (!email || !password) {
-    showMessage("loginMessage","Please enter your email and password.",true);
+  if (!identifier || !password) {
+    showMessage("loginMessage", loginMode === "member"
+      ? "Please enter your Member ID and password."
+      : "Please enter your email/phone and password.", true);
     return;
   }
 
   button.disabled = true;
   button.textContent = "PLEASE WAIT";
-  showMessage("loginMessage","Signing in...");
+  showMessage("loginMessage", "Signing in...");
 
   try {
-    const isEmail = email.includes("@");
-    const phone = email.replace(/[\\s()-]/g, "");
-    const { data,error } = await client.auth.signInWithPassword(
-      isEmail
-        ? { email:email, password:password }
-        : { phone: phone.startsWith("+") ? phone : (phone.startsWith("91") ? "+" + phone : "+91" + phone), password:password }
-    );
+    if (loginMode === "member") {
+      // Clear any previous Supabase Auth session before starting a separate Member-ID session.
+      await client.auth.signOut();
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_KEY,
+          "Authorization": "Bearer " + SUPABASE_KEY
+        },
+        body: JSON.stringify({
+          action: "member_login",
+          member_id: identifier,
+          password: password
+        })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || result.success !== true || !result.session_token) {
+        throw new Error(result.error || result.message || "Member ID login failed.");
+      }
 
-    if (error) throw error;
+      accessToken = result.session_token;
+      memberIdSession = true;
+      sessionStorage.setItem("octo7MemberSessionToken", accessToken);
+    } else {
+      memberIdSession = false;
+      sessionStorage.removeItem("octo7MemberSessionToken");
+      const isEmail = identifier.includes("@");
+      const phone = identifier.replace(/[\s()-]/g, "");
+      const { data, error } = await client.auth.signInWithPassword(
+        isEmail
+          ? { email: identifier, password: password }
+          : { phone: phone.startsWith("+") ? phone : (phone.startsWith("91") ? "+" + phone : "+91" + phone), password: password }
+      );
 
-    accessToken = data.session.access_token;
+      if (error) throw error;
+      accessToken = data.session.access_token;
+    }
 
     document.getElementById("loginBox").hidden = true;
     showMemberPortal();
-
-    // Open the member welcome screen and load the signed-in member's details.
     showPortalPage("home");
     loadMemberWelcome();
 
   } catch(error) {
-    showMessage("loginMessage",error.message || "Login failed.",true);
+    showMessage("loginMessage", error.message || "Login failed.", true);
   } finally {
     button.disabled = false;
     button.textContent = "MEMBER LOGIN";
@@ -1144,11 +1201,57 @@ async function login() {
 
 async function restoreSession() {
   try {
-    const { data,error } = await client.auth.getSession();
+    // Restore a separate Member-ID session first, if one was saved in this browser tab.
+    let savedMemberToken = null;
+    try { savedMemberToken = sessionStorage.getItem("octo7MemberSessionToken"); }
+    catch (storageError) { savedMemberToken = null; }
 
+    if (savedMemberToken) {
+      accessToken = savedMemberToken;
+      memberIdSession = true;
+      try {
+        await api("me"); // Validate the server-side Member-ID session before restoring the portal.
+      } catch (memberSessionError) {
+        sessionStorage.removeItem("octo7MemberSessionToken");
+        accessToken = null;
+        memberIdSession = false;
+      }
+
+      if (memberIdSession) {
+        if (!document.getElementById("newPasswordBox").hidden) return;
+        document.getElementById("loginBox").hidden = true;
+        showMemberPortal();
+
+        const hash = location.hash.replace(/^#/, "");
+        const allowedPages = [
+          "home","dashboard","profile","kyc","genealogy","registration",
+          "portalProducts","orders","wallet","bank","withdrawals",
+          "coupons","password","help","reports"
+        ];
+        let savedPage = hash.startsWith("member-")
+          ? hash.slice("member-".length)
+          : "";
+        if (!allowedPages.includes(savedPage)) {
+          try { savedPage = sessionStorage.getItem("octo7MemberPage") || ""; }
+          catch (storageError) { savedPage = ""; }
+        }
+        const page = allowedPages.includes(savedPage) ? savedPage : "home";
+        showPortalPage(page, true);
+        if (page === "home") loadMemberWelcome();
+        else if (page === "dashboard") loadDashboard();
+        else if (page === "profile") loadProfile();
+        else if (page === "kyc") loadKyc();
+        else if (page === "genealogy") loadGenealogy();
+        else if (page === "portalProducts") loadProducts();
+        return;
+      }
+    }
+
+    const { data, error } = await client.auth.getSession();
     if (error) throw error;
     if (!data.session) return;
 
+    memberIdSession = false;
     accessToken = data.session.access_token;
 
     if (!document.getElementById("newPasswordBox").hidden) {
@@ -1169,16 +1272,12 @@ async function restoreSession() {
     let savedPage = hash.startsWith("member-")
       ? hash.slice("member-".length)
       : "";
-    // Keep the last selected member screen even if the mobile browser
-    // refreshes the page and drops or changes the URL fragment.
     if (!allowedPages.includes(savedPage)) {
       try { savedPage = sessionStorage.getItem("octo7MemberPage") || ""; }
       catch (storageError) { savedPage = ""; }
     }
     const page = allowedPages.includes(savedPage) ? savedPage : "home";
-
     showPortalPage(page, true);
-
     if (page === "home") loadMemberWelcome();
     else if (page === "dashboard") loadDashboard();
     else if (page === "profile") loadProfile();
@@ -1187,7 +1286,7 @@ async function restoreSession() {
     else if (page === "portalProducts") loadProducts();
 
   } catch(error) {
-    console.error("Session restore:",error.message);
+    console.error("Session restore:", error.message);
   }
 }
 
@@ -1809,12 +1908,19 @@ async function loadProducts() {
 
 async function logout() {
 
+  if (memberIdSession && accessToken) {
+    try { await api("logout"); }
+    catch(error) { console.error("Member-ID logout:", error); }
+  }
+
   try {
     await client.auth.signOut();
   } catch(error) {
     console.error(error);
   }
 
+  try { sessionStorage.removeItem("octo7MemberSessionToken"); } catch(storageError) {}
+  memberIdSession = false;
   accessToken = null;
 
   document.getElementById("memberPortal").style.display = "none";
