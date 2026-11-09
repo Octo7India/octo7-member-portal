@@ -1202,28 +1202,15 @@ async function login() {
     });
     const result = await response.json().catch(() => ({}));
 
-    if (response.ok && result.success === true && result.session_token) {
-      accessToken = result.session_token;
-      memberIdSession = true;
-      sessionStorage.setItem("octo7MemberSessionToken", accessToken);
-    } else if (loginMode !== "member" && response.status !== 409 && response.status !== 423) {
-      // Keep existing Supabase Auth accounts working (including legacy accounts
-      // that do not yet have a separate OCTO7 credential row).
-      let credentials;
-      if (loginMode === "phone") {
-        const phone = identifier.replace(/[\\s()-]/g, "");
-        const normalizedPhone = phone.startsWith("+") ? phone : (phone.startsWith("91") ? "+" + phone : "+91" + phone);
-        credentials = { phone: normalizedPhone, password: password };
-      } else {
-        credentials = { email: identifier, password: password };
-      }
-      const { data, error } = await client.auth.signInWithPassword(credentials);
-      if (error) throw new Error(result.error || error.message || "Login failed.");
-      accessToken = data.session.access_token;
-      memberIdSession = false;
-    } else {
-      throw new Error(result.error || result.message || "Login failed.");
+    // One authentication path for email, mobile and OCTO7 Member ID.
+    // The server verifies either the existing OCTO7 password hash or the
+    // linked legacy Supabase Auth password, then issues the same OCTO7 session.
+    if (!response.ok || result.success !== true || !result.session_token) {
+      throw new Error(result.error || result.message || "Invalid login ID or password.");
     }
+    accessToken = result.session_token;
+    memberIdSession = true;
+    sessionStorage.setItem("octo7MemberSessionToken", accessToken);
 
     document.getElementById("loginBox").hidden = true;
     showMemberPortal();
