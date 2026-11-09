@@ -33,9 +33,9 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
 
   final List<Widget> _pages = [
     const Octo7WebsiteHomeScreen(),
-    const Center(child: Text('Binary Tree View', style: TextStyle(color: Colors.white))),
-    const Center(child: Text('Products Catalog', style: TextStyle(color: Colors.white))),
-    const Center(child: Text('Member Profile', style: TextStyle(color: Colors.white))),
+    const Center(child: Text('Binary Tree View', style: TextStyle(color: Colors.white, fontSize: 18))),
+    const Center(child: Text('Products Catalog', style: TextStyle(color: Colors.white, fontSize: 18))),
+    const MemberDashboardScreen(),
   ];
 
   @override
@@ -53,13 +53,14 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
           BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.account_tree_rounded), label: 'Tree'),
           BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: 'Products'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Dashboard'),
         ],
       ),
     );
   }
 }
 
+// --- HOME SCREEN ---
 class Octo7WebsiteHomeScreen extends StatelessWidget {
   const Octo7WebsiteHomeScreen({super.key});
 
@@ -147,7 +148,6 @@ class Octo7WebsiteHomeScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            // Corrected to spell OCTO directly with globe as O
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: const [
@@ -255,6 +255,172 @@ class Octo7WebsiteHomeScreen extends StatelessWidget {
           fontWeight: FontWeight.w500,
         ),
       ),
+    );
+  }
+}
+
+// --- MEMBER BACK-OFFICE & DASHBOARD SCREEN ---
+class MemberDashboardScreen extends StatelessWidget {
+  const MemberDashboardScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF052411),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF060D1A),
+        title: const Text('Member Back-Office', style: TextStyle(color: Colors.white, fontSize: 18)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_active, color: Color(0xFFD97706)),
+            onPressed: () {},
+          )
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF060D1A),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.amber.shade700, width: 1),
+              ),
+              child: Row(
+                children: [
+                  const CircleAvatar(
+                    radius: 30,
+                    backgroundColor: Color(0xFF10B981),
+                    child: Icon(Icons.person, size: 35, color: Colors.white),
+                  ),
+                  const SizedBox(width: 15),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Text('Rajesh Kumar', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                      SizedBox(height: 4),
+                      Text('ID: OCT7-89210', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                      SizedBox(height: 2),
+                      Text('Rank: Gold Executive', style: TextStyle(color: Color(0xFFD97706), fontSize: 13, fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [Color(0xFF064E3B), Color(0xFF022C22)]),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 4))],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Available E-Wallet Balance', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                  const SizedBox(height: 8),
+                  const Text('₹ 45,850.00', style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 15),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFD97706)),
+                        onPressed: () {},
+                        icon: const Icon(Icons.account_balance, size: 16, color: Colors.white),
+                        label: const Text('Withdraw', style: TextStyle(color: Colors.white)),
+                      ),
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.white54)),
+                        onPressed: () {},
+                        icon: const Icon(Icons.history, size: 16, color: Colors.white),
+                        label: const Text('History', style: TextStyle(color: Colors.white)),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(child: _metricCard('Left Team BV', '12,400', Icons.trending_up, Colors.blue)),
+                const SizedBox(width: 12),
+                Expanded(child: _metricCard('Right Team BV', '15,800', Icons.trending_up, Colors.green)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(child: _metricCard('Direct Referrals', '14 Members', Icons.group, Colors.orange)),
+                const SizedBox(width: 12),
+                Expanded(child: _metricCard('Monthly Rank BV', '3,200 PV', Icons.star, Colors.amber)),
+              ],
+            ),
+            const SizedBox(height: 25),
+            const Text('Quick Distributor Actions', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 2.5,
+              children: [
+                _actionButton(Icons.person_add, 'Add Member', () {}),
+                _actionButton(Icons.share, 'Referral Link', () {}),
+                _actionButton(Icons.shopping_bag, 'Multi-Sector Shop', () {}),
+                _actionButton(Icons.account_balance_wallet, 'Bank Details', () {}),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static Widget _metricCard(String title, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF060D1A),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(title, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+              Icon(icon, color: color, size: 18),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(value, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  static Widget _actionButton(IconData icon, String label, VoidCallback onPressed) {
+    return ElevatedButton.icon(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF060D1A),
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: const BorderSide(color: Colors.white24),
+        ),
+      ),
+      onPressed: onPressed,
+      icon: Icon(icon, size: 18, color: const Color(0xFF10B981)),
+      label: Text(label, style: const TextStyle(fontSize: 13)),
     );
   }
 }
