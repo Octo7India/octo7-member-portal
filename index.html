@@ -932,10 +932,11 @@ function showForgotForm() {
   document.getElementById("forgotBox").hidden = false;
   document.getElementById("newPasswordBox").hidden = true;
 
-  const email = document.getElementById("email").value.trim();
+  const enteredIdentifier = document.getElementById("email").value.trim();
+  setLoginMode("email");
 
-  if (email) {
-    document.getElementById("resetEmail").value = email;
+  if (enteredIdentifier.includes("@")) {
+    document.getElementById("resetEmail").value = enteredIdentifier;
   }
 }
 
