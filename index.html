@@ -1283,6 +1283,10 @@ async function restoreSession() {
           try { savedPage = sessionStorage.getItem("octo7MemberPage") || ""; }
           catch (storageError) { savedPage = ""; }
         }
+        if (!allowedPages.includes(savedPage)) {
+          try { savedPage = localStorage.getItem("octo7MemberPage") || ""; }
+          catch (storageError) { savedPage = ""; }
+        }
         const page = allowedPages.includes(savedPage) ? savedPage : "home";
         showPortalPage(page, true);
         if (page === "home") loadMemberWelcome();
@@ -1324,6 +1328,10 @@ async function restoreSession() {
       try { savedPage = sessionStorage.getItem("octo7MemberPage") || ""; }
       catch (storageError) { savedPage = ""; }
     }
+    if (!allowedPages.includes(savedPage)) {
+      try { savedPage = localStorage.getItem("octo7MemberPage") || ""; }
+      catch (storageError) { savedPage = ""; }
+    }
     const page = allowedPages.includes(savedPage) ? savedPage : "home";
     showPortalPage(page, true);
     if (page === "home") loadMemberWelcome();
@@ -1344,6 +1352,7 @@ async function restoreSession() {
 function showPortalPage(page, fromHistory = false) {
   if (!fromHistory) history.pushState({octo7Page:"member",page}, "", location.pathname + location.search + "#member-" + page);
   try { sessionStorage.setItem("octo7MemberPage", page); } catch (storageError) {}
+  try { localStorage.setItem("octo7MemberPage", page); } catch (storageError) {}
   showPageLoader();
   const views = document.querySelectorAll("#memberPortal .portal-view");
   const selected = document.getElementById(page + "View");
