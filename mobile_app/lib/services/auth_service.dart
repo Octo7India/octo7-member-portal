@@ -19,7 +19,39 @@ class AuthService {
   }
 
   Future<String?> get sessionToken => _storage.read(key: _tokenKey);
-  Future<bool> get hasSession async => (await sessionToken)?.isNotEmpty == true;
+
+  /// Checks the locally stored token against the server before showing any
+  /// authenticated screen. A rejected/expired/revoked token is removed.
+  /// Network/server failures surface so a temporary outage does not silently
+  /// erase a potentially valid session.
+  Future<bool> validateSession() async {
+    final token = await sessionToken;
+    if (token == null || token.isEmpty) return false;
+
+    final response = await _client.functions.invoke(
+      'octo7-api',
+      body: const {'action': 'dashboard'},
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.status == 401 || response.status == 403) {
+      await _storage.delete(key: _tokenKey);
+      return false;
+    }
+    if (response.status < 200 || response.status >= 300) {
+      throw Exception('Could not verify your OCTO7 session (${response.status}).');
+    }
+
+    final data = response.data;
+    if (data is! Map) {
+      throw const FormatException('Invalid session verification response.');
+    }
+    final result = Map<String, dynamic>.from(data);
+    if (result['success'] == true) return true;
+
+    await _storage.delete(key: _tokenKey);
+    return false;
+  }
 
   Future<Map<String, dynamic>> signIn({
     required String identifier,
