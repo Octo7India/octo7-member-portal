@@ -27,6 +27,25 @@ jobs:
         run: flutter create --platforms=android .
         working-directory: ./mobile_app
 
+      - name: Ensure Android release internet permission
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          manifest = Path("android/app/src/main/AndroidManifest.xml")
+          content = manifest.read_text()
+          permission = '<uses-permission android:name="android.permission.INTERNET"/>'
+          if permission not in content:
+              end = content.find('>', content.find('<manifest'))
+              if end < 0:
+                  raise SystemExit("Could not locate Android manifest opening tag")
+              content = content[:end + 1] + "\\n    " + permission + content[end + 1:]
+              manifest.write_text(content)
+          if permission not in manifest.read_text():
+              raise SystemExit("Android INTERNET permission was not added")
+          print("Verified INTERNET permission in main Android manifest")
+          PY
+        working-directory: ./mobile_app
+
       - name: Install Dependencies
         run: flutter pub get
         working-directory: ./mobile_app
