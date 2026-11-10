@@ -985,7 +985,7 @@ class MemberMenuInfoScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: palette.accent.withOpacity(0.28)),
               ),
-              child: const Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Icon(Icons.info_outline, color: palette.accent, size: 20),
                 SizedBox(width: 10),
                 Expanded(child: Text('Setup stage: screen and navigation ready. No sample records, bank details, KYC documents or payout requests are being created.', style: TextStyle(color: Colors.white60, fontSize: 12, height: 1.5))),
