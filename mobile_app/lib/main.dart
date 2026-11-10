@@ -810,6 +810,67 @@ class Octo7WebsiteHomeScreen extends StatelessWidget {
   }
 }
 
+
+class _Octo7PagePalette {
+  final Color background;
+  final Color appBar;
+  final Color accent;
+  final Color panel;
+  final List<Color> gradient;
+  const _Octo7PagePalette(this.background, this.appBar, this.accent, this.panel, this.gradient);
+}
+
+_Octo7PagePalette _paletteFor(String title) {
+  switch (title) {
+    case 'Login':
+      return const _Octo7PagePalette(Color(0xFF101D3A), Color(0xFF172B52), Color(0xFFB9C7E8), Color(0xFF1C2E50), [Color(0xFF203D70), Color(0xFF101D3A)]);
+    case 'Dashboard':
+      return const _Octo7PagePalette(Color(0xFF062D27), Color(0xFF084638), Color(0xFFD6B76A), Color(0xFF0B4035), [Color(0xFF08745A), Color(0xFF063B31)]);
+    case 'My Profile':
+      return const _Octo7PagePalette(Color(0xFF2B1420), Color(0xFF421D31), Color(0xFFE8C9C5), Color(0xFF3A1C2B), [Color(0xFF6B304A), Color(0xFF351827)]);
+    case 'My Genealogy':
+      return const _Octo7PagePalette(Color(0xFF062B35), Color(0xFF0A3D4B), Color(0xFF56D6D0), Color(0xFF0B3945), [Color(0xFF087487), Color(0xFF07313D)]);
+    case 'New Member Registration':
+      return const _Octo7PagePalette(Color(0xFF24183D), Color(0xFF35235A), Color(0xFFD5C5F5), Color(0xFF30204D), [Color(0xFF62449A), Color(0xFF291B43)]);
+    case 'Products':
+    case 'Our Products':
+      return const _Octo7PagePalette(Color(0xFFF3F7F2), Color(0xFF174B35), Color(0xFF2F8056), Color(0xFFFFFFFF), [Color(0xFFE4F1E8), Color(0xFFF7FAF7)]);
+    case 'My Orders':
+    case 'Cart & Checkout':
+      return const _Octo7PagePalette(Color(0xFF17283D), Color(0xFF243D5B), Color(0xFF9CC9F2), Color(0xFF203650), [Color(0xFF315779), Color(0xFF192B42)]);
+    case 'My Wallet':
+    case 'Withdrawals':
+      return const _Octo7PagePalette(Color(0xFF07382E), Color(0xFF0B5141), Color(0xFFE0C58A), Color(0xFF104638), [Color(0xFF11745A), Color(0xFF073B30)]);
+    case 'Bank Details':
+      return const _Octo7PagePalette(Color(0xFF172337), Color(0xFF26364F), Color(0xFFD3DCE8), Color(0xFF233149), [Color(0xFF405675), Color(0xFF1B293D)]);
+    case 'KYC Verification':
+      return const _Octo7PagePalette(Color(0xFF202044), Color(0xFF303064), Color(0xFFC4C7F4), Color(0xFF2A2A57), [Color(0xFF4B4B91), Color(0xFF23234A)]);
+    case 'My Coupons':
+      return const _Octo7PagePalette(Color(0xFF321D38), Color(0xFF4A2A50), Color(0xFFE8B9D5), Color(0xFF402447), [Color(0xFF75466D), Color(0xFF39203E)]);
+    case 'Change Password':
+      return const _Octo7PagePalette(Color(0xFF171D27), Color(0xFF252F3D), Color(0xFF69B9F5), Color(0xFF222D3B), [Color(0xFF344D68), Color(0xFF192330)]);
+    case 'Help Line':
+      return const _Octo7PagePalette(Color(0xFF12334A), Color(0xFF1D4C69), Color(0xFFB9E4FA), Color(0xFF1A4059), [Color(0xFF34789A), Color(0xFF17394F)]);
+    case 'Report':
+    case 'Reports':
+      return const _Octo7PagePalette(Color(0xFF292725), Color(0xFF403A34), Color(0xFFD7B38A), Color(0xFF37312C), [Color(0xFF65513F), Color(0xFF302B27)]);
+    case 'Rank Advancement':
+      return const _Octo7PagePalette(Color(0xFF29251D), Color(0xFF443A29), Color(0xFFE6C58B), Color(0xFF393123), [Color(0xFF76613C), Color(0xFF332B20)]);
+    case 'Commission & Payout History':
+      return const _Octo7PagePalette(Color(0xFF1D2B3D), Color(0xFF2A405A), Color(0xFFB8D7F4), Color(0xFF263A51), [Color(0xFF456887), Color(0xFF1E3045)]);
+    case 'About Us':
+      return const _Octo7PagePalette(Color(0xFF20283B), Color(0xFF303D58), Color(0xFFD8C79F), Color(0xFF29354D), [Color(0xFF485A78), Color(0xFF202A3D)]);
+    case 'Business Opportunity':
+      return const _Octo7PagePalette(Color(0xFF15372F), Color(0xFF205344), Color(0xFFB7DFC9), Color(0xFF1D463B), [Color(0xFF36745C), Color(0xFF173B31)]);
+    case 'Business Plan':
+      return const _Octo7PagePalette(Color(0xFF302719), Color(0xFF4B3B25), Color(0xFFE5C98C), Color(0xFF3C301F), [Color(0xFF735B35), Color(0xFF352A1D)]);
+    case 'Contact Us':
+      return const _Octo7PagePalette(Color(0xFF153747), Color(0xFF205267), Color(0xFFB9E6F2), Color(0xFF1D4659), [Color(0xFF34758A), Color(0xFF173B4C)]);
+    default:
+      return const _Octo7PagePalette(Color(0xFF071426), Color(0xFF09182A), Color(0xFFD6A84B), Color(0xFF102238), [Color(0xFF123C56), Color(0xFF071426)]);
+  }
+}
+
 class PublicInfoScreen extends StatelessWidget {
   const PublicInfoScreen({super.key, required this.title});
   final String title;
@@ -823,10 +884,16 @@ class PublicInfoScreen extends StatelessWidget {
       'Business Plan': 'The plan includes binary placement and matching. For the first successful match only, either Left 2,000 BV + Right 1,000 BV or Left 1,000 BV + Right 2,000 BV qualifies one 1,000 BV match; the extra 1,000 BV on the stronger side carries forward. Subsequent matching is 1:1. Matching income is capped at ₹5,000 per day per ID. Other bonus and eligibility details should be confirmed from the official approved plan.',
       'Contact Us': 'For assistance or business enquiries, please contact the OCTO7 India team through the official contact channels provided by the company.',
     };
+    final palette = _paletteFor(title);
+    final isLight = title == 'Our Products';
     return Scaffold(
-      backgroundColor: const Color(0xFF071426),
-      appBar: AppBar(backgroundColor: const Color(0xFF060D1A), title: Text(title), iconTheme: const IconThemeData(color: Colors.white)),
-      body: Center(child: SingleChildScrollView(padding: const EdgeInsets.all(24), child: Text(descriptions[title] ?? title, style: const TextStyle(color: Colors.white, fontSize: 16, height: 1.7), textAlign: TextAlign.left))),
+      backgroundColor: palette.background,
+      appBar: AppBar(backgroundColor: palette.appBar, foregroundColor: isLight ? Colors.white : Colors.white, title: Text(title), iconTheme: const IconThemeData(color: Colors.white)),
+      body: Center(child: SingleChildScrollView(padding: const EdgeInsets.all(24), child: Container(
+        padding: const EdgeInsets.all(22),
+        decoration: BoxDecoration(color: palette.panel, borderRadius: BorderRadius.circular(18), border: Border.all(color: palette.accent.withOpacity(0.55))),
+        child: Text(descriptions[title] ?? title, style: TextStyle(color: isLight ? const Color(0xFF203329) : Colors.white, fontSize: 16, height: 1.7), textAlign: TextAlign.left),
+      ))),
     );
   }
 }
@@ -863,10 +930,11 @@ class MemberMenuInfoScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final icon = _icons[title] ?? Icons.dashboard_outlined;
     final description = _descriptions[title] ?? 'OCTO7 member services.';
+    final palette = _paletteFor(title);
     return Scaffold(
-      backgroundColor: const Color(0xFF071426),
+      backgroundColor: palette.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF060D1A),
+        backgroundColor: palette.appBar,
         title: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -877,15 +945,15 @@ class MemberMenuInfoScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [Color(0xFF0F5127), Color(0xFF064E3B)]),
+                gradient: LinearGradient(colors: palette.gradient),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFD6A84B).withOpacity(0.65)),
+                border: Border.all(color: palette.accent.withOpacity(0.75)),
               ),
               child: Row(children: [
                 CircleAvatar(
                   radius: 27,
-                  backgroundColor: const Color(0xFFD6A84B).withOpacity(0.18),
-                  child: Icon(icon, color: const Color(0xFFF4D27A), size: 28),
+                  backgroundColor: palette.accent.withOpacity(0.18),
+                  child: Icon(icon, color: palette.accent, size: 28),
                 ),
                 const SizedBox(width: 14),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -913,12 +981,12 @@ class MemberMenuInfoScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color(0xFF060D1A),
+                color: palette.panel,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white12),
+                border: Border.all(color: palette.accent.withOpacity(0.28)),
               ),
               child: const Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Icon(Icons.info_outline, color: Color(0xFFF4D27A), size: 20),
+                Icon(Icons.info_outline, color: palette.accent, size: 20),
                 SizedBox(width: 10),
                 Expanded(child: Text('Setup stage: screen and navigation ready. No sample records, bank details, KYC documents or payout requests are being created.', style: TextStyle(color: Colors.white60, fontSize: 12, height: 1.5))),
               ]),
@@ -933,13 +1001,13 @@ class MemberMenuInfoScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF060D1A),
+        color: _paletteFor(heading.contains('workspace') ? heading.replaceFirst(' workspace', '') : 'Dashboard').panel,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white12),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Icon(icon, color: const Color(0xFF10B981), size: 20),
+          Icon(icon, color: _paletteFor(heading.contains('workspace') ? heading.replaceFirst(' workspace', '') : 'Dashboard').accent, size: 20),
           const SizedBox(width: 9),
           Expanded(child: Text(heading, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
         ]),
@@ -1334,9 +1402,9 @@ class TransactionHistoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF052411),
+      backgroundColor: const Color(0xFF1D2B3D),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF060D1A),
+        backgroundColor: const Color(0xFF2A405A),
         title: const Text('Commission & Payout History', style: TextStyle(color: Colors.white, fontSize: 18)),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -1361,9 +1429,9 @@ class RankTrackerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF052411),
+      backgroundColor: const Color(0xFF29251D),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF060D1A),
+        backgroundColor: const Color(0xFF443A29),
         title: const Text('Rank Advancement', style: TextStyle(color: Colors.white, fontSize: 18)),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -1388,9 +1456,9 @@ class MemberRegistrationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF052411),
+      backgroundColor: const Color(0xFF24183D),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF060D1A),
+        backgroundColor: const Color(0xFF35235A),
         title: const Text('Register New Member', style: TextStyle(color: Colors.white, fontSize: 18)),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
