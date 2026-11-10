@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'config/supabase_config.dart';
+import 'services/wallet_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -1189,8 +1190,27 @@ class _MemberRegistrationScreenState extends State<MemberRegistrationScreen> {
 }
 
 // --- MEMBER BACK-OFFICE & DASHBOARD SCREEN ---
-class MemberDashboardScreen extends StatelessWidget {
+class MemberDashboardScreen extends StatefulWidget {
   const MemberDashboardScreen({super.key});
+
+  @override
+  State<MemberDashboardScreen> createState() => _MemberDashboardScreenState();
+}
+
+class _MemberDashboardScreenState extends State<MemberDashboardScreen> {
+  late Future<Map<String, dynamic>> _dashboardFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _dashboardFuture = WalletService.instance.fetchDashboard();
+  }
+
+  Future<void> _refreshDashboard() async {
+    final next = WalletService.instance.fetchDashboard();
+    setState(() => _dashboardFuture = next);
+    await next;
+  }
 
   void _showWithdrawalModal(BuildContext context) {
     showModalBottomSheet(
@@ -1368,7 +1388,42 @@ class MemberDashboardScreen extends StatelessWidget {
                 children: [
                   const Text('Available E-Wallet Balance', style: TextStyle(color: Colors.white70, fontSize: 14)),
                   const SizedBox(height: 8),
-                  const Text('₹ 45,850.00', style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+                  FutureBuilder<Map<String, dynamic>>(
+                    future: _dashboardFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const SizedBox(
+                          height: 36,
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF10B981)),
+                            ),
+                          ),
+                        );
+                      }
+                      if (snapshot.hasError) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Wallet unavailable', style: TextStyle(color: Colors.orangeAccent, fontSize: 18, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 6),
+                            Text(snapshot.error.toString(), style: const TextStyle(color: Colors.white60, fontSize: 11)),
+                            TextButton(
+                              onPressed: _refreshDashboard,
+                              child: const Text('Retry', style: TextStyle(color: Color(0xFF10B981))),
+                            ),
+                          ],
+                        );
+                      }
+                      final wallet = snapshot.data?['wallet'];
+                      final raw = wallet is Map ? wallet['available_balance'] : null;
+                      final amount = raw is num ? raw.toDouble() : double.tryParse('$raw') ?? 0;
+                      return Text('₹ ${amount.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold));
+                    },
+                  ),
                   const SizedBox(height: 15),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
