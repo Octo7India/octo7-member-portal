@@ -31,7 +31,67 @@ class Octo7App extends StatelessWidget {
       title: 'OCTO7 India',
       theme: ThemeData(
         useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFF0F5127),
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF071426),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF0D8B68),
+          brightness: Brightness.dark,
+          primary: const Color(0xFF18A77C),
+          secondary: const Color(0xFFD6A84B),
+          surface: const Color(0xFF101F32),
+          error: const Color(0xFFE57373),
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF09182A),
+          foregroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: false,
+          titleTextStyle: TextStyle(
+            color: Colors.white, fontSize: 18,
+            fontWeight: FontWeight.w700, letterSpacing: 0.3,
+          ),
+          iconTheme: IconThemeData(color: Colors.white),
+        ),
+        cardTheme: CardThemeData(
+          color: const Color(0xFF102238),
+          elevation: 3,
+          margin: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: const BorderSide(color: Color(0x263FAF91)),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: const Color(0xFF0D1D30),
+          labelStyle: const TextStyle(color: Color(0xFFB7C5D6)),
+          hintStyle: const TextStyle(color: Color(0xFF718096)),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(13),
+            borderSide: const BorderSide(color: Color(0xFF33465C)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(13),
+            borderSide: const BorderSide(color: Color(0xFF33465C)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(13),
+            borderSide: const BorderSide(color: Color(0xFF18A77C), width: 1.6),
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF138A68),
+            foregroundColor: Colors.white,
+            elevation: 1,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+            textStyle: const TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0.3),
+          ),
+        ),
+        dividerColor: const Color(0x263FAF91),
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: const AuthGate(),
     );
@@ -474,7 +534,7 @@ class Octo7WebsiteHomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F5127),
+      backgroundColor: const Color(0xFF071426),
       drawer: Drawer(
         backgroundColor: const Color(0xFF060D1A),
         child: SafeArea(
