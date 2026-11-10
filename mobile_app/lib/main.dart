@@ -190,30 +190,28 @@ class WelcomeScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      SizedBox(width: double.infinity, height: 56,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(colors: [Color(0xFF53B7F2), Color(0xFF1767B1)]),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: ElevatedButton.icon(
-                            onPressed: () => Navigator.push(context, MaterialPageRoute(
-                              builder: (_) => const MemberRegistrationScreen(),
-                            )),
-                            icon: const Icon(Icons.person_add_alt_1),
-                            label: const Text('Create Account', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent, shadowColor: Colors.transparent,
-                              foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            ),
-                          ),
+                      const SizedBox(height: 42),
+                      const Text(
+                        'Discover a world of opportunities through quality products, entrepreneurship and a growing business network.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Color(0xFFE5D6B8),
+                          fontSize: 14,
+                          height: 1.5,
+                          letterSpacing: 0.2,
                         ),
                       ),
-                      const SizedBox(height: 48),
-                      const Text('OCTO7 India — Dream • Network • Grow',
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Dream • Network • Grow',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white60, fontSize: 12, letterSpacing: 0.5)),
+                        style: TextStyle(
+                          color: Color(0xFFD6A84B),
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
                     ],
                   ),
                 ),
