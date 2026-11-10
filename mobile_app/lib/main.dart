@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'config/supabase_config.dart';
+import 'services/auth_service.dart';
 import 'services/wallet_service.dart';
 
 Future<void> main() async {
@@ -31,7 +32,235 @@ class Octo7App extends StatelessWidget {
         useMaterial3: true,
         scaffoldBackgroundColor: const Color(0xFF0F5127),
       ),
-      home: const MainNavigationWrapper(),
+      home: const AuthGate(),
+    );
+  }
+}
+
+/// Shows the existing member login until Supabase confirms a session.
+class AuthGate extends StatelessWidget {
+  const AuthGate({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    if (!SupabaseConfig.isConfigured) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF052411),
+        body: Center(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Text(
+              'OCTO7 connection is not configured. Build the app with the '
+              'Supabase project URL and public anon key.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final client = Supabase.instance.client;
+    return StreamBuilder<AuthState>(
+      stream: client.auth.onAuthStateChange,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            client.auth.currentSession == null) {
+          return const Scaffold(
+            backgroundColor: Color(0xFF052411),
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        final session = snapshot.data?.session ?? client.auth.currentSession;
+        return session == null
+            ? const MemberLoginScreen()
+            : const MainNavigationWrapper();
+      },
+    );
+  }
+}
+
+class MemberLoginScreen extends StatefulWidget {
+  const MemberLoginScreen({super.key});
+
+  @override
+  State<MemberLoginScreen> createState() => _MemberLoginScreenState();
+}
+
+class _MemberLoginScreenState extends State<MemberLoginScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _busy = false;
+  bool _hidePassword = true;
+  String? _error;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate() || _busy) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await AuthService.instance.signInWithEmail(
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+      // AuthGate listens to Supabase auth state and opens the member app.
+    } on AuthException catch (error) {
+      setState(() => _error = error.message);
+    } catch (error) {
+      setState(() => _error = 'Login failed. Please try again.');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF052411),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Card(
+              color: const Color(0xFF060D1A),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+                side: const BorderSide(color: Color(0xFFD97706)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'OCTO7 INDIA',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'MEMBER LOGIN',
+                        style: TextStyle(
+                          color: Color(0xFFD97706),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+                      TextFormField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        autocorrect: false,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: const InputDecoration(
+                          labelText: 'Email address',
+                          labelStyle: TextStyle(color: Colors.white70),
+                          prefixIcon: Icon(Icons.email_outlined, color: Color(0xFF10B981)),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white24),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Color(0xFF10B981)),
+                          ),
+                        ),
+                        validator: (value) {
+                          final email = value?.trim() ?? '';
+                          if (email.isEmpty || !email.contains('@')) {
+                            return 'Enter a valid email address';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _passwordController,
+                        obscureText: _hidePassword,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          labelStyle: const TextStyle(color: Colors.white70),
+                          prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF10B981)),
+                          suffixIcon: IconButton(
+                            onPressed: () => setState(() => _hidePassword = !_hidePassword),
+                            icon: Icon(
+                              _hidePassword ? Icons.visibility : Icons.visibility_off,
+                              color: Colors.white54,
+                            ),
+                          ),
+                          enabledBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white24),
+                          ),
+                          focusedBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: Color(0xFF10B981)),
+                          ),
+                        ),
+                        validator: (value) =>
+                            (value == null || value.isEmpty) ? 'Enter your password' : null,
+                        onFieldSubmitted: (_) => _login(),
+                      ),
+                      if (_error != null) ...[
+                        const SizedBox(height: 14),
+                        Text(
+                          _error!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.redAccent),
+                        ),
+                      ],
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: ElevatedButton(
+                          onPressed: _busy ? null : _login,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFD97706),
+                            foregroundColor: Colors.white,
+                          ),
+                          child: _busy
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Text(
+                                  'MEMBER LOGIN',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Sign in with your existing OCTO7-linked email and password.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white54, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -1351,9 +1580,19 @@ class _MemberDashboardScreenState extends State<MemberDashboardScreen> {
         title: const Text('Member Back-Office', style: TextStyle(color: Colors.white, fontSize: 18)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_active, color: Color(0xFFD97706)),
-            onPressed: () {},
-          )
+            tooltip: 'Log out',
+            icon: const Icon(Icons.logout, color: Colors.white),
+            onPressed: () async {
+              try {
+                await AuthService.instance.signOut();
+              } catch (error) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Could not log out. Please try again.')),
+                );
+              }
+            },
+          ),
         ],
       ),
       body: SingleChildScrollView(
