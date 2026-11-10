@@ -2,7 +2,7 @@ name: Build OCTO7 Android APK
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, 'feature/supabase-mobile-integration' ]
   workflow_dispatch:
 
 jobs:
