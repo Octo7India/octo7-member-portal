@@ -19,7 +19,7 @@ class WalletService {
     }
     final response = await Supabase.instance.client.functions.invoke(
       'octo7-api',
-      body: const {'action': 'dashboard'},
+      body: const {'action': 'me'},
       headers: {'Authorization': 'Bearer $token'},
     );
     final data = response.data;
