@@ -143,7 +143,6 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
                 const Text('MEMBER LOGIN', style: TextStyle(color: Color(0xFFD97706),
                   fontWeight: FontWeight.w600)),
                 const SizedBox(height: 22),
-                const SizedBox(height: 18),
                 TextFormField(
                   controller: _identifierController,
                   keyboardType: TextInputType.text,
