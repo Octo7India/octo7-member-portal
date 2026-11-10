@@ -132,7 +132,7 @@ class WelcomeScreen extends StatelessWidget {
         backgroundColor: const Color(0xFF060D1A),
         child: SafeArea(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           const DrawerHeader(decoration: BoxDecoration(color: Color(0xFF0F5127)), child: Align(alignment: Alignment.centerLeft, child: Text('OCTO7 INDIA\\nVISITOR MENU', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, height: 1.5)))),
-          Octo7WebsiteHomeScreen.Octo7WebsiteHomeScreen._publicMenuItem(context, Icons.home, 'Home', 'Home'),
+          Octo7WebsiteHomeScreen._publicMenuItem(context, Icons.home, 'Home', 'Home'),
           Octo7WebsiteHomeScreen._publicMenuItem(context, Icons.info_outline, 'About Us', 'About Us'),
           Octo7WebsiteHomeScreen._publicMenuItem(context, Icons.grid_view, 'Our Products', 'Our Products'),
           Octo7WebsiteHomeScreen._publicMenuItem(context, Icons.business_center_outlined, 'Business Opportunity', 'Business Opportunity'),
