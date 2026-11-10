@@ -37,7 +37,7 @@ class Octo7App extends StatelessWidget {
   }
 }
 
-/// Shows the existing member login until Supabase confirms a session.
+/// Validates the OCTO7 server session before showing member screens.
 class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
   @override
@@ -51,7 +51,7 @@ class _AuthGateState extends State<AuthGate> {
   @override
   void initState() {
     super.initState();
-    _sessionCheck = AuthService.instance.hasSession;
+    _sessionCheck = AuthService.instance.validateSession();
   }
 
   void _onLogin() => setState(() => _loggedIn = true);
@@ -75,6 +75,33 @@ class _AuthGateState extends State<AuthGate> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(backgroundColor: Color(0xFF052411),
             body: Center(child: CircularProgressIndicator()));
+        }
+        if (snapshot.hasError) {
+          return Scaffold(
+            backgroundColor: const Color(0xFF052411),
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Unable to verify your OCTO7 session. Check your internet connection and try again.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => setState(() {
+                        _sessionCheck = AuthService.instance.validateSession();
+                      }),
+                      child: const Text('RETRY'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
         }
         if (snapshot.data == true) return const MainNavigationWrapper();
         return MemberLoginScreen(onLogin: _onLogin);
