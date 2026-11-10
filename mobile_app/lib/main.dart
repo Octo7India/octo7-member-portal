@@ -1572,25 +1572,45 @@ class _MemberDashboardScreenState extends State<MemberDashboardScreen> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.amber.shade700, width: 1),
               ),
-              child: Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 30,
-                    backgroundColor: Color(0xFF10B981),
-                    child: Icon(Icons.person, size: 35, color: Colors.white),
-                  ),
-                  const SizedBox(width: 15),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text('Rajesh Kumar', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                      SizedBox(height: 4),
-                      Text('ID: OCT7-89210', style: TextStyle(color: Colors.grey, fontSize: 13)),
-                      SizedBox(height: 2),
-                      Text('Rank: Gold Executive', style: TextStyle(color: Color(0xFFD97706), fontSize: 13, fontWeight: FontWeight.w600)),
-                    ],
-                  ),
-                ],
+              child: FutureBuilder<Map<String, dynamic>>(
+                future: _dashboardFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Row(children: [
+                      CircleAvatar(radius: 30, backgroundColor: Color(0xFF10B981), child: Icon(Icons.person, size: 35, color: Colors.white)),
+                      SizedBox(width: 15),
+                      Text('Loading member profile…', style: TextStyle(color: Colors.white70)),
+                    ]);
+                  }
+                  if (snapshot.hasError) {
+                    return Row(children: [
+                      const CircleAvatar(radius: 30, backgroundColor: Color(0xFF10B981), child: Icon(Icons.person, size: 35, color: Colors.white)),
+                      const SizedBox(width: 15),
+                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        const Text('Member profile unavailable', style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
+                        TextButton(onPressed: _refreshDashboard, child: const Text('Retry')),
+                      ])),
+                    ]);
+                  }
+                  final data = snapshot.data ?? {};
+                  final member = data['member'] is Map ? Map<String, dynamic>.from(data['member']) : <String, dynamic>{};
+                  final rawId = (member['member_id'] ?? '').toString().trim();
+                  final displayId = rawId.isEmpty ? 'Unavailable' : (rawId.toUpperCase().startsWith('OCTO7') ? rawId : 'OCTO7 $rawId');
+                  final name = (member['full_name'] ?? '').toString().trim();
+                  final status = (member['status'] ?? 'Unavailable').toString();
+                  final positionType = (member['position_type'] ?? '').toString().replaceAll('_', ' ');
+                  return Row(children: [
+                    const CircleAvatar(radius: 30, backgroundColor: Color(0xFF10B981), child: Icon(Icons.person, size: 35, color: Colors.white)),
+                    const SizedBox(width: 15),
+                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(name.isEmpty ? 'Member name unavailable' : name, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      Text('ID: $displayId', style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                      const SizedBox(height: 2),
+                      Text('Status: $status${positionType.isEmpty ? '' : ' • $positionType'}', style: const TextStyle(color: Color(0xFFD97706), fontSize: 12, fontWeight: FontWeight.w600)),
+                    ])),
+                  ]);
+                },
               ),
             ),
             const SizedBox(height: 20),
@@ -1669,48 +1689,48 @@ class _MemberDashboardScreenState extends State<MemberDashboardScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(child: _metricCard('Left Team BV', '12,400', Icons.trending_up, Colors.blue)),
-                const SizedBox(width: 12),
-                Expanded(child: _metricCard('Right Team BV', '15,800', Icons.trending_up, Colors.green)),
-              ],
+            FutureBuilder<Map<String, dynamic>>(
+              future: _dashboardFuture,
+              builder: (context, snapshot) {
+                final binary = snapshot.data?['binary'] is Map
+                    ? Map<String, dynamic>.from(snapshot.data!['binary'])
+                    : <String, dynamic>{};
+                String bv(dynamic value) {
+                  final number = value is num ? value : num.tryParse('$value');
+                  return number == null ? '—' : number.toStringAsFixed(0);
+                }
+                return Row(children: [
+                  Expanded(child: _metricCard('Left Available BV', snapshot.hasError ? 'Unavailable' : bv(binary['left_available_bv']), Icons.trending_up, Colors.blue)),
+                  const SizedBox(width: 12),
+                  Expanded(child: _metricCard('Right Available BV', snapshot.hasError ? 'Unavailable' : bv(binary['right_available_bv']), Icons.trending_up, Colors.green)),
+                ]);
+              },
             ),
             const SizedBox(height: 12),
-            GestureDetector(
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const RankTrackerScreen()));
-              },
-              child: Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF060D1A),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFD97706).withOpacity(0.5)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
-                        Text('Rank Qualification Progress', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                        Text('62%', style: TextStyle(color: Color(0xFFD97706), fontWeight: FontWeight.bold, fontSize: 13)),
-                      ],
-                    ),
+            FutureBuilder<Map<String, dynamic>>(
+              future: _dashboardFuture,
+              builder: (context, snapshot) {
+                final binary = snapshot.data?['binary'] is Map
+                    ? Map<String, dynamic>.from(snapshot.data!['binary'])
+                    : <String, dynamic>{};
+                final count = binary['downline_count'];
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF060D1A),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFD97706).withOpacity(0.5)),
+                  ),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    const Text('Genealogy Overview', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                     const SizedBox(height: 8),
-                    LinearProgressIndicator(
-                      value: 0.62,
-                      backgroundColor: Colors.white10,
-                      valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFD97706)),
-                      minHeight: 6,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text('Tap to view next target: Pearl Executive', style: TextStyle(color: Colors.grey, fontSize: 11)),
-                  ],
-                ),
-              ),
+                    Text(snapshot.hasError ? 'Downline information unavailable' : 'Total downline members: ${count ?? 'Loading…'}', style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                    const SizedBox(height: 4),
+                    const Text('Rank qualification will appear when rank data is available.', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                  ]),
+                );
+              },
             ),
             const SizedBox(height: 25),
             const Text('Quick Distributor Actions', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
