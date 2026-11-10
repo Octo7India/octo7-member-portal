@@ -507,20 +507,20 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
     final right = node['right'];
     return Column(mainAxisSize: MainAxisSize.min, children: [
       _nodeCard(node, root: root),
-      const SizedBox(height: 12),
+      const SizedBox(height: 16),
       Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Expanded(child: Column(children: [
           const Text('LEFT', style: TextStyle(color: Colors.white54, fontSize: 10)),
           const SizedBox(height: 6),
-          if (left is Map) _tree(Map<String, dynamic>.from(left))
+          if (left is Map) _nodeCard(Map<String, dynamic>.from(left))
           else const Text('Position available', textAlign: TextAlign.center,
             style: TextStyle(color: Colors.white38, fontSize: 10)),
         ])),
-        const SizedBox(width: 10),
+        const SizedBox(width: 12),
         Expanded(child: Column(children: [
           const Text('RIGHT', style: TextStyle(color: Colors.white54, fontSize: 10)),
           const SizedBox(height: 6),
-          if (right is Map) _tree(Map<String, dynamic>.from(right))
+          if (right is Map) _nodeCard(Map<String, dynamic>.from(right))
           else const Text('Position available', textAlign: TextAlign.center,
             style: TextStyle(color: Colors.white38, fontSize: 10)),
         ])),
