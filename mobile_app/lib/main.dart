@@ -371,9 +371,83 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     const MemberDashboardScreen(),
   ];
 
+  Widget _menuItem(BuildContext context, IconData icon, String title, int destination) {
+    return ListTile(
+      leading: Icon(icon, color: const Color(0xFF10B981)),
+      title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 14)),
+      onTap: () async {
+        Navigator.pop(context);
+        if (destination >= 0 && destination <= 3) {
+          setState(() => _selectedIndex = destination);
+          return;
+        }
+        if (destination == 14) {
+          await AuthService.instance.signOut();
+          if (!mounted) return;
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const AuthGate()), (route) => false);
+          return;
+        }
+        final Widget page;
+        switch (destination) {
+          case 4: page = const MemberRegistrationScreen(); break;
+          case 5: page = const MemberMenuInfoScreen(title: 'My Orders'); break;
+          case 6: page = const TransactionHistoryScreen(); break;
+          case 7: page = const MemberMenuInfoScreen(title: 'Bank Details'); break;
+          case 8: page = const MemberMenuInfoScreen(title: 'KYC Verification'); break;
+          case 9: page = const MemberMenuInfoScreen(title: 'Withdrawals'); break;
+          case 10: page = const MemberMenuInfoScreen(title: 'My Coupons'); break;
+          case 11: page = const MemberMenuInfoScreen(title: 'Change Password'); break;
+          case 12: page = const MemberMenuInfoScreen(title: 'Help Line'); break;
+          case 13: page = const MemberMenuInfoScreen(title: 'Report'); break;
+          case 15: page = const MemberMenuInfoScreen(title: 'My Profile'); break;
+          default: return;
+        }
+        if (!mounted) return;
+        Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: Drawer(
+        backgroundColor: const Color(0xFF060D1A),
+        child: SafeArea(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              const DrawerHeader(
+                decoration: BoxDecoration(color: Color(0xFF0F5127)),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('OCTO7 INDIA\\nMEMBER MENU',
+                    style: TextStyle(color: Colors.white, fontSize: 22,
+                      fontWeight: FontWeight.bold, height: 1.5)),
+                ),
+              ),
+              _menuItem(context, Icons.home_filled, 'Home', 0),
+              _menuItem(context, Icons.dashboard, 'Dashboard', 3),
+              _menuItem(context, Icons.person_outline, 'My Profile', 15),
+              _menuItem(context, Icons.account_tree, 'My Genealogy', 1),
+              _menuItem(context, Icons.person_add_alt, 'New Member Registration', 4),
+              _menuItem(context, Icons.grid_view, 'Products', 2),
+              _menuItem(context, Icons.shopping_bag_outlined, 'My Orders', 5),
+              _menuItem(context, Icons.account_balance_wallet_outlined, 'My Wallet', 6),
+              _menuItem(context, Icons.account_balance, 'Bank Details', 7),
+              _menuItem(context, Icons.verified_user_outlined, 'KYC Verification', 8),
+              _menuItem(context, Icons.payments_outlined, 'Withdrawals', 9),
+              _menuItem(context, Icons.confirmation_number_outlined, 'My Coupons', 10),
+              _menuItem(context, Icons.lock_outline, 'Change Password', 11),
+              _menuItem(context, Icons.support_agent, 'Help Line', 12),
+              _menuItem(context, Icons.report_outlined, 'Report', 13),
+              const Divider(color: Colors.white24),
+              _menuItem(context, Icons.logout, 'Logout', 14),
+            ],
+          ),
+        ),
+      ),
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
