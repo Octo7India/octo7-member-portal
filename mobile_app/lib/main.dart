@@ -123,6 +123,23 @@ class WelcomeScreen extends StatelessWidget {
     const navy = Color(0xFF071426);
     return Scaffold(
       backgroundColor: navy,
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF060D1A),
+        title: const Text('OCTO7 INDIA', style: TextStyle(color: Colors.white, letterSpacing: 1.2)),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      drawer: Drawer(
+        backgroundColor: const Color(0xFF060D1A),
+        child: SafeArea(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          const DrawerHeader(decoration: BoxDecoration(color: Color(0xFF0F5127)), child: Align(alignment: Alignment.centerLeft, child: Text('OCTO7 INDIA\\nVISITOR MENU', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, height: 1.5)))),
+          _publicMenuItem(context, Icons.home, 'Home', 'Home'),
+          _publicMenuItem(context, Icons.info_outline, 'About Us', 'About Us'),
+          _publicMenuItem(context, Icons.grid_view, 'Our Products', 'Our Products'),
+          _publicMenuItem(context, Icons.business_center_outlined, 'Business Opportunity', 'Business Opportunity'),
+          _publicMenuItem(context, Icons.account_balance_outlined, 'Business Plan', 'Business Plan'),
+          _publicMenuItem(context, Icons.contact_mail_outlined, 'Contact Us', 'Contact Us'),
+        ])),
+      ),
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -415,20 +432,25 @@ class Octo7WebsiteHomeScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              _drawerItem(context, Icons.home_filled, 'Home', null),
-              _drawerItem(context, Icons.info_outline, 'About Us', 'About Us'),
-              _drawerItem(context, Icons.grid_view_rounded, 'Our Products',
-                  'Products'),
-              _drawerItem(context, Icons.business_center_outlined,
-                  'Business Opportunity', 'Business Opportunity'),
-              _drawerItem(context, Icons.group_add_outlined,
-                  'Join Our Team', 'Join Our Team'),
-              _drawerItem(context, Icons.person_outline,
-                  'Member Dashboard', 'Dashboard'),
-              _drawerItem(context, Icons.contact_mail_outlined,
-                  'Contact Us', 'Contact Us'),
+              _memberDrawerItem(context, Icons.home_filled, 'Home', 0),
+              _memberDrawerItem(context, Icons.dashboard, 'Dashboard', 3),
+              _memberDrawerItem(context, Icons.person_outline, 'My Profile', 3),
+              _memberDrawerItem(context, Icons.account_tree, 'My Genealogy', 1),
+              _memberDrawerItem(context, Icons.person_add_alt, 'New Member Registration', 4),
+              _memberDrawerItem(context, Icons.grid_view, 'Products', 2),
+              _memberDrawerItem(context, Icons.shopping_bag_outlined, 'My Orders', 5),
+              _memberDrawerItem(context, Icons.account_balance_wallet_outlined, 'My Wallet', 6),
+              _memberDrawerItem(context, Icons.account_balance, 'Bank Details', 7),
+              _memberDrawerItem(context, Icons.verified_user_outlined, 'KYC Verification', 8),
+              _memberDrawerItem(context, Icons.payments_outlined, 'Withdrawals', 9),
+              _memberDrawerItem(context, Icons.confirmation_number_outlined, 'My Coupons', 10),
+              _memberDrawerItem(context, Icons.lock_outline, 'Change Password', 11),
+              _memberDrawerItem(context, Icons.support_agent, 'Help Line', 12),
+              _memberDrawerItem(context, Icons.report_outlined, 'Report', 13),
               const Spacer(),
               const Divider(color: Colors.white24),
+              _memberDrawerItem(context, Icons.logout, 'Logout', 14),
+              /* Existing logout action retained below only as a fallback. */
               ListTile(
                 leading: const Icon(Icons.logout, color: Colors.white70),
                 title: const Text('Log out',
@@ -626,6 +648,55 @@ class Octo7WebsiteHomeScreen extends StatelessWidget {
     );
   }
 
+  static Widget _publicMenuItem(BuildContext context, IconData icon, String title, String page) {
+    return ListTile(
+      leading: Icon(icon, color: const Color(0xFFD6A84B)),
+      title: Text(title, style: const TextStyle(color: Colors.white)),
+      onTap: () {
+        Navigator.pop(context);
+        if (page == 'Home') return;
+        Navigator.push(context, MaterialPageRoute(builder: (_) => PublicInfoScreen(title: title)));
+      },
+    );
+  }
+
+  static Widget _memberDrawerItem(BuildContext context, IconData icon, String title, int destination) {
+    return ListTile(
+      leading: Icon(icon, color: const Color(0xFF10B981)),
+      title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 14)),
+      onTap: () {
+        Navigator.pop(context);
+        if (destination == 14) {
+          AuthService.instance.signOut().then((_) {
+            if (context.mounted) Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const AuthGate()), (route) => false);
+          });
+          return;
+        }
+        Widget? page;
+        switch (destination) {
+          case 4: page = const MemberRegistrationScreen(); break;
+          case 5: page = const MemberMenuInfoScreen(title: 'My Orders'); break;
+          case 6: page = const TransactionHistoryScreen(); break;
+          case 7: page = const MemberMenuInfoScreen(title: 'Bank Details'); break;
+          case 8: page = const MemberMenuInfoScreen(title: 'KYC Verification'); break;
+          case 9: page = const MemberMenuInfoScreen(title: 'Withdrawals'); break;
+          case 10: page = const MemberMenuInfoScreen(title: 'My Coupons'); break;
+          case 11: page = const MemberMenuInfoScreen(title: 'Change Password'); break;
+          case 12: page = const MemberMenuInfoScreen(title: 'Help Line'); break;
+          case 13: page = const MemberMenuInfoScreen(title: 'Report'); break;
+          default: break;
+        }
+        if (page != null) {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => page!));
+        } else {
+          // Home, dashboard, genealogy and products are available in the bottom navigation.
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$title is available from the bottom navigation or dashboard.')));
+        }
+      },
+    );
+  }
+
   static Widget _navText(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -639,6 +710,38 @@ class Octo7WebsiteHomeScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+class PublicInfoScreen extends StatelessWidget {
+  const PublicInfoScreen({super.key, required this.title});
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final descriptions = <String, String>{
+      'About Us': 'Learn about OCTO7 India, our purpose and our commitment to building a product-focused business community.',
+      'Our Products': 'Explore OCTO7 product categories, including garments, imitation ornaments, home care, personal care, health and wellness, nutrition, spices, and food and beverages. Product listings are being connected to the live catalogue.',
+      'Business Opportunity': 'Understand how to get started with OCTO7, learn about the product range, and connect with the team for guidance. Participation is subject to the company’s official terms and policies.',
+      'Business Plan': 'The plan includes binary placement and matching. For the first successful match only, either Left 2,000 BV + Right 1,000 BV or Left 1,000 BV + Right 2,000 BV qualifies one 1,000 BV match; the extra 1,000 BV on the stronger side carries forward. Subsequent matching is 1:1. Matching income is capped at ₹5,000 per day per ID. Other bonus and eligibility details should be confirmed from the official approved plan.',
+      'Contact Us': 'For assistance or business enquiries, please contact the OCTO7 India team through the official contact channels provided by the company.',
+    };
+    return Scaffold(
+      backgroundColor: const Color(0xFF071426),
+      appBar: AppBar(backgroundColor: const Color(0xFF060D1A), title: Text(title), iconTheme: const IconThemeData(color: Colors.white)),
+      body: Center(child: SingleChildScrollView(padding: const EdgeInsets.all(24), child: Text(descriptions[title] ?? title, style: const TextStyle(color: Colors.white, fontSize: 16, height: 1.7), textAlign: TextAlign.left))),
+    );
+  }
+}
+
+class MemberMenuInfoScreen extends StatelessWidget {
+  const MemberMenuInfoScreen({super.key, required this.title});
+  final String title;
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: const Color(0xFF071426),
+    appBar: AppBar(backgroundColor: const Color(0xFF060D1A), title: Text(title), iconTheme: const IconThemeData(color: Colors.white)),
+    body: Center(child: Padding(padding: const EdgeInsets.all(24), child: Text('$title is listed in the member menu, but its secure backend workflow is not connected yet. No account data or transactions have been changed.', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70, fontSize: 16, height: 1.6)))),
+  );
 }
 
 // --- BINARY TREE NETWORK VIEW SCREEN ---
