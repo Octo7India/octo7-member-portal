@@ -10,7 +10,7 @@ Future<void> main() async {
 
   // Supabase is initialized only when public project configuration is
   // supplied at build time. No service-role key belongs in this app.
-  if (SupabaseConfig.isConfigured) {
+  if (SupabaseConfig.isSecurelyConfigured) {
     await Supabase.initialize(
       url: SupabaseConfig.url,
       anonKey: SupabaseConfig.anonKey,
@@ -58,13 +58,16 @@ class _AuthGateState extends State<AuthGate> {
 
   @override
   Widget build(BuildContext context) {
-    if (!SupabaseConfig.isConfigured) {
-      return const Scaffold(
+    if (!SupabaseConfig.isSecurelyConfigured) {
+      final message = SupabaseConfig.isConfigured
+          ? 'OCTO7 connection rejected. The Supabase URL must use HTTPS. Rebuild with a valid HTTPS project URL.'
+          : 'OCTO7 connection is not configured. Build with the Supabase project URL and public anon key.';
+      return Scaffold(
         backgroundColor: Color(0xFF052411),
         body: Center(child: Padding(
           padding: EdgeInsets.all(24),
-          child: Text('OCTO7 connection is not configured. Build with the Supabase project URL and public anon key.',
-            textAlign: TextAlign.center, style: TextStyle(color: Colors.white)),
+          child: Text(message,
+            textAlign: TextAlign.center, style: const TextStyle(color: Colors.white)),
         )),
       );
     }
