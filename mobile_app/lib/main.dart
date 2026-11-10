@@ -478,8 +478,8 @@ class Octo7WebsiteHomeScreen extends StatelessWidget {
       drawer: Drawer(
         backgroundColor: const Color(0xFF060D1A),
         child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: ListView(
+            padding: EdgeInsets.zero,
             children: [
               const DrawerHeader(
                 decoration: BoxDecoration(color: Color(0xFF0F5127)),
@@ -498,7 +498,7 @@ class Octo7WebsiteHomeScreen extends StatelessWidget {
               ),
               _memberDrawerItem(context, Icons.home_filled, 'Home', 0),
               _memberDrawerItem(context, Icons.dashboard, 'Dashboard', 3),
-              _memberDrawerItem(context, Icons.person_outline, 'My Profile', 3),
+              _memberDrawerItem(context, Icons.person_outline, 'My Profile', 15),
               _memberDrawerItem(context, Icons.account_tree, 'My Genealogy', 1),
               _memberDrawerItem(context, Icons.person_add_alt, 'New Member Registration', 4),
               _memberDrawerItem(context, Icons.grid_view, 'Products', 2),
@@ -511,7 +511,7 @@ class Octo7WebsiteHomeScreen extends StatelessWidget {
               _memberDrawerItem(context, Icons.lock_outline, 'Change Password', 11),
               _memberDrawerItem(context, Icons.support_agent, 'Help Line', 12),
               _memberDrawerItem(context, Icons.report_outlined, 'Report', 13),
-              const Spacer(),
+              const SizedBox(height: 8),
               const Divider(color: Colors.white24),
               _memberDrawerItem(context, Icons.logout, 'Logout', 14),
             ],
