@@ -28,7 +28,7 @@ flutter:
 flutter_launcher_icons:
   image_path: "assets/images/OCTO7_emblem_transparent-2.png"
   android: true
-  ios: true
+  ios: false
 
 flutter_native_splash:
   color: "#0F5127"
