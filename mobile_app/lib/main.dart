@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/supabase_config.dart';
 import 'services/auth_service.dart';
 import 'services/wallet_service.dart';
+import 'services/live_data_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -436,8 +437,96 @@ class Octo7WebsiteHomeScreen extends StatelessWidget {
 }
 
 // --- BINARY TREE NETWORK VIEW SCREEN ---
-class BinaryTreeViewScreen extends StatelessWidget {
+class BinaryTreeViewScreen extends StatefulWidget {
   const BinaryTreeViewScreen({super.key});
+
+  @override
+  State<BinaryTreeViewScreen> createState() => _BinaryTreeViewScreenState();
+}
+
+class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
+  late Future<Map<String, dynamic>> _genealogyFuture;
+  String? _rootMemberId;
+  final List<String> _backStack = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _genealogyFuture = LiveDataService.instance.fetchGenealogy();
+  }
+
+  Future<void> _openMember(String memberId) async {
+    if (memberId.isEmpty || memberId == _rootMemberId) return;
+    setState(() {
+      if (_rootMemberId != null) _backStack.add(_rootMemberId!);
+      _rootMemberId = memberId;
+      _genealogyFuture = LiveDataService.instance.fetchGenealogy(rootMemberId: memberId);
+    });
+  }
+
+  void _goBack() {
+    if (_backStack.isEmpty) return;
+    final previous = _backStack.removeLast();
+    setState(() {
+      _rootMemberId = previous;
+      _genealogyFuture = LiveDataService.instance.fetchGenealogy(rootMemberId: previous);
+    });
+  }
+
+  Widget _nodeCard(Map<String, dynamic> node, {bool root = false}) {
+    final memberId = (node['member_id'] ?? '').toString();
+    final name = (node['full_name'] ?? node['name'] ?? '').toString();
+    final status = (node['status'] ?? 'Unavailable').toString();
+    return InkWell(
+      onTap: memberId.isEmpty ? null : () => _openMember(memberId),
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        constraints: const BoxConstraints(minWidth: 130, maxWidth: 180),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF060D1A),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: root ? const Color(0xFFD97706) : Colors.white24),
+        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const Text('OCTO7', style: TextStyle(color: Color(0xFFD97706), fontSize: 10, fontWeight: FontWeight.bold)),
+          Text(memberId.isEmpty ? 'ID unavailable' : memberId,
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          if (name.isNotEmpty) Text(name, textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white70, fontSize: 11)),
+          Text(status.toUpperCase(), style: const TextStyle(color: Color(0xFF10B981), fontSize: 10)),
+          if (memberId.isNotEmpty) const Text('Tap to view downline',
+            style: TextStyle(color: Colors.white38, fontSize: 9)),
+        ]),
+      ),
+    );
+  }
+
+  Widget _tree(Map<String, dynamic> node, {bool root = false}) {
+    final left = node['left'];
+    final right = node['right'];
+    return Column(mainAxisSize: MainAxisSize.min, children: [
+      _nodeCard(node, root: root),
+      const SizedBox(height: 12),
+      Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Expanded(child: Column(children: [
+          const Text('LEFT', style: TextStyle(color: Colors.white54, fontSize: 10)),
+          const SizedBox(height: 6),
+          if (left is Map) _tree(Map<String, dynamic>.from(left))
+          else const Text('Position available', textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white38, fontSize: 10)),
+        ])),
+        const SizedBox(width: 10),
+        Expanded(child: Column(children: [
+          const Text('RIGHT', style: TextStyle(color: Colors.white54, fontSize: 10)),
+          const SizedBox(height: 6),
+          if (right is Map) _tree(Map<String, dynamic>.from(right))
+          else const Text('Position available', textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white38, fontSize: 10)),
+        ])),
+      ]),
+    ]);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -446,24 +535,81 @@ class BinaryTreeViewScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFF060D1A),
         title: const Text('Binary Network Tree', style: TextStyle(color: Colors.white, fontSize: 18)),
+        leading: _backStack.isEmpty ? null : IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: _goBack),
+        actions: [IconButton(
+          icon: const Icon(Icons.refresh, color: Colors.white),
+          onPressed: () => setState(() {
+            _genealogyFuture = LiveDataService.instance.fetchGenealogy(rootMemberId: _rootMemberId);
+          }))],
       ),
-      body: const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text(
-            'Genealogy information will appear here when loaded from your OCTO7 account.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white70, fontSize: 15),
-          ),
-        ),
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: _genealogyFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Text('Unable to load live genealogy: ${snapshot.error}',
+                  textAlign: TextAlign.center, style: const TextStyle(color: Colors.orangeAccent)),
+                TextButton(onPressed: () => setState(() {
+                  _genealogyFuture = LiveDataService.instance.fetchGenealogy(rootMemberId: _rootMemberId);
+                }), child: const Text('Retry')),
+              ]),
+            ));
+          }
+          final data = snapshot.data ?? {};
+          final nodes = data['nodes'];
+          if (nodes is! List || nodes.isEmpty) {
+            return const Center(child: Text('No genealogy positions were returned for this account.',
+              textAlign: TextAlign.center, style: TextStyle(color: Colors.white70)));
+          }
+          final rootNode = LiveDataService.buildGenealogyTree(nodes);
+          if (rootNode == null) {
+            return const Center(child: Text('The genealogy root position is missing.',
+              style: TextStyle(color: Colors.white70)));
+          }
+          final rootId = (data['root'] is Map ? data['root']['member_id'] : rootNode['member_id'])?.toString();
+          if (_rootMemberId == null && rootId != null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted && _rootMemberId == null) setState(() => _rootMemberId = rootId);
+            });
+          }
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(12),
+            child: Center(child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: _tree(rootNode, root: true),
+            )),
+          );
+        },
       ),
     );
   }
 }
 
-
-class ProductCatalogScreen extends StatelessWidget {
+class ProductCatalogScreen extends StatefulWidget {
   const ProductCatalogScreen({super.key});
+
+  @override
+  State<ProductCatalogScreen> createState() => _ProductCatalogScreenState();
+}
+
+class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
+  late Future<List<Map<String, dynamic>>> _productsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _productsFuture = LiveDataService.instance.fetchProducts();
+  }
+
+  void _refresh() => setState(() {
+    _productsFuture = LiveDataService.instance.fetchProducts();
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -472,21 +618,55 @@ class ProductCatalogScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFF060D1A),
         title: const Text('OCTO7 Products', style: TextStyle(color: Colors.white, fontSize: 18)),
+        actions: [IconButton(icon: const Icon(Icons.refresh, color: Colors.white), onPressed: _refresh)],
       ),
-      body: const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text(
-            'No products are currently available. Products will appear here when published by OCTO7.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white70, fontSize: 15),
-          ),
-        ),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: _productsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Text('Unable to load OCTO7 products: ${snapshot.error}',
+                  textAlign: TextAlign.center, style: const TextStyle(color: Colors.orangeAccent)),
+                TextButton(onPressed: _refresh, child: const Text('Retry')),
+              ]),
+            ));
+          }
+          final products = snapshot.data ?? [];
+          if (products.isEmpty) {
+            return const Center(child: Text('No active products are currently available.',
+              style: TextStyle(color: Colors.white70)));
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.all(14),
+            itemCount: products.length,
+            itemBuilder: (context, index) {
+              final product = products[index];
+              final name = (product['name'] ?? 'Product').toString();
+              final sku = (product['sku'] ?? '-').toString();
+              final price = product['price'] ?? '-';
+              final bv = product['bv'] ?? 0;
+              return Card(
+                color: const Color(0xFF060D1A),
+                margin: const EdgeInsets.only(bottom: 10),
+                child: ListTile(
+                  title: Text(name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  subtitle: Text('SKU: $sku  •  BV: $bv',
+                    style: const TextStyle(color: Colors.white60)),
+                  trailing: Text('₹ $price', style: const TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.bold)),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
 }
-
 
 class CartCheckoutScreen extends StatefulWidget {
   final List<Map<String, dynamic>> cartItems;
