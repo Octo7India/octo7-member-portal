@@ -94,16 +94,11 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
-  String _loginType = 'member_id';
   bool _busy = false;
   bool _hidePassword = true;
   String? _error;
 
-  String get _identifierLabel => switch (_loginType) {
-    'email' => 'Email address',
-    'phone' => 'Mobile number',
-    _ => 'OCTO7 User ID',
-  };
+  String get _identifierLabel => 'OCTO7 User ID';
 
   @override
   void dispose() {
@@ -118,7 +113,6 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
     try {
       await AuthService.instance.signIn(
         identifier: _identifierController.text,
-        identifierType: _loginType,
         password: _passwordController.text,
       );
       if (mounted) widget.onLogin();
@@ -149,45 +143,20 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
                 const Text('MEMBER LOGIN', style: TextStyle(color: Color(0xFFD97706),
                   fontWeight: FontWeight.w600)),
                 const SizedBox(height: 22),
-                SegmentedButton<String>(
-                  segments: const [
-                    ButtonSegment(value: 'email', label: Text('Email')),
-                    ButtonSegment(value: 'phone', label: Text('Mobile')),
-                    ButtonSegment(value: 'member_id', label: Text('OCTO7 ID')),
-                  ],
-                  selected: {_loginType},
-                  onSelectionChanged: (value) => setState(() {
-                    _loginType = value.first;
-                    _identifierController.clear();
-                    _error = null;
-                  }),
-                  style: SegmentedButton.styleFrom(
-                    foregroundColor: Colors.white70,
-                    selectedForegroundColor: Colors.white,
-                    selectedBackgroundColor: const Color(0xFF047857),
-                  ),
-                ),
                 const SizedBox(height: 18),
                 TextFormField(
                   controller: _identifierController,
-                  keyboardType: _loginType == 'email' ? TextInputType.emailAddress :
-                    (_loginType == 'phone' ? TextInputType.phone : TextInputType.text),
+                  keyboardType: TextInputType.text,
                   autocorrect: false,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(labelText: _identifierLabel,
                     labelStyle: const TextStyle(color: Colors.white70),
-                    prefixIcon: Icon(_loginType == 'email' ? Icons.email_outlined :
-                      (_loginType == 'phone' ? Icons.phone_android : Icons.badge_outlined),
-                      color: const Color(0xFF10B981)),
+                    prefixIcon: const Icon(Icons.badge_outlined, color: Color(0xFF10B981)),
                     enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
                     focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Color(0xFF10B981)))),
                   validator: (value) {
                     final v = value?.trim() ?? '';
                     if (v.isEmpty) return 'Enter your ${_identifierLabel.toLowerCase()}';
-                    if (_loginType == 'email' && !v.contains('@')) return 'Enter a valid email address';
-                    if (_loginType == 'phone' && v.replaceAll(RegExp(r'[^0-9]'), '').length < 10) {
-                      return 'Enter a valid mobile number';
-                    }
                     return null;
                   },
                 ),
@@ -220,7 +189,7 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
                       const Text('MEMBER LOGIN', style: TextStyle(fontWeight: FontWeight.bold)),
                   )),
                 const SizedBox(height: 14),
-                const Text('Use your registered email, mobile number, or OCTO7 User ID with the same password.',
+                const Text('Log in using your OCTO7 User ID and password.',
                   textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 12)),
               ])),
             ),
