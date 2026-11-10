@@ -277,9 +277,70 @@ class Octo7WebsiteHomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0F5127),
+      drawer: Drawer(
+        backgroundColor: const Color(0xFF060D1A),
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const DrawerHeader(
+                decoration: BoxDecoration(color: Color(0xFF0F5127)),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('OCTO7 INDIA', style: TextStyle(
+                      color: Colors.white, fontSize: 22,
+                      fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                    SizedBox(height: 6),
+                    Text('Together For a Better Tomorrow.',
+                      style: TextStyle(color: Colors.white70, fontSize: 12)),
+                  ],
+                ),
+              ),
+              _drawerItem(context, Icons.home_filled, 'Home', null),
+              _drawerItem(context, Icons.info_outline, 'About Us', 'About Us'),
+              _drawerItem(context, Icons.grid_view_rounded, 'Our Products',
+                  'Products'),
+              _drawerItem(context, Icons.business_center_outlined,
+                  'Business Opportunity', 'Business Opportunity'),
+              _drawerItem(context, Icons.group_add_outlined,
+                  'Join Our Team', 'Join Our Team'),
+              _drawerItem(context, Icons.person_outline,
+                  'Member Dashboard', 'Dashboard'),
+              _drawerItem(context, Icons.contact_mail_outlined,
+                  'Contact Us', 'Contact Us'),
+              const Spacer(),
+              const Divider(color: Colors.white24),
+              ListTile(
+                leading: const Icon(Icons.logout, color: Colors.white70),
+                title: const Text('Log out',
+                    style: TextStyle(color: Colors.white)),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await AuthService.instance.signOut();
+                  if (!context.mounted) return;
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const AuthGate()),
+                    (route) => false,
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(110),
         child: AppBar(
+          automaticallyImplyLeading: false,
+          leading: Builder(
+            builder: (context) => IconButton(
+              tooltip: 'Open menu',
+              icon: const Icon(Icons.menu, color: Colors.white, size: 28),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            ),
+          ),
           backgroundColor: const Color(0xFF060D1A),
           elevation: 0,
           flexibleSpace: SafeArea(
@@ -418,6 +479,33 @@ class Octo7WebsiteHomeScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  static Widget _drawerItem(
+      BuildContext context, IconData icon, String title, String? destination) {
+    return ListTile(
+      leading: Icon(icon, color: const Color(0xFF10B981)),
+      title: Text(title, style: const TextStyle(color: Colors.white)),
+      onTap: () {
+        Navigator.pop(context);
+        if (destination == null) return;
+        Widget? page;
+        switch (destination) {
+          case 'Products':
+            page = const ProductCatalogScreen();
+            break;
+          case 'Dashboard':
+            page = const MemberDashboardScreen();
+            break;
+          default:
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('$title page is not available in this app build yet.')),
+            );
+            return;
+        }
+        Navigator.push(context, MaterialPageRoute(builder: (_) => page!));
+      },
     );
   }
 
