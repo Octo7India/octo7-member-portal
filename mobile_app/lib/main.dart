@@ -446,407 +446,48 @@ class BinaryTreeViewScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFF060D1A),
         title: const Text('Binary Network Tree', style: TextStyle(color: Colors.white, fontSize: 18)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
-            onPressed: () {},
-          ),
-        ],
       ),
-      body: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            color: const Color(0xFF060D1A),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _treeStat('Left Leg Volume', '12,400 BV', Colors.blue),
-                Container(height: 25, width: 1, color: Colors.white24),
-                _treeStat('Total Team', '38 Members', Colors.amber),
-                Container(height: 25, width: 1, color: Colors.white24),
-                _treeStat('Right Leg Volume', '15,800 BV', Colors.green),
-              ],
-            ),
+      body: const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Text(
+            'Genealogy information will appear here when loaded from your OCTO7 account.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white70, fontSize: 15),
           ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  const SizedBox(height: 10),
-                  _memberNode('You (Rajesh)', 'OCT7-89210', const Color(0xFFD97706), true),
-                  _connectorVertical(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(width: 140, height: 2, color: Colors.white54),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Column(
-                        children: [
-                          _connectorVertical(),
-                          _memberNode('Aarav S.', 'OCT7-91001', const Color(0xFF10B981), false),
-                          _connectorVertical(),
-                          Row(
-                            children: [
-                              Container(width: 70, height: 2, color: Colors.white54),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              Column(
-                                children: [
-                                  _connectorVertical(),
-                                  _memberNode('Priya M.', 'OCT7-92011', const Color(0xFF10B981), false),
-                                ],
-                              ),
-                              const SizedBox(width: 12),
-                              Column(
-                                children: [
-                                  _connectorVertical(),
-                                  _emptySlotNode(context),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      Column(
-                        children: [
-                          _connectorVertical(),
-                          _memberNode('Suresh K.', 'OCT7-91002', const Color(0xFF10B981), false),
-                          _connectorVertical(),
-                          Row(
-                            children: [
-                              Container(width: 70, height: 2, color: Colors.white54),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              Column(
-                                children: [
-                                  _connectorVertical(),
-                                  _memberNode('Neha G.', 'OCT7-93040', const Color(0xFFF59E0B), false),
-                                ],
-                              ),
-                              const SizedBox(width: 12),
-                              Column(
-                                children: [
-                                  _connectorVertical(),
-                                  _emptySlotNode(context),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 30),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static Widget _treeStat(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
-        const SizedBox(height: 4),
-        Text(value, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13)),
-      ],
-    );
-  }
-
-  static Widget _connectorVertical() {
-    return Container(width: 2, height: 20, color: Colors.white54);
-  }
-
-  static Widget _memberNode(String name, String id, Color badgeColor, bool isRoot) {
-    return Container(
-      width: isRoot ? 130 : 100,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: const Color(0xFF060D1A),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: badgeColor, width: isRoot ? 2 : 1),
-      ),
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: isRoot ? 18 : 14,
-            backgroundColor: badgeColor,
-            child: Icon(Icons.person, size: isRoot ? 20 : 16, color: Colors.white),
-          ),
-          const SizedBox(height: 4),
-          Text(name, style: TextStyle(color: Colors.white, fontSize: isRoot ? 12 : 10, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
-          Text(id, style: const TextStyle(color: Colors.grey, fontSize: 8)),
-        ],
-      ),
-    );
-  }
-
-  static Widget _emptySlotNode(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => const MemberRegistrationScreen()));
-      },
-      child: Container(
-        width: 90,
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.white10,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.white30, style: BorderStyle.solid),
-        ),
-        child: Column(
-          children: const [
-            Icon(Icons.add_circle_outline, color: Color(0xFF10B981), size: 22),
-            SizedBox(height: 4),
-            Text('Add Member', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
-          ],
         ),
       ),
     );
   }
 }
 
-// --- MULTI-SECTOR PRODUCT CATALOG SCREEN ---
-class ProductCatalogScreen extends StatefulWidget {
+
+class ProductCatalogScreen extends StatelessWidget {
   const ProductCatalogScreen({super.key});
 
   @override
-  State<ProductCatalogScreen> createState() => _ProductCatalogScreenState();
-}
-
-class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
-  int _selectedCategoryIndex = 0;
-  final List<Map<String, dynamic>> _cartItems = [];
-
-  final List<String> _categories = ['All Sectors', 'Apparel & Dress', 'IT Solutions', 'Dining Vouchers', 'Saloon & Spa'];
-
-  final List<Map<String, dynamic>> _products = [
-    {
-      'title': 'Premium Cotton Dress Combo',
-      'category': 'Apparel & Dress',
-      'price': 2499,
-      'pv': 50,
-      'icon': Icons.checkroom,
-      'color': Colors.deepOrangeAccent,
-    },
-    {
-      'title': 'Stitched Designer Salwar Set',
-      'category': 'Apparel & Dress',
-      'price': 1899,
-      'pv': 35,
-      'icon': Icons.dry_cleaning,
-      'color': Colors.pinkAccent,
-    },
-    {
-      'title': 'OCTO7 POS & Billing Software',
-      'category': 'IT Solutions',
-      'price': 4999,
-      'pv': 120,
-      'icon': Icons.laptop_mac,
-      'color': Colors.blueAccent,
-    },
-    {
-      'title': 'OCTO7 Dining Privilege Card',
-      'category': 'Dining Vouchers',
-      'price': 1200,
-      'pv': 25,
-      'icon': Icons.restaurant,
-      'color': Colors.amber,
-    },
-    {
-      'title': 'Luxury Spa & Salon Pass',
-      'category': 'Saloon & Spa',
-      'price': 1500,
-      'pv': 30,
-      'icon': Icons.spa,
-      'color': Colors.tealAccent,
-    },
-  ];
-
-  @override
   Widget build(BuildContext context) {
-    final filteredProducts = _selectedCategoryIndex == 0
-        ? _products
-        : _products.where((p) => p['category'] == _categories[_selectedCategoryIndex]).toList();
-
     return Scaffold(
       backgroundColor: const Color(0xFF052411),
       appBar: AppBar(
         backgroundColor: const Color(0xFF060D1A),
-        title: const Text('OCTO7 Products Catalog', style: TextStyle(color: Colors.white, fontSize: 18)),
-        actions: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.shopping_cart, color: Color(0xFFD97706)),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CartCheckoutScreen(cartItems: _cartItems),
-                    ),
-                  );
-                },
-              ),
-              if (_cartItems.isNotEmpty)
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                    child: Text(
-                      '${_cartItems.length}',
-                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-            ],
-          )
-        ],
+        title: const Text('OCTO7 Products', style: TextStyle(color: Colors.white, fontSize: 18)),
       ),
-      body: Column(
-        children: [
-          Container(
-            height: 55,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            color: const Color(0xFF060D1A),
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: _categories.length,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              itemBuilder: (context, index) {
-                final isSelected = _selectedCategoryIndex == index;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: ChoiceChip(
-                    label: Text(_categories[index]),
-                    selected: isSelected,
-                    selectedColor: const Color(0xFFD97706),
-                    backgroundColor: Colors.white10,
-                    labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : Colors.grey.shade300,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    ),
-                    onSelected: (selected) {
-                      setState(() => _selectedCategoryIndex = index);
-                    },
-                  ),
-                );
-              },
-            ),
+      body: const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Text(
+            'No products are currently available. Products will appear here when published by OCTO7.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white70, fontSize: 15),
           ),
-          Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: filteredProducts.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.72,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-              ),
-              itemBuilder: (context, index) {
-                final item = filteredProducts[index];
-                return Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF060D1A),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.05),
-                            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                          ),
-                          child: Center(
-                            child: Icon(item['icon'] as IconData, size: 50, color: item['color'] as Color),
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item['title'] as String,
-                              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('₹ ${item['price']}', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF10B981).withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    '${item['pv']} PV',
-                                    style: const TextStyle(color: Color(0xFF10B981), fontSize: 11, fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 30,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFFD97706),
-                                  padding: EdgeInsets.zero,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _cartItems.add(item);
-                                  });
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('${item['title']} added to cart!')),
-                                  );
-                                },
-                                child: const Text('Add to Cart', style: TextStyle(color: Colors.white, fontSize: 11)),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
-// --- CART & CHECKOUT SCREEN ---
+
 class CartCheckoutScreen extends StatefulWidget {
   final List<Map<String, dynamic>> cartItems;
   const CartCheckoutScreen({super.key, required this.cartItems});
@@ -996,54 +637,6 @@ class _CartCheckoutScreenState extends State<CartCheckoutScreen> {
 class TransactionHistoryScreen extends StatelessWidget {
   const TransactionHistoryScreen({super.key});
 
-  final List<Map<String, dynamic>> _transactions = const [
-    {
-      'title': 'Federal Bank Withdrawal',
-      'date': 'Oct 24, 2026',
-      'amount': '- ₹ 12,000.00',
-      'type': 'Payout',
-      'status': 'Credited',
-      'color': Colors.greenAccent,
-      'icon': Icons.account_balance,
-    },
-    {
-      'title': 'Binary Matching Bonus',
-      'date': 'Oct 21, 2026',
-      'amount': '+ ₹ 8,400.00',
-      'type': 'Commission',
-      'status': 'Completed',
-      'color': Color(0xFF10B981),
-      'icon': Icons.account_tree,
-    },
-    {
-      'title': 'Direct Sponsor Income (Aarav S.)',
-      'date': 'Oct 18, 2026',
-      'amount': '+ ₹ 1,250.00',
-      'type': 'Referral',
-      'status': 'Completed',
-      'color': Color(0xFF10B981),
-      'icon': Icons.person_add_alt_1,
-    },
-    {
-      'title': 'Federal Bank Withdrawal',
-      'date': 'Oct 12, 2026',
-      'amount': '- ₹ 15,000.00',
-      'type': 'Payout',
-      'status': 'Credited',
-      'color': Colors.greenAccent,
-      'icon': Icons.account_balance,
-    },
-    {
-      'title': 'Apparel Sector Team Bonus',
-      'date': 'Oct 05, 2026',
-      'amount': '+ ₹ 4,200.00',
-      'type': 'Sector Bonus',
-      'status': 'Completed',
-      'color': Color(0xFF10B981),
-      'icon': Icons.shopping_bag,
-    },
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1053,73 +646,21 @@ class TransactionHistoryScreen extends StatelessWidget {
         title: const Text('Commission & Payout History', style: TextStyle(color: Colors.white, fontSize: 18)),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _transactions.length,
-        itemBuilder: (context, index) {
-          final tx = _transactions[index];
-          final isPayout = tx['type'] == 'Payout';
-
-          return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFF060D1A),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.white12),
-            ),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  backgroundColor: isPayout ? Colors.amber.withOpacity(0.2) : const Color(0xFF10B981).withOpacity(0.2),
-                  child: Icon(tx['icon'] as IconData, color: isPayout ? const Color(0xFFD97706) : const Color(0xFF10B981), size: 20),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(tx['title'] as String, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                      const SizedBox(height: 3),
-                      Text('${tx['date']} • ${tx['type']}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
-                    ],
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      tx['amount'] as String,
-                      style: TextStyle(
-                        color: isPayout ? const Color(0xFFD97706) : const Color(0xFF10B981),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.white10,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        tx['status'] as String,
-                        style: const TextStyle(color: Colors.white70, fontSize: 9, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        },
+      body: const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Text(
+            'No transaction history is available to display.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white70, fontSize: 15),
+          ),
+        ),
       ),
     );
   }
 }
 
-// --- RANK ADVANCEMENT & QUALIFICATION SCREEN ---
+
 class RankTrackerScreen extends StatelessWidget {
   const RankTrackerScreen({super.key});
 
@@ -1129,136 +670,26 @@ class RankTrackerScreen extends StatelessWidget {
       backgroundColor: const Color(0xFF052411),
       appBar: AppBar(
         backgroundColor: const Color(0xFF060D1A),
-        title: const Text('Rank Advancement Tracker', style: TextStyle(color: Colors.white, fontSize: 18)),
+        title: const Text('Rank Advancement', style: TextStyle(color: Colors.white, fontSize: 18)),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF060D1A),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFD97706)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.workspace_premium, size: 45, color: Color(0xFFD97706)),
-                  const SizedBox(width: 15),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text('Current Rank: Gold Executive', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                      SizedBox(height: 4),
-                      Text('Next Target: Pearl Executive', style: TextStyle(color: Color(0xFF10B981), fontSize: 13, fontWeight: FontWeight.w600)),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text('Qualification Progress', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            _rankProgressCard('Left Leg BV Requirement', 12400, 20000, Colors.blue),
-            const SizedBox(height: 10),
-            _rankProgressCard('Right Leg BV Requirement', 15800, 20000, Colors.green),
-            const SizedBox(height: 10),
-            _rankProgressCard('Personal Purchase PV', 3200, 5000, Colors.amber),
-            const SizedBox(height: 25),
-            const Text('OCTO7 Executive Ranks Hierarchy', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            _rankHierarchyItem('Gold Executive', 'Active Rank', '10,000 BV Pair', true),
-            _rankHierarchyItem('Pearl Executive', '62% Completed', '20,000 BV Pair', false),
-            _rankHierarchyItem('Ruby Executive', 'Locked', '50,000 BV Pair', false),
-            _rankHierarchyItem('Diamond Executive', 'Locked', '100,000 BV Pair', false),
-          ],
+      body: const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Text(
+            'Rank information will appear here when available from your OCTO7 account.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white70, fontSize: 15),
+          ),
         ),
       ),
     );
   }
-
-  static Widget _rankProgressCard(String label, int current, int target, Color color) {
-    double progress = (current / target).clamp(0.0, 1.0);
-    int percentage = (progress * 100).round();
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFF060D1A),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(label, style: const TextStyle(color: Colors.white70, fontSize: 13)),
-              Text('$percentage%', style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          LinearProgressIndicator(
-            value: progress,
-            backgroundColor: Colors.white10,
-            valueColor: AlwaysStoppedAnimation<Color>(color),
-            minHeight: 8,
-            borderRadius: BorderRadius.circular(4),
-          ),
-          const SizedBox(height: 8),
-          Text('$current / $target BV', style: const TextStyle(color: Colors.grey, fontSize: 11)),
-        ],
-      ),
-    );
-  }
-
-  static Widget _rankHierarchyItem(String rank, String status, String requirement, bool isCurrent) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: isCurrent ? const Color(0xFF064E3B) : const Color(0xFF060D1A),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: isCurrent ? const Color(0xFF10B981) : Colors.white12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Icon(isCurrent ? Icons.check_circle : Icons.stars, color: isCurrent ? const Color(0xFF10B981) : Colors.grey, size: 20),
-              const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(rank, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                  Text(requirement, style: const TextStyle(color: Colors.grey, fontSize: 11)),
-                ],
-              ),
-            ],
-          ),
-          Text(status, style: TextStyle(color: isCurrent ? const Color(0xFF10B981) : Colors.white54, fontSize: 12, fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
 }
 
-// --- MEMBER REGISTRATION SCREEN ---
-class MemberRegistrationScreen extends StatefulWidget {
+
+class MemberRegistrationScreen extends StatelessWidget {
   const MemberRegistrationScreen({super.key});
-
-  @override
-  State<MemberRegistrationScreen> createState() => _MemberRegistrationScreenState();
-}
-
-class _MemberRegistrationScreenState extends State<MemberRegistrationScreen> {
-  String _selectedLeg = 'Left Leg';
-  String _selectedPackage = 'Apparel & Dress Starter (₹2,499)';
 
   @override
   Widget build(BuildContext context) {
@@ -1269,120 +700,21 @@ class _MemberRegistrationScreenState extends State<MemberRegistrationScreen> {
         title: const Text('Register New Member', style: TextStyle(color: Colors.white, fontSize: 18)),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Sponsor Details', style: TextStyle(color: Color(0xFFD97706), fontWeight: FontWeight.bold, fontSize: 15)),
-            const SizedBox(height: 10),
-            _buildTextField('Sponsor ID', 'OCT7-89210 (Rajesh Kumar)', true),
-            const SizedBox(height: 15),
-            
-            const Text('Placement Leg', style: TextStyle(color: Color(0xFFD97706), fontWeight: FontWeight.bold, fontSize: 15)),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: RadioListTile<String>(
-                    title: const Text('Left Leg', style: TextStyle(color: Colors.white, fontSize: 14)),
-                    value: 'Left Leg',
-                    groupValue: _selectedLeg,
-                    activeColor: const Color(0xFF10B981),
-                    onChanged: (val) => setState(() => _selectedLeg = val!),
-                  ),
-                ),
-                Expanded(
-                  child: RadioListTile<String>(
-                    title: const Text('Right Leg', style: TextStyle(color: Colors.white, fontSize: 14)),
-                    value: 'Right Leg',
-                    groupValue: _selectedLeg,
-                    activeColor: const Color(0xFF10B981),
-                    onChanged: (val) => setState(() => _selectedLeg = val!),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 15),
-
-            const Text('New Member Personal Info', style: TextStyle(color: Color(0xFFD97706), fontWeight: FontWeight.bold, fontSize: 15)),
-            const SizedBox(height: 10),
-            _buildTextField('Full Name', 'Enter full legal name', false),
-            const SizedBox(height: 12),
-            _buildTextField('Mobile Number', 'Enter 10-digit mobile number', false),
-            const SizedBox(height: 12),
-            _buildTextField('Email Address', 'Enter email address', false),
-            const SizedBox(height: 15),
-
-            const Text('Select Starter Package', style: TextStyle(color: Color(0xFFD97706), fontWeight: FontWeight.bold, fontSize: 15)),
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: const Color(0xFF060D1A),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.white24),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: _selectedPackage,
-                  dropdownColor: const Color(0xFF060D1A),
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                  isExpanded: true,
-                  items: [
-                    'Apparel & Dress Starter (₹2,499)',
-                    'IT Solutions Starter (₹4,999)',
-                    'Dining Privilege Starter (₹1,200)',
-                    'Saloon & Spa Starter (₹1,500)',
-                  ].map((pkg) => DropdownMenuItem(value: pkg, child: Text(pkg))).toList(),
-                  onChanged: (val) => setState(() => _selectedPackage = val!),
-                ),
-              ),
-            ),
-            const SizedBox(height: 30),
-
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF10B981),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Member Registered Successfully!')),
-                  );
-                  Navigator.pop(context);
-                },
-                child: const Text('Complete Registration & Generate ID', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
-              ),
-            ),
-          ],
+      body: const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Text(
+            'Member registration details will be loaded from the OCTO7 system. No sample sponsor or package details are shown.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white70, fontSize: 15),
+          ),
         ),
-      ),
-    );
-  }
-
-  static Widget _buildTextField(String label, String hint, bool isReadOnly) {
-    return TextField(
-      readOnly: isReadOnly,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(color: Colors.grey, fontSize: 13),
-        hintText: hint,
-        hintStyle: const TextStyle(color: Colors.white30, fontSize: 13),
-        filled: true,
-        fillColor: const Color(0xFF060D1A),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
       ),
     );
   }
 }
 
-// --- MEMBER BACK-OFFICE & DASHBOARD SCREEN ---
+
 class MemberDashboardScreen extends StatefulWidget {
   const MemberDashboardScreen({super.key});
 
