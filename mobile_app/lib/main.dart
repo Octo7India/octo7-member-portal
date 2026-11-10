@@ -450,21 +450,6 @@ class Octo7WebsiteHomeScreen extends StatelessWidget {
               const Spacer(),
               const Divider(color: Colors.white24),
               _memberDrawerItem(context, Icons.logout, 'Logout', 14),
-              /* Existing logout action retained below only as a fallback. */
-              ListTile(
-                leading: const Icon(Icons.logout, color: Colors.white70),
-                title: const Text('Log out',
-                    style: TextStyle(color: Colors.white)),
-                onTap: () async {
-                  Navigator.pop(context);
-                  await AuthService.instance.signOut();
-                  if (!context.mounted) return;
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const AuthGate()),
-                    (route) => false,
-                  );
-                },
-              ),
             ],
           ),
         ),
