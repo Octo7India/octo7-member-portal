@@ -23,7 +23,6 @@ class AuthService {
 
   Future<Map<String, dynamic>> signIn({
     required String identifier,
-    required String identifierType,
     required String password,
   }) async {
     final response = await _client.functions.invoke(
@@ -31,7 +30,7 @@ class AuthService {
       body: {
         'action': 'member_login',
         'identifier': identifier.trim(),
-        'identifier_type': identifierType,
+        'identifier_type': 'member_id',
         'password': password,
       },
       headers: {'Authorization': 'Bearer ${SupabaseConfig.anonKey}'},
