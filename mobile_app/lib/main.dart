@@ -453,11 +453,11 @@ class ProductCatalogScreen extends StatefulWidget {
 
 class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
   int _selectedCategoryIndex = 0;
-  final List> _cartItems = [];
+  final List<Map<String, dynamic>> _cartItems = [];
 
   final List<String> _categories = ['All Sectors', 'Apparel & Dress', 'IT Solutions', 'Dining Vouchers', 'Saloon & Spa'];
 
-  final List> _products = [
+  final List<Map<String, dynamic>> _products = [
     {
       'title': 'Premium Cotton Dress Combo',
       'category': 'Apparel & Dress',
@@ -672,7 +672,7 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
 
 // --- CART & CHECKOUT SCREEN ---
 class CartCheckoutScreen extends StatefulWidget {
-  final List> cartItems;
+  final List<Map<String, dynamic>> cartItems;
   const CartCheckoutScreen({super.key, required this.cartItems});
 
   @override
@@ -820,7 +820,7 @@ class _CartCheckoutScreenState extends State<CartCheckoutScreen> {
 class TransactionHistoryScreen extends StatelessWidget {
   const TransactionHistoryScreen({super.key});
 
-  final List> _transactions = const [
+  final List<Map<String, dynamic>> _transactions = const [
     {
       'title': 'Federal Bank Withdrawal',
       'date': 'Oct 24, 2026',
