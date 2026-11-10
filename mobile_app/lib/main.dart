@@ -152,11 +152,6 @@ class WelcomeScreen extends StatelessWidget {
               ),
             ),
           ),
-          // Subtle world/globe motif behind the supplied OCTO7 emblem.
-          Positioned(
-            top: 70, left: -70, right: -70,
-            child: Icon(Icons.public, size: 390, color: Colors.white.withOpacity(0.045)),
-          ),
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
@@ -167,11 +162,6 @@ class WelcomeScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const SizedBox(height: 16),
-                      Image.asset(
-                        'assets/images/OCTO7_emblem_transparent-2.png',
-                        height: 230, width: 280, fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(Icons.public, size: 150, color: Color(0xFFD6A84B)),
-                      ),
                       const SizedBox(height: 20),
                       const Text('OCTO7',
                         style: TextStyle(color: Colors.white, fontSize: 42,
@@ -566,17 +556,6 @@ class Octo7WebsiteHomeScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 30),
-            Image.asset(
-              'assets/images/OCTO7_emblem_transparent-2.png',
-              width: 260,
-              height: 260,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => const Icon(
-                Icons.image_not_supported,
-                color: Colors.white70,
-                size: 80,
-              ),
-            ),
             const SizedBox(height: 35),
             const Text(
               'Discover a world of opportunities\nthrough quality products,\nentrepreneurship and a growing\nbusiness network.',
