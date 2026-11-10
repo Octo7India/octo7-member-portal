@@ -1245,7 +1245,21 @@ class _MemberDashboardScreenState extends State<MemberDashboardScreen> {
                 ),
                 const Divider(color: Colors.white24),
                 const SizedBox(height: 10),
-                const Text('Available Balance: ₹ 45,850.00', style: TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.bold, fontSize: 14)),
+                FutureBuilder<Map<String, dynamic>>(
+                  future: _dashboardFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Text('Available Balance: loading…', style: TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.bold, fontSize: 14));
+                    }
+                    if (snapshot.hasError) {
+                      return const Text('Available Balance: unavailable', style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 14));
+                    }
+                    final wallet = snapshot.data?['wallet'];
+                    final raw = wallet is Map ? wallet['available_balance'] : null;
+                    final amount = raw is num ? raw.toDouble() : double.tryParse('$raw') ?? 0;
+                    return Text('Available Balance: ₹ ${amount.toStringAsFixed(2)}', style: const TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.bold, fontSize: 14));
+                  },
+                ),
                 const SizedBox(height: 15),
                 TextField(
                   style: const TextStyle(color: Colors.white),
