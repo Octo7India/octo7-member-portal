@@ -31,14 +31,11 @@ jobs:
       - name: Accept Android Licenses
         run: yes | flutter doctor --android-licenses
 
-      - name: Generate Android Files
-        run: flutter create . --platforms=android
-
-      - name: Build Release APK
-        run: flutter build apk --release --verbose
+      - name: Build Debug APK
+        run: flutter build apk --debug
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: octo7-release-apk
-          path: mobile_app/build/app/outputs/flutter-apk/app-release.apk
+          name: octo7-debug-apk
+          path: mobile_app/build/app/outputs/flutter-apk/app-debug.apk
