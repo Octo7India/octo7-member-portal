@@ -27,6 +27,22 @@ jobs:
         run: flutter create --platforms=android .
         working-directory: ./mobile_app
 
+      - name: Set OCTO7 app name and generate company launcher icon
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          manifest = Path("android/app/src/main/AndroidManifest.xml")
+          content = manifest.read_text()
+          import re
+          content, count = re.subn(r'android:label="[^"]*"', 'android:label="OCTO7"', content, count=1)
+          if count == 0:
+              content = content.replace('<application', '<application android:label="OCTO7"', 1)
+          manifest.write_text(content)
+          print("Android launcher label set to OCTO7")
+          PY
+          dart run flutter_launcher_icons
+        working-directory: ./mobile_app
+
       - name: Ensure Android release internet permission
         run: |
           python3 - <<'PY'
