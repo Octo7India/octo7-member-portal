@@ -36,7 +36,7 @@ jobs:
 
       - name: Build ARM64 Release APK
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_URL: https://oqggzpbxrlglsqzdkbpy.supabase.co
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           flutter build apk --release --target-platform android-arm64 \
