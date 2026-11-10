@@ -72,7 +72,7 @@ class _AuthGateState extends State<AuthGate> {
         )),
       );
     }
-    if (_loggedIn) return const MainNavigationWrapper();
+    if (_loggedIn) return const MainNavigationWrapper(initialIndex: 3);
     return FutureBuilder<bool>(
       future: _sessionCheck,
       builder: (context, snapshot) {
@@ -107,9 +107,121 @@ class _AuthGateState extends State<AuthGate> {
             ),
           );
         }
-        if (snapshot.data == true) return const MainNavigationWrapper();
-        return MemberLoginScreen(onLogin: _onLogin);
+        if (snapshot.data == true) return const MainNavigationWrapper(initialIndex: 3);
+        return const WelcomeScreen();
       },
+    );
+  }
+}
+
+/// Public landing screen shown when no valid OCTO7 session exists.
+class WelcomeScreen extends StatelessWidget {
+  const WelcomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    const navy = Color(0xFF071426);
+    return Scaffold(
+      backgroundColor: navy,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF123C56), Color(0xFF071426), Color(0xFF052411)],
+              ),
+            ),
+          ),
+          // Subtle world/globe motif behind the supplied OCTO7 emblem.
+          Positioned(
+            top: 70, left: -70, right: -70,
+            child: Icon(Icons.public, size: 390, color: Colors.white.withOpacity(0.045)),
+          ),
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 28),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 440),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 16),
+                      Image.asset(
+                        'assets/images/OCTO7_emblem_transparent-2.png',
+                        height: 230, width: 280, fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const Icon(Icons.public, size: 150, color: Color(0xFFD6A84B)),
+                      ),
+                      const SizedBox(height: 20),
+                      const Text('OCTO7',
+                        style: TextStyle(color: Colors.white, fontSize: 42,
+                          fontWeight: FontWeight.w800, letterSpacing: 4)),
+                      const SizedBox(height: 8),
+                      const Text('Together For a Better Tomorrow',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Color(0xFFE5D6B8), fontSize: 16,
+                          fontStyle: FontStyle.italic, letterSpacing: 0.4)),
+                      const SizedBox(height: 42),
+                      SizedBox(width: double.infinity, height: 56,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(colors: [Color(0xFFF4D27A), Color(0xFFB7791F)]),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [BoxShadow(color: Color(0x66D6A84B), blurRadius: 18, offset: Offset(0, 6))],
+                          ),
+                          child: ElevatedButton.icon(
+                            onPressed: () => Navigator.push(context, MaterialPageRoute(
+                              builder: (_) => MemberLoginScreen(onLogin: () {
+                                Navigator.of(context).pushAndRemoveUntil(
+                                  MaterialPageRoute(builder: (_) => const MainNavigationWrapper(initialIndex: 3)),
+                                  (route) => false,
+                                );
+                              }),
+                            )),
+                            icon: const Icon(Icons.person_outline),
+                            label: const Text('Member Login', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent, shadowColor: Colors.transparent,
+                              foregroundColor: navy, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(width: double.infinity, height: 56,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(colors: [Color(0xFF53B7F2), Color(0xFF1767B1)]),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: ElevatedButton.icon(
+                            onPressed: () => Navigator.push(context, MaterialPageRoute(
+                              builder: (_) => const MemberRegistrationScreen(),
+                            )),
+                            icon: const Icon(Icons.person_add_alt_1),
+                            label: const Text('Create Account', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent, shadowColor: Colors.transparent,
+                              foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 48),
+                      const Text('OCTO7 India — Dream • Network • Grow',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white60, fontSize: 12, letterSpacing: 0.5)),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -231,14 +343,21 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
 }
 
 class MainNavigationWrapper extends StatefulWidget {
-  const MainNavigationWrapper({super.key});
+  const MainNavigationWrapper({super.key, this.initialIndex = 0});
+  final int initialIndex;
 
   @override
   State<MainNavigationWrapper> createState() => _MainNavigationWrapperState();
 }
 
 class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialIndex.clamp(0, 3);
+  }
 
   final List<Widget> _pages = [
     const Octo7WebsiteHomeScreen(),
@@ -992,17 +1111,23 @@ class MemberDashboardScreen extends StatefulWidget {
 
 class _MemberDashboardScreenState extends State<MemberDashboardScreen> {
   late Future<Map<String, dynamic>> _dashboardFuture;
+  late Future<Map<String, dynamic>> _profileFuture;
 
   @override
   void initState() {
     super.initState();
     _dashboardFuture = WalletService.instance.fetchDashboard();
+    _profileFuture = LiveDataService.instance.fetchMemberProfile();
   }
 
   Future<void> _refreshDashboard() async {
     final next = WalletService.instance.fetchDashboard();
-    setState(() => _dashboardFuture = next);
-    await next;
+    final profile = LiveDataService.instance.fetchMemberProfile();
+    setState(() {
+      _dashboardFuture = next;
+      _profileFuture = profile;
+    });
+    await Future.wait([next, profile]);
   }
 
   void _showWithdrawalModal(BuildContext context) {
@@ -1173,7 +1298,7 @@ class _MemberDashboardScreenState extends State<MemberDashboardScreen> {
                 border: Border.all(color: Colors.amber.shade700, width: 1),
               ),
               child: FutureBuilder<Map<String, dynamic>>(
-                future: _dashboardFuture,
+                future: _profileFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Row(children: [
