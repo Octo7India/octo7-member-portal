@@ -1,54 +1,71 @@
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/supabase_config.dart';
 
-/// Supabase authentication wrapper for the mobile app.
-///
-/// This foundation intentionally supports email/password only. Phone and
-/// OCTO7 ID sign-in need a verified, secure account-resolution endpoint so
-/// they always authenticate the same existing Supabase user.
+/// Uses OCTO7's existing server-side credential verifier. The server returns
+/// a short-lived opaque session token; the password is never stored locally.
 class AuthService {
   AuthService._();
-
   static final AuthService instance = AuthService._();
+  static const _storage = FlutterSecureStorage();
+  static const _tokenKey = 'octo7_session_token';
 
   SupabaseClient get _client {
     if (!SupabaseConfig.isConfigured) {
-      throw StateError(
-        'Supabase is not configured. Provide SUPABASE_URL and '
-        'SUPABASE_ANON_KEY at build time.',
-      );
+      throw StateError('OCTO7 Supabase connection is not configured.');
     }
     return Supabase.instance.client;
   }
 
-  User? get currentUser =>
-      SupabaseConfig.isConfigured ? Supabase.instance.client.auth.currentUser : null;
+  Future<String?> get sessionToken => _storage.read(key: _tokenKey);
+  Future<bool> get hasSession async => (await sessionToken)?.isNotEmpty == true;
 
-  Stream<AuthState> get authStateChanges =>
-      _client.auth.onAuthStateChange;
-
-  Future<AuthResponse> signInWithEmail({
-    required String email,
+  Future<Map<String, dynamic>> signIn({
+    required String identifier,
+    required String identifierType,
     required String password,
-  }) {
-    return _client.auth.signInWithPassword(
-      email: email.trim(),
-      password: password,
+  }) async {
+    final response = await _client.functions.invoke(
+      'octo7-api',
+      body: {
+        'action': 'member_login',
+        'identifier': identifier.trim(),
+        'identifier_type': identifierType,
+        'password': password,
+      },
+      headers: {'Authorization': 'Bearer ${SupabaseConfig.anonKey}'},
     );
+    final data = response.data;
+    if (response.status < 200 || response.status >= 300 || data is! Map) {
+      throw Exception('OCTO7 login request failed. Please try again.');
+    }
+    final result = Map<String, dynamic>.from(data);
+    if (result['success'] != true) {
+      throw Exception(result['error']?.toString() ?? 'Invalid login details.');
+    }
+    final token = result['session_token']?.toString();
+    if (token == null || token.isEmpty) {
+      throw const FormatException('The server did not return a login session.');
+    }
+    await _storage.write(key: _tokenKey, value: token);
+    return result;
   }
 
-  Future<AuthResponse> signUpWithEmail({
-    required String email,
-    required String password,
-    String? emailRedirectTo,
-  }) {
-    return _client.auth.signUp(
-      email: email.trim(),
-      password: password,
-      emailRedirectTo: emailRedirectTo,
-    );
+  Future<void> signOut() async {
+    final token = await sessionToken;
+    if (token != null && token.isNotEmpty && SupabaseConfig.isConfigured) {
+      try {
+        await _client.functions.invoke(
+          'octo7-api',
+          body: const {'action': 'logout'},
+          headers: {'Authorization': 'Bearer $token'},
+        );
+      } finally {
+        await _storage.delete(key: _tokenKey);
+      }
+    } else {
+      await _storage.delete(key: _tokenKey);
+    }
   }
-
-  Future<void> signOut() => _client.auth.signOut();
 }
