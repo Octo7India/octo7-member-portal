@@ -774,12 +774,120 @@ class PublicInfoScreen extends StatelessWidget {
 class MemberMenuInfoScreen extends StatelessWidget {
   const MemberMenuInfoScreen({super.key, required this.title});
   final String title;
+
+  static const Map<String, IconData> _icons = {
+    'My Profile': Icons.person_outline,
+    'My Orders': Icons.shopping_bag_outlined,
+    'Bank Details': Icons.account_balance_outlined,
+    'KYC Verification': Icons.verified_user_outlined,
+    'Withdrawals': Icons.payments_outlined,
+    'My Coupons': Icons.confirmation_number_outlined,
+    'Change Password': Icons.lock_outline,
+    'Help Line': Icons.support_agent,
+    'Report': Icons.report_outlined,
+  };
+
+  static const Map<String, String> _descriptions = {
+    'My Profile': 'View and maintain your OCTO7 member identity and contact information.',
+    'My Orders': 'Review product orders, order status and purchase history.',
+    'Bank Details': 'Manage the bank account details used for eligible member payouts.',
+    'KYC Verification': 'Submit and track the documents required for identity verification.',
+    'Withdrawals': 'Review payout eligibility and track withdrawal requests.',
+    'My Coupons': 'View coupons issued to your Member ID and their redemption status.',
+    'Change Password': 'Securely update the password used to access your OCTO7 account.',
+    'Help Line': 'Find OCTO7 support contact information and assistance.',
+    'Report': 'Raise an issue or send a report to the OCTO7 support team.',
+  };
+
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: const Color(0xFF071426),
-    appBar: AppBar(backgroundColor: const Color(0xFF060D1A), title: Text(title), iconTheme: const IconThemeData(color: Colors.white)),
-    body: Center(child: Padding(padding: const EdgeInsets.all(24), child: Text('$title is listed in the member menu, but its secure backend workflow is not connected yet. No account data or transactions have been changed.', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70, fontSize: 16, height: 1.6)))),
-  );
+  Widget build(BuildContext context) {
+    final icon = _icons[title] ?? Icons.dashboard_outlined;
+    final description = _descriptions[title] ?? 'OCTO7 member services.';
+    return Scaffold(
+      backgroundColor: const Color(0xFF071426),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF060D1A),
+        title: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(18),
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [Color(0xFF0F5127), Color(0xFF064E3B)]),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFD6A84B).withOpacity(0.65)),
+              ),
+              child: Row(children: [
+                CircleAvatar(
+                  radius: 27,
+                  backgroundColor: const Color(0xFFD6A84B).withOpacity(0.18),
+                  child: Icon(icon, color: const Color(0xFFF4D27A), size: 28),
+                ),
+                const SizedBox(width: 14),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  const Text('OCTO7 INDIA', style: TextStyle(color: Colors.white70, fontSize: 11, letterSpacing: 2, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 5),
+                  Text(title, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                ])),
+              ]),
+            ),
+            const SizedBox(height: 18),
+            Text(description, style: const TextStyle(color: Colors.white70, fontSize: 15, height: 1.5)),
+            const SizedBox(height: 20),
+            _sectionCard(
+              icon: Icons.dashboard_customize_outlined,
+              heading: '$title workspace',
+              message: 'This section is now available in the member app. Its detailed fields, records and actions will be added in the next configuration stage.',
+            ),
+            const SizedBox(height: 12),
+            _sectionCard(
+              icon: Icons.security_outlined,
+              heading: 'Account protection',
+              message: 'Member-specific information and any sensitive action will be connected only through authenticated, permission-checked services.',
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFF060D1A),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white12),
+              ),
+              child: const Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Icon(Icons.info_outline, color: Color(0xFFF4D27A), size: 20),
+                SizedBox(width: 10),
+                Expanded(child: Text('Setup stage: screen and navigation ready. No sample records, bank details, KYC documents or payout requests are being created.', style: TextStyle(color: Colors.white60, fontSize: 12, height: 1.5))),
+              ]),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static Widget _sectionCard({required IconData icon, required String heading, required String message}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF060D1A),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Icon(icon, color: const Color(0xFF10B981), size: 20),
+          const SizedBox(width: 9),
+          Expanded(child: Text(heading, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+        ]),
+        const SizedBox(height: 9),
+        Text(message, style: const TextStyle(color: Colors.white60, fontSize: 13, height: 1.5)),
+      ]),
+    );
+  }
 }
 
 // --- BINARY TREE NETWORK VIEW SCREEN ---
