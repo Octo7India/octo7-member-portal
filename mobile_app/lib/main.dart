@@ -172,47 +172,15 @@ class Octo7WebsiteHomeScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 30),
-            Container(
-              height: 180,
-              width: 180,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [Colors.blue.shade800, Colors.black87],
-                ),
-                border: Border.all(color: Colors.grey.shade400, width: 4),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.4),
-                    blurRadius: 15,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  const Icon(Icons.public, size: 110, color: Colors.blueAccent),
-                  Positioned(
-                    right: 15,
-                    bottom: 10,
-                    child: Text(
-                      '7',
-                      style: TextStyle(
-                        fontSize: 85,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFFEAB308),
-                        shadows: [
-                          Shadow(
-                            blurRadius: 6,
-                            color: Colors.black,
-                            offset: Offset(2, 2),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+            Image.asset(
+              'assets/images/OCTO7_emblem_transparent-2.png',
+              width: 260,
+              height: 260,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => const Icon(
+                Icons.image_not_supported,
+                color: Colors.white70,
+                size: 80,
               ),
             ),
             const SizedBox(height: 35),

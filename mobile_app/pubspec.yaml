@@ -20,17 +20,19 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/OCTO7_emblem_transparent-2.png
 
 flutter_launcher_icons:
-  image_path: "../OCTO7_emblem_transparent-2.png"
+  image_path: "assets/images/OCTO7_emblem_transparent-2.png"
   android: true
   ios: true
 
 flutter_native_splash:
   color: "#0F5127"
-  image: "../OCTO7_emblem_transparent-2.png"
+  image: "assets/images/OCTO7_emblem_transparent-2.png"
   color_dark: "#0F5127"
   android_12:
     color: "#0F5127"
-    image: "../OCTO7_emblem_transparent-2.png"
+    image: "assets/images/OCTO7_emblem_transparent-2.png"
   web: false
