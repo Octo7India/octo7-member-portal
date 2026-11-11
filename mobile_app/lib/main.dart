@@ -7,6 +7,7 @@ import 'services/wallet_service.dart';
 import 'services/live_data_service.dart';
 import 'services/navigation_service.dart';
 import 'screens/public_website_screen.dart';
+import 'screens/member_registration_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -1646,33 +1647,6 @@ class RankTrackerScreen extends StatelessWidget {
           padding: EdgeInsets.all(24),
           child: Text(
             'Rank information will appear here when available from your OCTO7 account.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white70, fontSize: 15),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-
-class MemberRegistrationScreen extends StatelessWidget {
-  const MemberRegistrationScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF24183D),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF35235A),
-        title: const Text('Register New Member', style: TextStyle(color: Colors.white, fontSize: 18)),
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text(
-            'Member registration details will be loaded from the OCTO7 system. No sample sponsor or package details are shown.',
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.white70, fontSize: 15),
           ),
