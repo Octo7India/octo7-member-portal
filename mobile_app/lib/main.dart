@@ -12,6 +12,7 @@ import 'services/live_data_service.dart';
 import 'services/navigation_service.dart';
 import 'screens/public_website_screen.dart';
 import 'screens/member_registration_screen.dart';
+import 'screens/member_profile_edit_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -1262,7 +1263,26 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
         backgroundColor: const Color(0xFF0B192C),
         title: const Text('My Profile', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
         iconTheme: const IconThemeData(color: Colors.white),
-        actions: [IconButton(onPressed: _refresh, icon: const Icon(Icons.refresh), tooltip: 'Refresh profile')],
+        actions: [
+          IconButton(
+            onPressed: () async {
+              final response = await _profileFuture;
+              final member = response['member'] is Map
+                  ? Map<String, dynamic>.from(response['member'])
+                  : <String, dynamic>{};
+              if (!context.mounted) return;
+              final saved = await Navigator.of(context).push<bool>(
+                MaterialPageRoute(
+                  builder: (_) => MemberProfileEditScreen(member: member),
+                ),
+              );
+              if (saved == true && mounted) await _refresh();
+            },
+            icon: const Icon(Icons.edit_outlined),
+            tooltip: 'Edit profile details',
+          ),
+          IconButton(onPressed: _refresh, icon: const Icon(Icons.refresh), tooltip: 'Refresh profile'),
+        ],
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _profileFuture,
