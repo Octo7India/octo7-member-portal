@@ -2664,6 +2664,7 @@ class _ProfilePhotoCropScreenState extends State<ProfilePhotoCropScreen> {
                     switch (result) {
                       case CropSuccess(:final croppedImage):
                         Navigator.of(context).pop<Uint8List>(croppedImage);
+                        return;
                       case CropFailure(:final cause):
                         setState(() => _isCropping = false);
                         ScaffoldMessenger.of(context).showSnackBar(
