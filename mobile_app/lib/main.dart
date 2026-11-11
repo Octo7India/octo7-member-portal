@@ -6,6 +6,7 @@ import 'services/auth_service.dart';
 import 'services/wallet_service.dart';
 import 'services/live_data_service.dart';
 import 'services/navigation_service.dart';
+import 'screens/public_website_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -110,22 +111,22 @@ class AuthGate extends StatefulWidget {
 class _AuthGateState extends State<AuthGate> {
   @override
   Widget build(BuildContext context) {
-    if (!SupabaseConfig.isSecurelyConfigured) {
-      final message = SupabaseConfig.isConfigured
-          ? 'OCTO7 connection rejected. The Supabase URL must use HTTPS. Rebuild with a valid HTTPS project URL.'
-          : 'OCTO7 connection is not configured. Build with the Supabase project URL and public anon key.';
-      return Scaffold(
-        backgroundColor: Color(0xFF052411),
-        body: Center(child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text(message,
-            textAlign: TextAlign.center, style: const TextStyle(color: Colors.white)),
-        )),
-      );
-    }
-    // Always show the original public welcome page on app launch.
-    // Do not clear or modify any previously saved member session.
-    return const WelcomeScreen();
+    // Public pages do not require authentication or a Supabase session.
+    // Login continues into the existing authenticated member welcome flow.
+    return PublicWebsiteScreen(
+      onMemberLogin: () {
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => MemberLoginScreen(
+            onLogin: () {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const MemberWelcomeScreen()),
+                (route) => false,
+              );
+            },
+          ),
+        ));
+      },
+    );
   }
 }
 
