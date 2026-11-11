@@ -196,7 +196,7 @@ class WelcomeScreen extends StatelessWidget {
                             onPressed: () => Navigator.push(context, MaterialPageRoute(
                               builder: (_) => MemberLoginScreen(onLogin: () {
                                 Navigator.of(context).pushAndRemoveUntil(
-                                  MaterialPageRoute(builder: (_) => const MainNavigationWrapper(initialIndex: 0)),
+                                  MaterialPageRoute(builder: (_) => const MemberWelcomeScreen()),
                                   (route) => false,
                                 );
                               }),
