@@ -1178,7 +1178,8 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
         return;
       }
 
-      // The cropper exports JPEG, so derive the MIME type from the cropped file.\n      final extension = cropped.path.split('.').last.toLowerCase();
+      // The cropper exports JPEG, so derive the MIME type from the cropped file.
+      final extension = cropped.path.split('.').last.toLowerCase();
       final mimeType = switch (extension) {
         'png' => 'image/png',
         'webp' => 'image/webp',
