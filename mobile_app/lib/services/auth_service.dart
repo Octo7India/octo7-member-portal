@@ -61,7 +61,7 @@ class AuthService {
       'octo7-api',
       body: {
         'action': 'member_login',
-        'identifier': identifier.trim(),
+        'identifier': identifier.trim().replaceFirst(RegExp(r'^OCTO7\s*', caseSensitive: false), ''),
         'identifier_type': 'member_id',
         'password': password,
       },
