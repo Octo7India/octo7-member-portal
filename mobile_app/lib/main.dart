@@ -304,33 +304,16 @@ class MemberWelcomeScreen extends StatelessWidget {
           );
           return;
         }
-        if (destination >= 0 && destination <= 3) {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-                builder: (_) => MainNavigationWrapper(
-                  initialIndex: destination,
-                  returnToWelcomeMenuOnBack: true,
-                )),
-          );
-          return;
-        }
-        final Widget page;
-        switch (destination) {
-          case 4: page = const MemberRegistrationScreen(); break;
-          case 5: page = const MemberMenuInfoScreen(title: 'My Orders'); break;
-          case 6: page = const TransactionHistoryScreen(); break;
-          case 7: page = const MemberMenuInfoScreen(title: 'Bank Details'); break;
-          case 8: page = const MemberMenuInfoScreen(title: 'KYC Verification'); break;
-          case 9: page = const MemberMenuInfoScreen(title: 'Withdrawals'); break;
-          case 10: page = const MemberMenuInfoScreen(title: 'My Coupons'); break;
-          case 11: page = const MemberMenuInfoScreen(title: 'Change Password'); break;
-          case 12: page = const MemberMenuInfoScreen(title: 'Help Line'); break;
-          case 13: page = const MemberMenuInfoScreen(title: 'Report'); break;
-          case 15: page = const MemberMenuInfoScreen(title: 'My Profile'); break;
-          default: return;
-        }
-        if (!context.mounted) return;
-        Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+        if (destination < 0 || destination > 15) return;
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => MainNavigationWrapper(
+              initialIndex: destination <= 3 ? destination : 3,
+              initialDestination: destination > 3 ? destination : null,
+              returnToWelcomeMenuOnBack: true,
+            ),
+          ),
+        );
       },
     );
   }
@@ -555,9 +538,11 @@ class MainNavigationWrapper extends StatefulWidget {
     super.key,
     this.initialIndex = 0,
     this.returnToWelcomeMenuOnBack = false,
+    this.initialDestination,
   });
   final int initialIndex;
   final bool returnToWelcomeMenuOnBack;
+  final int? initialDestination;
 
   @override
   State<MainNavigationWrapper> createState() => _MainNavigationWrapperState();
@@ -582,6 +567,32 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   void initState() {
     super.initState();
     _selectedIndex = widget.initialIndex.clamp(0, 3);
+    if (widget.initialDestination != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final page = _pageForDestination(widget.initialDestination!);
+        if (page != null) {
+          Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
+        }
+      });
+    }
+  }
+
+  Widget? _pageForDestination(int destination) {
+    switch (destination) {
+      case 4: return const MemberRegistrationScreen();
+      case 5: return const MemberMenuInfoScreen(title: 'My Orders');
+      case 6: return const TransactionHistoryScreen();
+      case 7: return const MemberMenuInfoScreen(title: 'Bank Details');
+      case 8: return const MemberMenuInfoScreen(title: 'KYC Verification');
+      case 9: return const MemberMenuInfoScreen(title: 'Withdrawals');
+      case 10: return const MemberMenuInfoScreen(title: 'My Coupons');
+      case 11: return const MemberMenuInfoScreen(title: 'Change Password');
+      case 12: return const MemberMenuInfoScreen(title: 'Help Line');
+      case 13: return const MemberMenuInfoScreen(title: 'Report');
+      case 15: return const MemberMenuInfoScreen(title: 'My Profile');
+      default: return null;
+    }
   }
 
   final List<Widget> _pages = [
