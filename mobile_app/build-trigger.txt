@@ -1,0 +1,1 @@
+Rebuild Android APK from the current feature/supabase-mobile-integration source.
