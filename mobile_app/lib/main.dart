@@ -292,6 +292,10 @@ class Octo7AppDrawer extends StatelessWidget {
             final memberId = rawId.isEmpty ? 'Member ID unavailable'
                 : (rawId.toUpperCase().startsWith('OCTO7') ? 'ID: $rawId' : 'ID: OCTO7 $rawId');
             final name = (member['full_name'] ?? '').toString().trim();
+            final photoPath = (member['profile_photo_path'] ?? '').toString().trim();
+            final photoUrl = photoPath.isNotEmpty
+                ? Supabase.instance.client.storage.from('member-profile-photos').getPublicUrl(photoPath)
+                : (member['profile_photo_url'] ?? member['avatar_url'] ?? '').toString().trim();
             return UserAccountsDrawerHeader(
               margin: EdgeInsets.zero,
               decoration: const BoxDecoration(color: Color(0xFF0B192C)),
@@ -299,9 +303,13 @@ class Octo7AppDrawer extends StatelessWidget {
                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
               accountEmail: Text(memberId, style: const TextStyle(
                 color: Color(0xFF10B981), fontWeight: FontWeight.w600)),
-              currentAccountPicture: const CircleAvatar(
-                backgroundColor: Color(0xFF10B981),
-                child: Icon(Icons.person, color: Colors.white, size: 36)),
+              currentAccountPicture: CircleAvatar(
+                backgroundColor: const Color(0xFF10B981),
+                backgroundImage: photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
+                child: photoUrl.isEmpty
+                    ? const Icon(Icons.person, color: Colors.white, size: 36)
+                    : null,
+              ),
             );
           },
         ),
@@ -2310,8 +2318,19 @@ class _MemberDashboardScreenState extends State<MemberDashboardScreen> {
                   final name = (member['full_name'] ?? '').toString().trim();
                   final status = (member['status'] ?? 'Unavailable').toString();
                   final positionType = (member['position_type'] ?? '').toString().replaceAll('_', ' ');
+                  final photoPath = (member['profile_photo_path'] ?? '').toString().trim();
+                  final photoUrl = photoPath.isNotEmpty
+                      ? Supabase.instance.client.storage.from('member-profile-photos').getPublicUrl(photoPath)
+                      : (member['profile_photo_url'] ?? member['avatar_url'] ?? '').toString().trim();
                   return Row(children: [
-                    const CircleAvatar(radius: 30, backgroundColor: Color(0xFF10B981), child: Icon(Icons.person, size: 35, color: Colors.white)),
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: const Color(0xFF10B981),
+                      backgroundImage: photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
+                      child: photoUrl.isEmpty
+                          ? const Icon(Icons.person, size: 35, color: Colors.white)
+                          : null,
+                    ),
                     const SizedBox(width: 15),
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(name.isEmpty ? 'Member name unavailable' : name, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
