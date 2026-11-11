@@ -289,6 +289,79 @@ footer .logo {color:white}
 .photo-adjust-tools{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}
 .photo-adjust-tools button{border:1px solid #ddd;border-radius:7px;padding:10px 13px;background:#f7f4fb;color:#34205d;font-weight:700;cursor:pointer}
 .photo-adjust-tools button:active{background:#e9def8}
+
+/* OCTO7 original blue welcome home screen */
+.octo7-welcome-hero{
+  min-height:calc(100vh - 70px);
+  padding:34px 7% 42px;
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;
+  background:
+    radial-gradient(ellipse at 50% 38%,rgba(0,146,255,.55) 0,rgba(0,67,158,.24) 35%,transparent 65%),
+    radial-gradient(ellipse at 50% 100%,rgba(0,170,255,.38) 0,transparent 48%),
+    linear-gradient(180deg,#03143c 0%,#052c70 52%,#03143c 100%);
+  overflow:hidden;position:relative;
+}
+.octo7-welcome-hero:before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.22;
+  background-image:radial-gradient(circle,#36aaff 1px,transparent 1.8px);
+  background-size:14px 14px;
+  mask-image:radial-gradient(ellipse at center,black 0%,transparent 75%);
+}
+.octo7-welcome-hero .hero-content{position:relative;z-index:1;width:min(780px,100%);max-width:780px}
+.welcome-heading{
+  margin:0 0 4px!important;text-align:center;
+  font-size:clamp(38px,7vw,66px)!important;line-height:1.05;
+  font-weight:900;letter-spacing:1px;
+  color:#ffd34d!important;
+  text-shadow:0 3px 0 #8b5600,0 8px 18px #0009;
+}
+.home-brand-title{
+  margin:0 auto 8px;text-align:center;white-space:nowrap;
+  font-size:clamp(58px,12vw,112px);line-height:1.05;
+  font-family:Georgia,"Times New Roman",serif;font-weight:900;letter-spacing:2px;
+  background:linear-gradient(180deg,#fff 0%,#dce5f2 36%,#8796ad 54%,#fff 72%,#9ca9ba 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  -webkit-text-stroke:1px #f5f7fc;
+  filter:drop-shadow(0 5px 5px #000b);
+}
+.octo7-welcome-hero .home-emblem{
+  width:clamp(245px,43vw,390px);height:auto;max-height:none;
+  margin:8px auto 10px;filter:drop-shadow(0 0 20px #159eff88);
+}
+.octo7-welcome-hero .home-tagline{
+  margin:8px auto 20px;color:#f3c84b;
+  font-family:Georgia,"Times New Roman",serif;font-style:italic;
+  font-size:clamp(20px,3.3vw,31px);font-weight:700;
+  text-shadow:0 2px 7px #000b;
+}
+.home-login-button{
+  display:flex;align-items:center;justify-content:center;gap:14px;
+  width:min(570px,94%);min-height:70px;margin:20px auto 22px;
+  border-radius:48px;border:2px solid #ffe78b;
+  background:linear-gradient(180deg,#ffe66c 0%,#ffc400 52%,#e69b00 100%);
+  color:#06245c;font-size:clamp(21px,3.4vw,30px);font-weight:900;
+  box-shadow:0 7px 0 #8d5b00,0 12px 22px #0007;
+}
+.home-login-button span{font-size:1.2em}
+.home-login-button:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.octo7-welcome-hero .home-description{
+  max-width:720px;margin:22px auto 0;color:#fff;
+  font-size:clamp(17px,2.7vw,24px);font-weight:600;line-height:1.5;
+  text-shadow:0 2px 6px #000b;
+}
+.octo7-welcome-hero .home-footer{margin:36px auto 0;gap:8px}
+.octo7-welcome-hero .home-footer strong{font-size:clamp(22px,3.6vw,30px);color:#fff}
+.octo7-welcome-hero .home-footer span{
+  font-family:Georgia,"Times New Roman",serif;font-style:italic;
+  font-size:clamp(20px,3.4vw,29px);font-weight:800;letter-spacing:1px;color:#ffd12e;
+}
+@media(max-width:650px){
+  .octo7-welcome-hero{min-height:calc(100vh - 60px);padding:28px 6% 34px}
+  .octo7-welcome-hero .home-emblem{width:min(78vw,330px)}
+  .home-login-button{min-height:62px}
+  .octo7-welcome-hero .home-footer{margin-top:28px}
+}
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
 </head>
@@ -313,15 +386,13 @@ footer .logo {color:white}
 
 </header>
 
-<section class="hero" id="home">
+<section class="hero octo7-welcome-hero" id="home">
   <div class="hero-content">
-    <h1 class="hero-welcome">
-      <span class="welcome-small">Welcome</span>
-      <span class="brand-line"><span class="brand-o" aria-label="Earth globe in the universe"><span class="brand-universe" aria-hidden="true"></span><span class="globe-mark" aria-hidden="true">🌎</span><span class="brand-stars" aria-hidden="true"><span>✧</span><span>·</span><span>✦</span><span>·</span><span>✧</span></span></span><span class="brand-letters">CTO</span><span class="brand-seven">7</span></span>
-    </h1>
-    <img src="OCTO7_emblem_transparent-2.png" alt="OCTO7 emblem" class="home-emblem">
+    <h1 class="welcome-heading">Welcome</h1>
+    <div class="home-brand-title" aria-label="OCTO7">OCTO7</div>
+    <img src="OCTO7_emblem_transparent-2.png" alt="Original OCTO7 globe emblem with silver circular ring, starry black space and golden 7" class="home-emblem">
     <p class="home-tagline">Together For a Better Tomorrow</p>
-    <a class="btn" href="#member-login">Member Login</a>
+    <a class="btn home-login-button" href="#member-login"><span aria-hidden="true">♟</span> Member Login</a>
     <p class="home-description">Discover a world of opportunities through quality products, entrepreneurship and growing business network</p>
     <div class="home-footer"><strong>OCTO7 India</strong><span>Dream. Network. Grow</span></div>
   </div>
