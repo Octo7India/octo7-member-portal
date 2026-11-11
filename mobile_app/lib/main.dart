@@ -644,7 +644,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         if (!mounted) return;
         final page = _pageForDestination(widget.initialDestination!);
         if (page != null) {
-          Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
+          NavigationService().navigateTo(page);
         }
       });
     }
@@ -667,54 +667,33 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     }
   }
 
+  /// Primary destinations switch the wrapper's tab. Secondary destinations
+  /// are pushed onto the app-wide root navigator so Android Back pops them.
+  Future<void> _handleDestinationSelected(int destination) async {
+    if (destination >= 0 && destination <= 3) {
+      _selectTab(destination);
+      return;
+    }
+
+    if (destination == 14) {
+      await AuthService.instance.signOut();
+      if (!mounted) return;
+      NavigationService().clearAndNavigateTo(const AuthGate());
+      return;
+    }
+
+    final page = _pageForDestination(destination);
+    if (page != null && mounted) {
+      NavigationService().navigateTo(page);
+    }
+  }
+
   final List<Widget> _pages = [
     const Octo7WebsiteHomeScreen(),
     const BinaryTreeViewScreen(),
     const ProductCatalogScreen(),
     const MemberDashboardScreen(),
   ];
-
-  Widget _menuItem(BuildContext context, IconData icon, String title, int destination) {
-    return ListTile(
-      leading: Icon(icon, color: const Color(0xFF10B981)),
-      title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 14)),
-      onTap: () async {
-        _closingDrawerForSelection = true;
-        Navigator.pop(context);
-        Future<void>.delayed(const Duration(milliseconds: 400), () {
-          if (mounted) _closingDrawerForSelection = false;
-        });
-        if (destination >= 0 && destination <= 3) {
-          setState(() => _selectedIndex = destination);
-          return;
-        }
-        if (destination == 14) {
-          await AuthService.instance.signOut();
-          if (!mounted) return;
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => const AuthGate()), (route) => false);
-          return;
-        }
-        final Widget page;
-        switch (destination) {
-          case 4: page = const MemberRegistrationScreen(); break;
-          case 5: page = const MemberMenuInfoScreen(title: 'My Orders'); break;
-          case 6: page = const TransactionHistoryScreen(); break;
-          case 7: page = const MemberMenuInfoScreen(title: 'Bank Details'); break;
-          case 8: page = const MemberMenuInfoScreen(title: 'KYC Verification'); break;
-          case 9: page = const MemberMenuInfoScreen(title: 'Withdrawals'); break;
-          case 10: page = const MemberMenuInfoScreen(title: 'My Coupons'); break;
-          case 11: page = const MemberMenuInfoScreen(title: 'Change Password'); break;
-          case 12: page = const MemberMenuInfoScreen(title: 'Help Line'); break;
-          case 13: page = const MemberMenuInfoScreen(title: 'Report'); break;
-          case 15: page = const MemberMenuInfoScreen(title: 'My Profile'); break;
-          default: return;
-        }
-        if (!mounted) return;
-        Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -731,58 +710,38 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
           return false;
         }
         if (_welcomeMenuRestoredByBack) {
-          Navigator.of(context).pop();
+          NavigationService().goBack();
           return false;
         }
         return true;
       },
       child: Scaffold(
-      key: _scaffoldKey,
-      onDrawerChanged: (isOpened) {
-        if (!isOpened &&
-            _welcomeMenuRestoredByBack &&
-            !_closingDrawerForSelection &&
-            mounted) {
-          _welcomeMenuRestoredByBack = false;
-          Navigator.of(context).pop();
-        }
-      },
-      drawer: Octo7AppDrawer(
-        onDestinationSelected: (destination) async {
-          _closingDrawerForSelection = true;
-          Future<void>.delayed(const Duration(milliseconds: 400), () {
-            if (mounted) _closingDrawerForSelection = false;
-          });
-          if (destination >= 0 && destination <= 3) {
-            setState(() => _selectedIndex = destination);
-            return;
-          }
-          if (destination == 14) {
-            await AuthService.instance.signOut();
-            if (!mounted) return;
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (_) => const AuthGate()), (route) => false);
-            return;
-          }
-          final page = _pageForDestination(destination);
-          if (page != null && mounted) Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-        },
-      ),
-      body: _pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _selectTab,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color(0xFF060D1A),
-        selectedItemColor: const Color(0xFF10B981),
-        unselectedItemColor: Colors.grey.shade400,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.account_tree_rounded), label: 'Tree'),
-          BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: 'Products'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Dashboard'),
-        ],
-      ),
+        key: _scaffoldKey,
+        drawer: Octo7AppDrawer(
+          onDestinationSelected: (destination) async {
+            // Octo7AppDrawer has already closed the drawer before callback.
+            _closingDrawerForSelection = true;
+            Future<void>.delayed(const Duration(milliseconds: 400), () {
+              if (mounted) _closingDrawerForSelection = false;
+            });
+            await _handleDestinationSelected(destination);
+          },
+        ),
+        body: _pages[_selectedIndex],
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: _selectTab,
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: const Color(0xFF060D1A),
+          selectedItemColor: const Color(0xFF10B981),
+          unselectedItemColor: Colors.grey.shade400,
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
+            BottomNavigationBarItem(icon: Icon(Icons.account_tree_rounded), label: 'Tree'),
+            BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: 'Products'),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Dashboard'),
+          ],
+        ),
       ),
     );
   }
