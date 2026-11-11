@@ -244,6 +244,92 @@ class WelcomeScreen extends StatelessWidget {
   }
 }
 
+
+/// Shared corporate member drawer used throughout the authenticated app.
+class Octo7AppDrawer extends StatelessWidget {
+  const Octo7AppDrawer({super.key, required this.onDestinationSelected});
+  final ValueChanged<int> onDestinationSelected;
+
+  Widget _sectionHeader(String title) => Padding(
+    padding: const EdgeInsets.only(left: 16, top: 12, bottom: 5),
+    child: Text(title, style: const TextStyle(color: Color(0xFF94A3B8),
+      fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+  );
+
+  Widget _drawerItem(BuildContext context, IconData icon, String title, int destination) {
+    return ListTile(
+      dense: true,
+      horizontalTitleGap: 12,
+      leading: Icon(icon, color: const Color(0xFF10B981), size: 22),
+      title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 14)),
+      onTap: () {
+        Navigator.pop(context);
+        onDestinationSelected(destination);
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      backgroundColor: const Color(0xFF060D1A),
+      child: SafeArea(child: ListView(padding: EdgeInsets.zero, children: [
+        FutureBuilder<Map<String, dynamic>>(
+          future: LiveDataService.instance.fetchMemberProfile(),
+          builder: (context, snapshot) {
+            final response = snapshot.data ?? <String, dynamic>{};
+            final member = response['member'] is Map
+                ? Map<String, dynamic>.from(response['member']) : <String, dynamic>{};
+            final rawId = (member['member_id'] ?? '').toString().trim();
+            final memberId = rawId.isEmpty ? 'Member ID unavailable'
+                : (rawId.toUpperCase().startsWith('OCTO7') ? 'ID: $rawId' : 'ID: OCTO7 $rawId');
+            final name = (member['full_name'] ?? '').toString().trim();
+            return UserAccountsDrawerHeader(
+              margin: EdgeInsets.zero,
+              decoration: const BoxDecoration(color: Color(0xFF0B192C)),
+              accountName: Text(name.isEmpty ? 'OCTO7 Member' : name,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+              accountEmail: Text(memberId, style: const TextStyle(
+                color: Color(0xFF10B981), fontWeight: FontWeight.w600)),
+              currentAccountPicture: const CircleAvatar(
+                backgroundColor: Color(0xFF10B981),
+                child: Icon(Icons.person, color: Colors.white, size: 36)),
+            );
+          },
+        ),
+        _sectionHeader('OVERVIEW'),
+        _drawerItem(context, Icons.home_rounded, 'Home', 0),
+        _drawerItem(context, Icons.dashboard_rounded, 'Dashboard', 3),
+        const Divider(color: Colors.white12, height: 20),
+        _sectionHeader('MY ACCOUNT'),
+        _drawerItem(context, Icons.person_outline, 'My Profile', 15),
+        _drawerItem(context, Icons.account_balance_outlined, 'Bank Details', 7),
+        _drawerItem(context, Icons.verified_user_outlined, 'KYC Verification', 8),
+        _drawerItem(context, Icons.lock_outline, 'Change Password', 11),
+        const Divider(color: Colors.white12, height: 20),
+        _sectionHeader('NETWORK'),
+        _drawerItem(context, Icons.account_tree_outlined, 'My Genealogy', 1),
+        _drawerItem(context, Icons.person_add_alt_1_outlined, 'New Member Registration', 4),
+        const Divider(color: Colors.white12, height: 20),
+        _sectionHeader('SHOPPING'),
+        _drawerItem(context, Icons.grid_view_rounded, 'Products', 2),
+        _drawerItem(context, Icons.shopping_bag_outlined, 'My Orders', 5),
+        _drawerItem(context, Icons.confirmation_number_outlined, 'My Coupons', 10),
+        const Divider(color: Colors.white12, height: 20),
+        _sectionHeader('FINANCIALS'),
+        _drawerItem(context, Icons.account_balance_wallet_outlined, 'My Wallet', 6),
+        _drawerItem(context, Icons.payments_outlined, 'Withdrawals', 9),
+        const Divider(color: Colors.white12, height: 20),
+        _drawerItem(context, Icons.support_agent, 'Help Line', 12),
+        _drawerItem(context, Icons.report_outlined, 'Report', 13),
+        const Divider(color: Colors.white12, height: 20),
+        _drawerItem(context, Icons.logout, 'Logout', 14),
+        const SizedBox(height: 16),
+      ])),
+    );
+  }
+}
+
 /// Personalised welcome page shown after successful member authentication.
 class MemberWelcomeScreen extends StatelessWidget {
   const MemberWelcomeScreen({super.key});
@@ -334,39 +420,23 @@ class MemberWelcomeScreen extends StatelessWidget {
           appBar: AppBar(
             title: _octo7Brand(20),
           ),
-          drawer: Drawer(
-            backgroundColor: const Color(0xFF060D1A),
-            child: SafeArea(
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: [
-                  const DrawerHeader(
-                    decoration: BoxDecoration(color: Color(0xFF0F5127)),
-                    child: Center(child: Text('OCTO7 INDIA\\nMEMBER MENU',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white, fontSize: 21,
-                        fontWeight: FontWeight.bold, height: 1.5))),
-                  ),
-                  _memberWelcomeMenuItem(context, Icons.home_filled, 'Home', 0),
-                  _memberWelcomeMenuItem(context, Icons.dashboard, 'Dashboard', 3),
-                  _memberWelcomeMenuItem(context, Icons.person_outline, 'My Profile', 15),
-                  _memberWelcomeMenuItem(context, Icons.account_tree, 'My Genealogy', 1),
-                  _memberWelcomeMenuItem(context, Icons.person_add_alt, 'New Member Registration', 4),
-                  _memberWelcomeMenuItem(context, Icons.grid_view, 'Products', 2),
-                  _memberWelcomeMenuItem(context, Icons.shopping_bag_outlined, 'My Orders', 5),
-                  _memberWelcomeMenuItem(context, Icons.account_balance_wallet_outlined, 'My Wallet', 6),
-                  _memberWelcomeMenuItem(context, Icons.account_balance, 'Bank Details', 7),
-                  _memberWelcomeMenuItem(context, Icons.verified_user_outlined, 'KYC Verification', 8),
-                  _memberWelcomeMenuItem(context, Icons.payments_outlined, 'Withdrawals', 9),
-                  _memberWelcomeMenuItem(context, Icons.confirmation_number_outlined, 'My Coupons', 10),
-                  _memberWelcomeMenuItem(context, Icons.lock_outline, 'Change Password', 11),
-                  _memberWelcomeMenuItem(context, Icons.support_agent, 'Help Line', 12),
-                  _memberWelcomeMenuItem(context, Icons.report_outlined, 'Report', 13),
-                  const Divider(color: Colors.white24),
-                  _memberWelcomeMenuItem(context, Icons.logout, 'Logout', 14),
-                ],
-              ),
-            ),
+          drawer: Octo7AppDrawer(
+            onDestinationSelected: (destination) async {
+              if (destination == 14) {
+                await AuthService.instance.signOut();
+                if (!context.mounted) return;
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const WelcomeScreen()), (route) => false);
+                return;
+              }
+              if (destination < 0 || destination > 15) return;
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => MainNavigationWrapper(
+                  initialIndex: destination <= 3 ? destination : 3,
+                  initialDestination: destination > 3 ? destination : null,
+                  returnToWelcomeMenuOnBack: true,
+                )));
+            },
           ),
           body: Container(
             width: double.infinity,
@@ -675,41 +745,26 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
           Navigator.of(context).pop();
         }
       },
-      drawer: Drawer(
-        backgroundColor: const Color(0xFF060D1A),
-        child: SafeArea(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              const DrawerHeader(
-                decoration: BoxDecoration(color: Color(0xFF0F5127)),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text('OCTO7 INDIA\\nMEMBER MENU',
-                    style: TextStyle(color: Colors.white, fontSize: 22,
-                      fontWeight: FontWeight.bold, height: 1.5)),
-                ),
-              ),
-              _menuItem(context, Icons.home_filled, 'Home', 0),
-              _menuItem(context, Icons.dashboard, 'Dashboard', 3),
-              _menuItem(context, Icons.person_outline, 'My Profile', 15),
-              _menuItem(context, Icons.account_tree, 'My Genealogy', 1),
-              _menuItem(context, Icons.person_add_alt, 'New Member Registration', 4),
-              _menuItem(context, Icons.grid_view, 'Products', 2),
-              _menuItem(context, Icons.shopping_bag_outlined, 'My Orders', 5),
-              _menuItem(context, Icons.account_balance_wallet_outlined, 'My Wallet', 6),
-              _menuItem(context, Icons.account_balance, 'Bank Details', 7),
-              _menuItem(context, Icons.verified_user_outlined, 'KYC Verification', 8),
-              _menuItem(context, Icons.payments_outlined, 'Withdrawals', 9),
-              _menuItem(context, Icons.confirmation_number_outlined, 'My Coupons', 10),
-              _menuItem(context, Icons.lock_outline, 'Change Password', 11),
-              _menuItem(context, Icons.support_agent, 'Help Line', 12),
-              _menuItem(context, Icons.report_outlined, 'Report', 13),
-              const Divider(color: Colors.white24),
-              _menuItem(context, Icons.logout, 'Logout', 14),
-            ],
-          ),
-        ),
+      drawer: Octo7AppDrawer(
+        onDestinationSelected: (destination) async {
+          _closingDrawerForSelection = true;
+          Future<void>.delayed(const Duration(milliseconds: 400), () {
+            if (mounted) _closingDrawerForSelection = false;
+          });
+          if (destination >= 0 && destination <= 3) {
+            setState(() => _selectedIndex = destination);
+            return;
+          }
+          if (destination == 14) {
+            await AuthService.instance.signOut();
+            if (!mounted) return;
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const AuthGate()), (route) => false);
+            return;
+          }
+          final page = _pageForDestination(destination);
+          if (page != null && mounted) Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+        },
       ),
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
@@ -739,48 +794,23 @@ class Octo7WebsiteHomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF071426),
-      drawer: Drawer(
-        backgroundColor: const Color(0xFF060D1A),
-        child: SafeArea(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              const DrawerHeader(
-                decoration: BoxDecoration(color: Color(0xFF0F5127)),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('OCTO7 INDIA', style: TextStyle(
-                      color: Colors.white, fontSize: 22,
-                      fontWeight: FontWeight.bold, letterSpacing: 1.2)),
-                    SizedBox(height: 6),
-                    Text('Together For a Better Tomorrow.',
-                      style: TextStyle(color: Colors.white70, fontSize: 12)),
-                  ],
-                ),
-              ),
-              _memberDrawerItem(context, Icons.home_filled, 'Home', 0),
-              _memberDrawerItem(context, Icons.dashboard, 'Dashboard', 3),
-              _memberDrawerItem(context, Icons.person_outline, 'My Profile', 15),
-              _memberDrawerItem(context, Icons.account_tree, 'My Genealogy', 1),
-              _memberDrawerItem(context, Icons.person_add_alt, 'New Member Registration', 4),
-              _memberDrawerItem(context, Icons.grid_view, 'Products', 2),
-              _memberDrawerItem(context, Icons.shopping_bag_outlined, 'My Orders', 5),
-              _memberDrawerItem(context, Icons.account_balance_wallet_outlined, 'My Wallet', 6),
-              _memberDrawerItem(context, Icons.account_balance, 'Bank Details', 7),
-              _memberDrawerItem(context, Icons.verified_user_outlined, 'KYC Verification', 8),
-              _memberDrawerItem(context, Icons.payments_outlined, 'Withdrawals', 9),
-              _memberDrawerItem(context, Icons.confirmation_number_outlined, 'My Coupons', 10),
-              _memberDrawerItem(context, Icons.lock_outline, 'Change Password', 11),
-              _memberDrawerItem(context, Icons.support_agent, 'Help Line', 12),
-              _memberDrawerItem(context, Icons.report_outlined, 'Report', 13),
-              const SizedBox(height: 8),
-              const Divider(color: Colors.white24),
-              _memberDrawerItem(context, Icons.logout, 'Logout', 14),
-            ],
-          ),
-        ),
+      drawer: Octo7AppDrawer(
+        onDestinationSelected: (destination) async {
+          if (destination == 14) {
+            await AuthService.instance.signOut();
+            if (!context.mounted) return;
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const AuthGate()), (route) => false);
+            return;
+          }
+          if (destination < 0 || destination > 15) return;
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => MainNavigationWrapper(
+              initialIndex: destination <= 3 ? destination : 3,
+              initialDestination: destination > 3 ? destination : null,
+              returnToWelcomeMenuOnBack: true,
+            )));
+        },
       ),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(110),
