@@ -99,11 +99,11 @@ class _MemberRegistrationScreenState extends State<MemberRegistrationScreen> {
   }
 
   InputDecoration _dec(String label, {String? hint}) => InputDecoration(labelText: label, hintText: hint);
-  Widget _field(TextEditingController c, String label, {TextInputType? type, bool required = true, String? hint, bool obscure = false, bool editableAfterVerification = false}) => Padding(
+  Widget _field(TextEditingController c, String label, {TextInputType? type, bool required = true, String? hint, bool obscure = false, bool editableAfterVerification = false, bool invalidateVerificationOnChange = true}) => Padding(
     padding: const EdgeInsets.only(bottom: 12), child: TextFormField(controller: c, keyboardType: type, obscureText: obscure,
       enabled: _createdMember == null && !_busy && (!_verified || editableAfterVerification),
       decoration: _dec(label, hint: hint), validator: (v) { final x = (v ?? '').trim(); if (required && x.isEmpty) return 'Required'; return null; },
-      onChanged: (_) { if (_verificationId != null) setState(_resetVerification); }),
+      onChanged: (_) { if (invalidateVerificationOnChange && _verificationId != null) setState(_resetVerification); }),
   );
 
   @override
@@ -136,15 +136,15 @@ class _MemberRegistrationScreenState extends State<MemberRegistrationScreen> {
             ElevatedButton(onPressed: _busy ? null : _sendOtp, child: Text(_busy ? 'PLEASE WAIT…' : 'SEND OTP')),
             if (_verificationId != null) ...[
               const SizedBox(height: 12),
-              _field(_otp, 'Six-digit OTP', type: TextInputType.number),
+              _field(_otp, 'Six-digit OTP', type: TextInputType.number, invalidateVerificationOnChange: false),
               ElevatedButton(onPressed: _busy ? null : _verifyOtp, child: const Text('VERIFY OTP')),
             ],
           ],
           if (_verified) ...[
             const Text('OTP VERIFIED', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
-            _field(_password, 'Create Password', obscure: true, editableAfterVerification: true),
-            _field(_confirm, 'Confirm Password', obscure: true, editableAfterVerification: true),
+            _field(_password, 'Create Password', obscure: true, editableAfterVerification: true, invalidateVerificationOnChange: false),
+            _field(_confirm, 'Confirm Password', obscure: true, editableAfterVerification: true, invalidateVerificationOnChange: false),
             ElevatedButton(onPressed: _busy ? null : _createMember, child: Text(_busy ? 'CREATING…' : 'CREATE MEMBER')),
           ],
           if (_message != null) Padding(padding: const EdgeInsets.only(top: 14), child: Text(_message!, style: TextStyle(color: _error ? Colors.redAccent : Colors.greenAccent))),
