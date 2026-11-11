@@ -667,7 +667,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
       case 11: return const MemberMenuInfoScreen(title: 'Change Password');
       case 12: return const MemberMenuInfoScreen(title: 'Help Line');
       case 13: return const MemberMenuInfoScreen(title: 'Report');
-      case 15: return const MemberMenuInfoScreen(title: 'My Profile');
+      case 15: return const MemberProfileScreen();
       default: return null;
     }
   }
@@ -1104,6 +1104,162 @@ class PublicInfoScreen extends StatelessWidget {
         decoration: BoxDecoration(color: palette.panel, borderRadius: BorderRadius.circular(18), border: Border.all(color: palette.accent.withOpacity(0.55))),
         child: Text(descriptions[title] ?? title, style: TextStyle(color: isLight ? const Color(0xFF203329) : Colors.white, fontSize: 16, height: 1.7), textAlign: TextAlign.left),
       ))),
+    );
+  }
+}
+
+class MemberProfileScreen extends StatefulWidget {
+  const MemberProfileScreen({super.key});
+
+  @override
+  State<MemberProfileScreen> createState() => _MemberProfileScreenState();
+}
+
+class _MemberProfileScreenState extends State<MemberProfileScreen> {
+  late Future<Map<String, dynamic>> _profileFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _profileFuture = LiveDataService.instance.fetchMemberProfile();
+  }
+
+  Future<void> _refresh() async {
+    final next = LiveDataService.instance.fetchMemberProfile();
+    setState(() => _profileFuture = next);
+    await next;
+  }
+
+  String _value(Map<String, dynamic> member, String key) {
+    final value = member[key];
+    if (value == null || value.toString().trim().isEmpty) return 'Not provided';
+    return value.toString().trim();
+  }
+
+  String _memberId(dynamic value) {
+    final id = (value ?? '').toString().trim();
+    if (id.isEmpty) return 'OCTO7 ID unavailable';
+    return id.toUpperCase().startsWith('OCTO7') ? id : 'OCTO7 $id';
+  }
+
+  Widget _detail(String label, String value, IconData icon) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF10243A),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: Row(children: [
+        Icon(icon, color: const Color(0xFF10B981), size: 21),
+        const SizedBox(width: 12),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(label, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+          const SizedBox(height: 4),
+          Text(value, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+        ])),
+      ]),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF071321),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF0B192C),
+        title: const Text('My Profile', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        iconTheme: const IconThemeData(color: Colors.white),
+        actions: [IconButton(onPressed: _refresh, icon: const Icon(Icons.refresh), tooltip: 'Refresh profile')],
+      ),
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: _profileFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: Color(0xFF10B981)));
+          }
+          if (snapshot.hasError) {
+            return Center(child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                const Icon(Icons.person_off_outlined, color: Colors.orangeAccent, size: 42),
+                const SizedBox(height: 12),
+                const Text('Unable to load your profile', style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Text(snapshot.error.toString(), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60, fontSize: 12)),
+                const SizedBox(height: 12),
+                ElevatedButton.icon(onPressed: _refresh, icon: const Icon(Icons.refresh), label: const Text('Retry')),
+              ]),
+            ));
+          }
+
+          final response = snapshot.data ?? <String, dynamic>{};
+          final member = response['member'] is Map
+              ? Map<String, dynamic>.from(response['member'])
+              : <String, dynamic>{};
+          final status = _value(member, 'status');
+          final active = status.toLowerCase() == 'active';
+          final name = _value(member, 'full_name');
+          final rawPhoto = (member['profile_photo_url'] ?? member['avatar_url'] ?? '').toString().trim();
+
+          return RefreshIndicator(
+            onRefresh: _refresh,
+            color: const Color(0xFF10B981),
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(colors: [Color(0xFF123C35), Color(0xFF10243A)]),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: const Color(0xFF10B981).withOpacity(0.35)),
+                  ),
+                  child: Row(children: [
+                    CircleAvatar(
+                      radius: 39,
+                      backgroundColor: const Color(0xFF10B981).withOpacity(0.18),
+                      backgroundImage: rawPhoto.isEmpty ? null : NetworkImage(rawPhoto),
+                      child: rawPhoto.isEmpty ? const Icon(Icons.person, color: Colors.white, size: 42) : null,
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(_memberId(member['member_id']), style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: (active ? const Color(0xFF10B981) : Colors.orange).withOpacity(0.16),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: active ? const Color(0xFF10B981) : Colors.orangeAccent),
+                        ),
+                        child: Row(mainAxisSize: MainAxisSize.min, children: [
+                          Icon(Icons.circle, size: 8, color: active ? const Color(0xFF10B981) : Colors.orangeAccent),
+                          const SizedBox(width: 6),
+                          Text(status.toUpperCase(), style: TextStyle(color: active ? const Color(0xFF6EE7B7) : Colors.orangeAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+                        ]),
+                      ),
+                    ])),
+                  ]),
+                ),
+                const SizedBox(height: 22),
+                const Text('PERSONAL INFORMATION', style: TextStyle(color: Color(0xFF6EE7B7), fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.3)),
+                const SizedBox(height: 12),
+                _detail('Full name', name, Icons.person_outline),
+                _detail('Email address', _value(member, 'email'), Icons.email_outlined),
+                _detail('Mobile number', _value(member, 'phone'), Icons.phone_android),
+                _detail('Sponsor ID', _memberId(member['sponsor_id']), Icons.people_outline),
+                _detail('Placement parent ID', _memberId(member['placement_parent_id']), Icons.account_tree_outlined),
+                _detail('Placement side', _value(member, 'placement_side').toUpperCase(), Icons.compare_arrows),
+                _detail('Member since', _value(member, 'created_at'), Icons.calendar_today_outlined),
+                const SizedBox(height: 6),
+                const Text('Profile information is read from your authenticated OCTO7 account.', style: TextStyle(color: Colors.white38, fontSize: 11)),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }
