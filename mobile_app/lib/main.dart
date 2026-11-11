@@ -1669,23 +1669,17 @@ class MemberDashboardScreen extends StatefulWidget {
 
 class _MemberDashboardScreenState extends State<MemberDashboardScreen> {
   late Future<Map<String, dynamic>> _dashboardFuture;
-  late Future<Map<String, dynamic>> _profileFuture;
 
   @override
   void initState() {
     super.initState();
     _dashboardFuture = WalletService.instance.fetchDashboard();
-    _profileFuture = LiveDataService.instance.fetchMemberProfile();
   }
 
   Future<void> _refreshDashboard() async {
     final next = WalletService.instance.fetchDashboard();
-    final profile = LiveDataService.instance.fetchMemberProfile();
-    setState(() {
-      _dashboardFuture = next;
-      _profileFuture = profile;
-    });
-    await Future.wait([next, profile]);
+    setState(() => _dashboardFuture = next);
+    await next;
   }
 
   void _showWithdrawalModal(BuildContext context) {
@@ -1856,7 +1850,7 @@ class _MemberDashboardScreenState extends State<MemberDashboardScreen> {
                 border: Border.all(color: Colors.amber.shade700, width: 1),
               ),
               child: FutureBuilder<Map<String, dynamic>>(
-                future: _profileFuture,
+                future: _dashboardFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Row(children: [
