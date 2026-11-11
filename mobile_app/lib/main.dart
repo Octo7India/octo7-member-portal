@@ -566,7 +566,9 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
                   validator: (value) {
                     final v = value?.trim() ?? '';
                     if (v.isEmpty) return 'Enter your OCTO7 User ID number';
-                    if (!RegExp(r'^\\d+
+                    if (!RegExp(r'^[0-9]+$').hasMatch(v)) return 'Enter numbers only';
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
