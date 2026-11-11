@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'config/supabase_config.dart';
@@ -1146,7 +1147,29 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
       );
       if (picked == null || !mounted) return;
 
-      final file = File(picked.path);
+      // Crop the selected image to a consistent square avatar before upload.
+      final cropped = await ImageCropper().cropImage(
+        sourcePath: picked.path,
+        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+        compressFormat: ImageCompressFormat.jpg,
+        compressQuality: 85,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Crop profile photo',
+            toolbarColor: const Color(0xFF0F5127),
+            statusBarColor: const Color(0xFF0F5127),
+            activeControlsWidgetColor: const Color(0xFF10B981),
+            lockAspectRatio: true,
+          ),
+          IOSUiSettings(
+            title: 'Crop profile photo',
+            aspectRatioLockEnabled: true,
+          ),
+        ],
+      );
+      if (cropped == null || !mounted) return;
+
+      final file = File(cropped.path);
       final bytes = await file.length();
       if (bytes > 5 * 1024 * 1024) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1155,7 +1178,7 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
         return;
       }
 
-      final extension = picked.name.split('.').last.toLowerCase();
+      // The cropper exports JPEG, so derive the MIME type from the cropped file.\n      final extension = cropped.path.split('.').last.toLowerCase();
       final mimeType = switch (extension) {
         'png' => 'image/png',
         'webp' => 'image/webp',
