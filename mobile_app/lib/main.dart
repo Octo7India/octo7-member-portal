@@ -1343,10 +1343,9 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         _memberCard(root, root: true),
-        const SizedBox(height: 57),
         SizedBox(
           width: 300,
-          height: 1,
+          height: 57,
           child: CustomPaint(painter: _BinaryBranchPainter()),
         ),
         Row(
@@ -1500,15 +1499,16 @@ class _BinaryBranchPainter extends CustomPainter {
       ..color = const Color(0xFF18A77C)
       ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke;
+    final midY = size.height / 2;
     final path = Path()
       ..moveTo(size.width / 2, 0)
-      ..lineTo(size.width / 2, 0.5)
-      ..moveTo(45, 0.5)
-      ..lineTo(size.width - 45, 0.5)
-      ..moveTo(45, 0.5)
-      ..lineTo(45, 1)
-      ..moveTo(size.width - 45, 0.5)
-      ..lineTo(size.width - 45, 1);
+      ..lineTo(size.width / 2, midY)
+      ..moveTo(45, midY)
+      ..lineTo(size.width - 45, midY)
+      ..moveTo(45, midY)
+      ..lineTo(45, size.height)
+      ..moveTo(size.width - 45, midY)
+      ..lineTo(size.width - 45, size.height);
     canvas.drawPath(path, paint);
   }
 
