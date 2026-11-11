@@ -40,27 +40,27 @@ jobs:
           content = gradle.read_text()
 
           # Preserve the generated applicationId, and make namespace match it.
-          app_match = re.search(r'applicationId\\s*(?:=\\s*)?["\\']([^"\\']+)["\\']', content)
+          app_match = re.search(r'applicationId\s*(?:=\s*)?["\']([^"\']+)["\']', content)
           app_id = app_match.group(1) if app_match else "com.octo7.memberportal"
-          if re.search(r'namespace\\s*(?:=\\s*)?["\\'][^"\\']+["\\']', content):
-              content = re.sub(r'namespace\\s*(?:=\\s*)?["\\'][^"\\']+["\\']',
-                               lambda m: re.sub(r'["\\'][^"\\']+["\\']', '"' + app_id + '"', m.group(0)),
+          if re.search(r'namespace\s*(?:=\s*)?["\'][^"\']+["\']', content):
+              content = re.sub(r'namespace\s*(?:=\s*)?["\'][^"\']+["\']',
+                               lambda m: re.sub(r'["\'][^"\']+["\']', '"' + app_id + '"', m.group(0)),
                                content, count=1)
           elif gradle.suffix == ".kts":
-              content = re.sub(r'android\\s*\\{', 'android {\\n    namespace = "' + app_id + '"', content, count=1)
+              content = re.sub(r'android\s*\{', 'android {\n    namespace = "' + app_id + '"', content, count=1)
           else:
-              content = re.sub(r'android\\s*\\{', 'android {\\n    namespace "' + app_id + '"', content, count=1)
+              content = re.sub(r'android\s*\{', 'android {\n    namespace "' + app_id + '"', content, count=1)
 
           if gradle.suffix == ".kts":
-              content, n = re.subn(r'minSdk\\s*=\\s*[^\\n]+', 'minSdk = 21', content, count=1)
+              content, n = re.subn(r'minSdk\s*=\s*[^\n]+', 'minSdk = 21', content, count=1)
               if n == 0:
-                  content = re.sub(r'defaultConfig\\s*\\{', 'defaultConfig {\\n        minSdk = 21', content, count=1)
+                  content = re.sub(r'defaultConfig\s*\{', 'defaultConfig {\n        minSdk = 21', content, count=1)
           else:
-              content, n = re.subn(r'minSdkVersion\\s+[^\\n]+', 'minSdkVersion 21', content, count=1)
+              content, n = re.subn(r'minSdkVersion\s+[^\n]+', 'minSdkVersion 21', content, count=1)
               if n == 0:
-                  content = re.sub(r'defaultConfig\\s*\\{', 'defaultConfig {\\n        minSdkVersion 21', content, count=1)
+                  content = re.sub(r'defaultConfig\s*\{', 'defaultConfig {\n        minSdkVersion 21', content, count=1)
 
-          if not re.search(r'minSdk(?:Version)?\\s*(?:=)?\\s*21', content):
+          if not re.search(r'minSdk(?:Version)?\s*(?:=)?\s*21', content):
               raise SystemExit("Failed to enforce Android minSdk 21")
           gradle.write_text(content)
 
@@ -70,7 +70,7 @@ jobs:
           for key in ("android.useAndroidX=true", "android.enableJetifier=true"):
               existing = re.sub(r"^" + re.escape(key.split("=")[0]) + r"=.*$", key, existing, flags=re.M)
               if key.split("=")[0] not in existing:
-                  existing += ("\\n" if existing and not existing.endswith("\\n") else "") + key + "\\n"
+                  existing += ("\n" if existing and not existing.endswith("\n") else "") + key + "\n"
           props.write_text(existing)
           print(f"Configured {gradle}: namespace={app_id}, minSdk=21")
           print("Verified AndroidX and Jetifier flags")
