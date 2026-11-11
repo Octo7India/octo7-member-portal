@@ -5,6 +5,7 @@ import 'config/supabase_config.dart';
 import 'services/auth_service.dart';
 import 'services/wallet_service.dart';
 import 'services/live_data_service.dart';
+import 'services/navigation_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +28,7 @@ class Octo7App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: NavigationService().navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'OCTO7 India',
       theme: ThemeData(
