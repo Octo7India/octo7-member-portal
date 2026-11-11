@@ -307,7 +307,10 @@ class MemberWelcomeScreen extends StatelessWidget {
         if (destination >= 0 && destination <= 3) {
           Navigator.of(context).push(
             MaterialPageRoute(
-                builder: (_) => MainNavigationWrapper(initialIndex: destination)),
+                builder: (_) => MainNavigationWrapper(
+                  initialIndex: destination,
+                  returnToWelcomeMenuOnBack: true,
+                )),
           );
           return;
         }
@@ -548,8 +551,13 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
 }
 
 class MainNavigationWrapper extends StatefulWidget {
-  const MainNavigationWrapper({super.key, this.initialIndex = 0});
+  const MainNavigationWrapper({
+    super.key,
+    this.initialIndex = 0,
+    this.returnToWelcomeMenuOnBack = false,
+  });
   final int initialIndex;
+  final bool returnToWelcomeMenuOnBack;
 
   @override
   State<MainNavigationWrapper> createState() => _MainNavigationWrapperState();
@@ -558,6 +566,9 @@ class MainNavigationWrapper extends StatefulWidget {
 class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   late int _selectedIndex;
   final List<int> _tabHistory = [];
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  bool _welcomeMenuRestoredByBack = false;
+  bool _closingDrawerForSelection = false;
 
   void _selectTab(int index) {
     if (index == _selectedIndex) return;
@@ -585,7 +596,11 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
       leading: Icon(icon, color: const Color(0xFF10B981)),
       title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 14)),
       onTap: () async {
+        _closingDrawerForSelection = true;
         Navigator.pop(context);
+        Future<void>.delayed(const Duration(milliseconds: 400), () {
+          if (mounted) _closingDrawerForSelection = false;
+        });
         if (destination >= 0 && destination <= 3) {
           setState(() => _selectedIndex = destination);
           return;
@@ -626,9 +641,29 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
           setState(() => _selectedIndex = _tabHistory.removeLast());
           return false;
         }
+        if (widget.returnToWelcomeMenuOnBack &&
+            !_welcomeMenuRestoredByBack) {
+          _welcomeMenuRestoredByBack = true;
+          _scaffoldKey.currentState?.openDrawer();
+          return false;
+        }
+        if (_welcomeMenuRestoredByBack) {
+          Navigator.of(context).pop();
+          return false;
+        }
         return true;
       },
       child: Scaffold(
+      key: _scaffoldKey,
+      onDrawerChanged: (isOpened) {
+        if (!isOpened &&
+            _welcomeMenuRestoredByBack &&
+            !_closingDrawerForSelection &&
+            mounted) {
+          _welcomeMenuRestoredByBack = false;
+          Navigator.of(context).pop();
+        }
+      },
       drawer: Drawer(
         backgroundColor: const Color(0xFF060D1A),
         child: SafeArea(
