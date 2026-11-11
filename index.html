@@ -44,6 +44,11 @@ nav a:hover {color:var(--gold)}
 .hero h1.hero-welcome .globe-mark{position:relative;z-index:1;display:flex;width:100%;height:100%;align-items:center;justify-content:center;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;font-size:.68em;line-height:1;pointer-events:none}
 .home-emblem{display:block;width:clamp(190px,28vw,270px);height:auto;max-height:235px;object-fit:contain;margin:20px auto 24px;filter:drop-shadow(0 5px 12px #0005)}
 .hero p {font-size:19px;line-height:1.7}
+.home-tagline{margin:0 0 20px;font-weight:700;letter-spacing:.3px;color:#fff}
+.home-description{margin:22px auto 0;max-width:760px}
+.home-footer{display:flex;flex-direction:column;gap:6px;margin:38px auto 0;text-align:center;letter-spacing:1px}
+.home-footer strong{font-size:22px;font-weight:900}
+.home-footer span{font-size:14px;font-weight:700;letter-spacing:2px}
 
 .btn {
   display:inline-block;padding:13px 23px;border:0;border-radius:5px;
@@ -310,12 +315,15 @@ footer .logo {color:white}
 
 <section class="hero" id="home">
   <div class="hero-content">
-    <h1 class="hero-welcome"><span class="welcome-small">WELCOME</span><span class="welcome-small">TO</span><span class="brand-line"><span class="brand-o" aria-label="Earth globe in the universe"><span class="brand-universe" aria-hidden="true"></span><span class="globe-mark" aria-hidden="true">🌎</span><span class="brand-stars" aria-hidden="true"><span>✧</span><span>·</span><span>✦</span><span>·</span><span>✧</span></span></span><span class="brand-letters">CTO</span><span class="brand-seven">7</span></span></h1>
-    <img src="OCTO7_emblem_transparent-2.png" alt="Original OCTO7 emblem" class="home-emblem">
-    <p>Discover a world of opportunities through quality products, entrepreneurship and a growing business network.</p>
-    <p>Together For a Better Tomorrow.</p>
-    <a class="btn" href="#about">Discover OCTO7</a>
-    <a class="btn secondary" href="#member-login">Member Login</a>
+    <h1 class="hero-welcome">
+      <span class="welcome-small">Welcome</span>
+      <span class="brand-line"><span class="brand-o" aria-label="Earth globe in the universe"><span class="brand-universe" aria-hidden="true"></span><span class="globe-mark" aria-hidden="true">🌎</span><span class="brand-stars" aria-hidden="true"><span>✧</span><span>·</span><span>✦</span><span>·</span><span>✧</span></span></span><span class="brand-letters">CTO</span><span class="brand-seven">7</span></span>
+    </h1>
+    <img src="OCTO7_emblem_transparent-2.png" alt="OCTO7 emblem" class="home-emblem">
+    <p class="home-tagline">Together For a Better Tomorrow</p>
+    <a class="btn" href="#member-login">Member Login</a>
+    <p class="home-description">Discover a world of opportunities through quality products, entrepreneurship and growing business network</p>
+    <div class="home-footer"><strong>OCTO7 India</strong><span>Dream. Network. Grow</span></div>
   </div>
 </section>
 
