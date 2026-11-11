@@ -83,6 +83,30 @@ class AuthService {
     return result;
   }
 
+  /// Calls an existing OCTO7 member API action using the current opaque member session.
+  Future<Map<String, dynamic>> invokeMemberAction(
+    String action, [Map<String, dynamic> payload = const {}]
+  ) async {
+    final token = await sessionToken;
+    if (token == null || token.isEmpty) {
+      throw StateError('Your OCTO7 session has expired. Please log in again.');
+    }
+    final response = await _client.functions.invoke(
+      'octo7-api',
+      body: {'action': action, ...payload},
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    final data = response.data;
+    if (response.status < 200 || response.status >= 300 || data is! Map) {
+      throw Exception('OCTO7 request failed (${response.status}). Please try again.');
+    }
+    final result = Map<String, dynamic>.from(data);
+    if (result['success'] == false || result['error'] != null) {
+      throw Exception(result['error']?.toString() ?? result['message']?.toString() ?? 'Request failed.');
+    }
+    return result;
+  }
+
   Future<void> signOut() async {
     final token = await sessionToken;
     if (token != null && token.isNotEmpty && SupabaseConfig.isConfigured) {
