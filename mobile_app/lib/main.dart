@@ -305,10 +305,9 @@ class MemberWelcomeScreen extends StatelessWidget {
           return;
         }
         if (destination >= 0 && destination <= 3) {
-          Navigator.of(context).pushAndRemoveUntil(
+          Navigator.of(context).push(
             MaterialPageRoute(
                 builder: (_) => MainNavigationWrapper(initialIndex: destination)),
-            (route) => false,
           );
           return;
         }
@@ -558,6 +557,15 @@ class MainNavigationWrapper extends StatefulWidget {
 
 class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   late int _selectedIndex;
+  final List<int> _tabHistory = [];
+
+  void _selectTab(int index) {
+    if (index == _selectedIndex) return;
+    setState(() {
+      _tabHistory.add(_selectedIndex);
+      _selectedIndex = index;
+    });
+  }
 
   @override
   void initState() {
@@ -612,7 +620,15 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WillPopScope(
+      onWillPop: () async {
+        if (_tabHistory.isNotEmpty) {
+          setState(() => _selectedIndex = _tabHistory.removeLast());
+          return false;
+        }
+        return true;
+      },
+      child: Scaffold(
       drawer: Drawer(
         backgroundColor: const Color(0xFF060D1A),
         child: SafeArea(
@@ -652,7 +668,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        onTap: (index) => setState(() => _selectedIndex = index),
+        onTap: _selectTab,
         type: BottomNavigationBarType.fixed,
         backgroundColor: const Color(0xFF060D1A),
         selectedItemColor: const Color(0xFF10B981),
@@ -663,6 +679,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
           BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: 'Products'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Dashboard'),
         ],
+      ),
       ),
     );
   }
