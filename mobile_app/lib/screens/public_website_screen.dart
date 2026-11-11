@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/services.dart';
 
 /// Native public-facing OCTO7 website pages for the Android app.
 /// Content follows the public sections in the OCTO7 India website.
@@ -32,10 +32,10 @@ class _PublicWebsiteScreenState extends State<PublicWebsiteScreen>
   }
 
   Future<void> _contactEmail() async {
-    final uri = Uri(scheme: 'mailto', path: 'octo7india@gmail.com');
-    if (!await launchUrl(uri) && mounted) {
+    await Clipboard.setData(const ClipboardData(text: 'octo7india@gmail.com'));
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to open your email app. Contact octo7india@gmail.com.')),
+        const SnackBar(content: Text('Email address copied: octo7india@gmail.com')),
       );
     }
   }
