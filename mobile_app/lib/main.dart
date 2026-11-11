@@ -2009,6 +2009,93 @@ class _MemberDashboardScreenState extends State<MemberDashboardScreen> {
                 );
               },
             ),
+            const SizedBox(height: 14),
+            FutureBuilder<Map<String, dynamic>>(
+              future: _dashboardFuture,
+              builder: (context, snapshot) {
+                final binary = snapshot.data?['binary'] is Map
+                    ? Map<String, dynamic>.from(snapshot.data!['binary'])
+                    : <String, dynamic>{};
+                final left = binary['left_child'] is Map
+                    ? Map<String, dynamic>.from(binary['left_child'])
+                    : <String, dynamic>{};
+                final right = binary['right_child'] is Map
+                    ? Map<String, dynamic>.from(binary['right_child'])
+                    : <String, dynamic>{};
+                String slotText(Map<String, dynamic> child) {
+                  if (child.isEmpty) return 'Available';
+                  final id = (child['member_id'] ?? '').toString();
+                  final status = (child['status'] ?? 'registered').toString();
+                  return 'OCTO7 $id • $status';
+                }
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF060D1A),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.white12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('My Binary Positions',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                      const SizedBox(height: 10),
+                      Row(children: [
+                        Expanded(child: _metricCard('LEFT POSITION',
+                          snapshot.hasError ? 'Unavailable' : slotText(left),
+                          Icons.account_tree, Colors.blue)),
+                        const SizedBox(width: 10),
+                        Expanded(child: _metricCard('RIGHT POSITION',
+                          snapshot.hasError ? 'Unavailable' : slotText(right),
+                          Icons.account_tree, Colors.green)),
+                      ]),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            FutureBuilder<Map<String, dynamic>>(
+              future: _dashboardFuture,
+              builder: (context, snapshot) {
+                final coupon = snapshot.data?['coupon'] is Map
+                    ? Map<String, dynamic>.from(snapshot.data!['coupon'])
+                    : <String, dynamic>{};
+                if (snapshot.hasError) return const SizedBox.shrink();
+                final face = coupon['face_value'];
+                final perPurchase = coupon['per_purchase'];
+                final maxUses = coupon['max_uses'];
+                final used = coupon['used_count'] ?? 0;
+                final remaining = maxUses == null
+                    ? null
+                    : ((int.tryParse('$maxUses') ?? 0) - (int.tryParse('$used') ?? 0)).clamp(0, 999999);
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF060D1A),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFD97706).withOpacity(0.45)),
+                  ),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    const Text('My Purchase Coupon',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                    const SizedBox(height: 8),
+                    Text(coupon.isEmpty ? 'No coupon issued for this Member ID yet'
+                      : 'Value: ₹${face ?? '—'}  •  Per eligible purchase: ₹${perPurchase ?? '—'}',
+                      style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                    if (remaining != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 5),
+                        child: Text('Redemptions remaining: $remaining',
+                          style: const TextStyle(color: Color(0xFFD6A84B), fontSize: 12)),
+                      ),
+                  ]),
+                );
+              },
+            ),
             const SizedBox(height: 25),
             const Text('Quick Distributor Actions', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
