@@ -38,7 +38,7 @@ class LiveDataService {
 
   /// Web portal's member-specific genealogy action.
   Future<Map<String, dynamic>> fetchGenealogy({String? rootMemberId}) =>
-      _call('my_genealogy', rootMemberId == null ? {} : {'root_member_id': rootMemberId});
+      _call('genealogy', rootMemberId == null ? {} : {'root_member_id': rootMemberId});
 
   /// Web portal's published product catalog action.
   Future<List<Map<String, dynamic>>> fetchProducts() async {
