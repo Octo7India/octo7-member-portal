@@ -2086,49 +2086,6 @@ class _MemberDashboardScreenState extends State<MemberDashboardScreen> {
     );
   }
 }
-).hasMatch(v)) return 'Enter numbers only';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _passwordController, obscureText: _hidePassword,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(labelText: 'Password',
-                    labelStyle: const TextStyle(color: Colors.white70),
-                    prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF10B981)),
-                    suffixIcon: IconButton(onPressed: () => setState(() => _hidePassword = !_hidePassword),
-                      icon: Icon(_hidePassword ? Icons.visibility : Icons.visibility_off, color: Colors.white54)),
-                    enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
-                    focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Color(0xFF10B981)))),
-                  validator: (value) => value == null || value.isEmpty ? 'Enter your password' : null,
-                  onFieldSubmitted: (_) => _login(),
-                ),
-                if (_error != null) ...[
-                  const SizedBox(height: 14),
-                  Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.redAccent)),
-                ],
-                const SizedBox(height: 24),
-                SizedBox(width: double.infinity, height: 48,
-                  child: ElevatedButton(
-                    onPressed: _busy ? null : _login,
-                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFD97706),
-                      foregroundColor: Colors.white),
-                    child: _busy ? const SizedBox(width: 22, height: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) :
-                      const Text('MEMBER LOGIN', style: TextStyle(fontWeight: FontWeight.bold)),
-                  )),
-                const SizedBox(height: 14),
-                const Text('Log in using your OCTO7 User ID and password.',
-                  textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 12)),
-              ])),
-            ),
-          ),
-        ),
-      )),
-    );
-  }
-}
 
 class MainNavigationWrapper extends StatefulWidget {
   const MainNavigationWrapper({
