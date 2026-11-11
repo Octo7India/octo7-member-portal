@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:image_cropper/image_cropper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'config/supabase_config.dart';
@@ -1138,62 +1137,32 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
 
   Future<void> _pickAndUploadPhoto() async {
     if (_uploadingPhoto) return;
+    setState(() => _uploadingPhoto = true);
     try {
+      // Use Android's system photo picker directly. Avoid launching a second
+      // native crop activity, which was closing the app on some devices.
       final picked = await _imagePicker.pickImage(
         source: ImageSource.gallery,
-        imageQuality: 85,
+        imageQuality: 82,
         maxWidth: 1200,
         maxHeight: 1200,
       );
       if (picked == null || !mounted) return;
 
-      // Crop the selected image to a consistent square avatar before upload.
-      final cropped = await ImageCropper().cropImage(
-        sourcePath: picked.path,
-        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
-        compressFormat: ImageCompressFormat.jpg,
-        compressQuality: 85,
-        uiSettings: [
-          AndroidUiSettings(
-            toolbarTitle: 'Crop profile photo',
-            toolbarColor: const Color(0xFF0F5127),
-            statusBarColor: const Color(0xFF0F5127),
-            activeControlsWidgetColor: const Color(0xFF10B981),
-            lockAspectRatio: true,
-          ),
-          IOSUiSettings(
-            title: 'Crop profile photo',
-            aspectRatioLockEnabled: true,
-          ),
-        ],
-      );
-      if (cropped == null || !mounted) return;
-
-      final file = File(cropped.path);
+      final file = File(picked.path);
       final bytes = await file.length();
-      if (bytes > 5 * 1024 * 1024) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please choose an image smaller than 5 MB.')),
-        );
-        return;
+      if (bytes == 0 || bytes > 5 * 1024 * 1024) {
+        throw const FormatException('Please choose a valid image smaller than 5 MB.');
       }
 
-      // The cropper exports JPEG, so derive the MIME type from the cropped file.
-      final extension = cropped.path.split('.').last.toLowerCase();
+      final extension = picked.path.split('.').last.toLowerCase();
       final mimeType = switch (extension) {
         'png' => 'image/png',
         'webp' => 'image/webp',
         'jpg' || 'jpeg' => 'image/jpeg',
-        _ => '',
+        _ => 'image/jpeg',
       };
-      if (mimeType.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please choose a JPG, PNG, or WebP image.')),
-        );
-        return;
-      }
 
-      setState(() => _uploadingPhoto = true);
       final signed = await AuthService.instance.invokeMemberAction(
         'profile_photo_upload_url',
         {'content_type': mimeType},
