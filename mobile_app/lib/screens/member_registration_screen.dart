@@ -149,6 +149,6 @@ class _MemberRegistrationScreenState extends State<MemberRegistrationScreen> {
           ],
           if (_message != null) Padding(padding: const EdgeInsets.only(top: 14), child: Text(_message!, style: TextStyle(color: _error ? Colors.redAccent : Colors.greenAccent))),
         ],
-      ]))));
+      ])))));
   }
 }
