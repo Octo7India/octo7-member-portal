@@ -1209,7 +1209,7 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
             path,
             token,
             file,
-            fileOptions: FileOptions(contentType: mimeType, upsert: false),
+            FileOptions(contentType: mimeType, upsert: false),
           );
 
       await AuthService.instance.invokeMemberAction(
