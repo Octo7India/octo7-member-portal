@@ -717,13 +717,23 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
       },
       child: Scaffold(
         key: _scaffoldKey,
+        onDrawerChanged: (isOpened) {
+          if (!isOpened &&
+              _welcomeMenuRestoredByBack &&
+              !_closingDrawerForSelection &&
+              mounted) {
+            _welcomeMenuRestoredByBack = false;
+            NavigationService().goBack();
+          }
+        },
         drawer: Octo7AppDrawer(
           onDestinationSelected: (destination) async {
-            // Octo7AppDrawer has already closed the drawer before callback.
+            // The drawer route has been popped; keep the wrapper mounted
+            // while the close transition finishes before routing globally.
             _closingDrawerForSelection = true;
-            Future<void>.delayed(const Duration(milliseconds: 400), () {
-              if (mounted) _closingDrawerForSelection = false;
-            });
+            await Future<void>.delayed(const Duration(milliseconds: 250));
+            if (!mounted) return;
+            _closingDrawerForSelection = false;
             await _handleDestinationSelected(destination);
           },
         ),
