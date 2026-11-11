@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'config/supabase_config.dart';
@@ -1130,6 +1132,82 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
     await next;
   }
 
+  bool _uploadingPhoto = false;
+  final ImagePicker _imagePicker = ImagePicker();
+
+  Future<void> _pickAndUploadPhoto() async {
+    if (_uploadingPhoto) return;
+    try {
+      final picked = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+        maxWidth: 1200,
+        maxHeight: 1200,
+      );
+      if (picked == null || !mounted) return;
+
+      final file = File(picked.path);
+      final bytes = await file.length();
+      if (bytes > 5 * 1024 * 1024) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please choose an image smaller than 5 MB.')),
+        );
+        return;
+      }
+
+      final extension = picked.name.split('.').last.toLowerCase();
+      final mimeType = switch (extension) {
+        'png' => 'image/png',
+        'webp' => 'image/webp',
+        'jpg' || 'jpeg' => 'image/jpeg',
+        _ => '',
+      };
+      if (mimeType.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please choose a JPG, PNG, or WebP image.')),
+        );
+        return;
+      }
+
+      setState(() => _uploadingPhoto = true);
+      final signed = await AuthService.instance.invokeMemberAction(
+        'profile_photo_upload_url',
+        {'content_type': mimeType},
+      );
+      final path = signed['path']?.toString() ?? '';
+      final token = signed['token']?.toString() ?? '';
+      if (path.isEmpty || token.isEmpty) {
+        throw const FormatException('The server did not provide a secure photo upload URL.');
+      }
+
+      await Supabase.instance.client.storage
+          .from('member-profile-photos')
+          .uploadToSignedUrl(
+            path,
+            token,
+            file,
+            fileOptions: FileOptions(contentType: mimeType, upsert: false),
+          );
+
+      await AuthService.instance.invokeMemberAction(
+        'profile_photo_save',
+        {'path': path},
+      );
+      await _refresh();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profile photo updated successfully.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Photo upload failed: $error')),
+      );
+    } finally {
+      if (mounted) setState(() => _uploadingPhoto = false);
+    }
+  }
+
   String _value(Map<String, dynamic> member, String key) {
     final value = member[key];
     if (value == null || value.toString().trim().isEmpty) return 'Not provided';
@@ -1201,7 +1279,10 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
           final status = _value(member, 'status');
           final active = status.toLowerCase() == 'active';
           final name = _value(member, 'full_name');
-          final rawPhoto = (member['profile_photo_url'] ?? member['avatar_url'] ?? '').toString().trim();
+          final photoPath = (member['profile_photo_path'] ?? '').toString().trim();
+          final rawPhoto = photoPath.isNotEmpty
+              ? Supabase.instance.client.storage.from('member-profile-photos').getPublicUrl(photoPath)
+              : (member['profile_photo_url'] ?? member['avatar_url'] ?? '').toString().trim();
 
           return RefreshIndicator(
             onRefresh: _refresh,
@@ -1217,11 +1298,34 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
                     border: Border.all(color: const Color(0xFF10B981).withOpacity(0.35)),
                   ),
                   child: Row(children: [
-                    CircleAvatar(
-                      radius: 39,
-                      backgroundColor: const Color(0xFF10B981).withOpacity(0.18),
-                      backgroundImage: rawPhoto.isEmpty ? null : NetworkImage(rawPhoto),
-                      child: rawPhoto.isEmpty ? const Icon(Icons.person, color: Colors.white, size: 42) : null,
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        CircleAvatar(
+                          radius: 39,
+                          backgroundColor: const Color(0xFF10B981).withOpacity(0.18),
+                          backgroundImage: rawPhoto.isEmpty ? null : NetworkImage(rawPhoto),
+                          child: rawPhoto.isEmpty ? const Icon(Icons.person, color: Colors.white, size: 42) : null,
+                        ),
+                        Positioned(
+                          right: -2,
+                          bottom: -2,
+                          child: Material(
+                            color: const Color(0xFF10B981),
+                            shape: const CircleBorder(),
+                            child: InkWell(
+                              customBorder: const CircleBorder(),
+                              onTap: _uploadingPhoto ? null : _pickAndUploadPhoto,
+                              child: Padding(
+                                padding: const EdgeInsets.all(7),
+                                child: _uploadingPhoto
+                                    ? const SizedBox(width: 15, height: 15, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                    : const Icon(Icons.camera_alt, size: 15, color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(width: 16),
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
