@@ -1265,75 +1265,145 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
     });
   }
 
-  Widget _nodeCard(Map<String, dynamic> node, {bool root = false}) {
+  void _openVacantPosition(int parentPositionId, String side) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => MemberRegistrationScreen(
+        initialParentPositionId: parentPositionId,
+        initialSide: side,
+      ),
+    ));
+  }
+
+  Widget _memberCard(Map<String, dynamic> node, {bool root = false}) {
     final memberId = (node['member_id'] ?? '').toString();
-    final name = (node['full_name'] ?? node['name'] ?? '').toString();
-    final status = (node['status'] ?? 'Unavailable').toString();
+    final status = (node['status'] ?? 'registered').toString();
     return InkWell(
       onTap: memberId.isEmpty ? null : () => _openMember(memberId),
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(8),
       child: Container(
-        constraints: const BoxConstraints(minWidth: 130, maxWidth: 180),
-        padding: const EdgeInsets.all(12),
+        width: 90,
+        height: 58,
+        padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 4),
         decoration: BoxDecoration(
-          color: const Color(0xFF060D1A),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: root ? const Color(0xFFD97706) : Colors.white24),
+          color: const Color(0xFF102238),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: root ? const Color(0xFFD6A84B) : const Color(0xFF18A77C),
+            width: root ? 1.8 : 1.2,
+          ),
         ),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Text('OCTO7', style: TextStyle(color: Color(0xFFD97706), fontSize: 10, fontWeight: FontWeight.bold)),
-          Text(memberId.isEmpty ? 'ID unavailable' : memberId,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          if (name.isNotEmpty) Text(name, textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white70, fontSize: 11)),
-          Text(status.toUpperCase(), style: const TextStyle(color: Color(0xFF10B981), fontSize: 10)),
-          if (memberId.isNotEmpty) const Text('Tap to view downline',
-            style: TextStyle(color: Colors.white38, fontSize: 9)),
-        ]),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('OCTO7 ${memberId.isEmpty ? '—' : memberId}',
+              maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 3),
+            Text(status.toUpperCase(), maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Color(0xFF8DDCC2), fontSize: 8)),
+            const Text('Tap to view', style: TextStyle(color: Colors.white54, fontSize: 7)),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _tree(Map<String, dynamic> node, {bool root = false}) {
-    final left = node['left'];
-    final right = node['right'];
-    return Column(mainAxisSize: MainAxisSize.min, children: [
-      _nodeCard(node, root: root),
-      const SizedBox(height: 16),
-      Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Expanded(child: Column(children: [
-          const Text('LEFT', style: TextStyle(color: Colors.white54, fontSize: 10)),
-          const SizedBox(height: 6),
-          if (left is Map) _nodeCard(Map<String, dynamic>.from(left))
-          else const Text('Position available', textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white38, fontSize: 10)),
-        ])),
-        const SizedBox(width: 12),
-        Expanded(child: Column(children: [
-          const Text('RIGHT', style: TextStyle(color: Colors.white54, fontSize: 10)),
-          const SizedBox(height: 6),
-          if (right is Map) _nodeCard(Map<String, dynamic>.from(right))
-          else const Text('Position available', textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white38, fontSize: 10)),
-        ])),
-      ]),
-    ]);
+  Widget _vacantCard(int parentPositionId, String side) {
+    return InkWell(
+      onTap: () => _openVacantPosition(parentPositionId, side),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        width: 90,
+        height: 58,
+        padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 4),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0B192C),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFF18A77C), style: BorderStyle.solid),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(side.toUpperCase(), style: const TextStyle(color: Color(0xFF8DDCC2), fontSize: 9, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 3),
+            const Text('AVAILABLE', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+            const Text('Tap to add', style: TextStyle(color: Colors.white54, fontSize: 8)),
+          ],
+        ),
+      ),
+    );
   }
+
+  Widget _tree(Map<String, dynamic> root) {
+    final rootPositionId = int.tryParse('${root['id']}');
+    final left = root['left'] is Map ? Map<String, dynamic>.from(root['left']) : null;
+    final right = root['right'] is Map ? Map<String, dynamic>.from(root['right']) : null;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _memberCard(root, root: true),
+        const SizedBox(height: 57),
+        SizedBox(
+          width: 300,
+          height: 1,
+          child: CustomPaint(painter: _BinaryBranchPainter()),
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            left == null
+                ? (rootPositionId == null
+                    ? _emptySlot('LEFT')
+                    : _vacantCard(rootPositionId, 'left'))
+                : _memberCard(left),
+            const SizedBox(width: 120),
+            right == null
+                ? (rootPositionId == null
+                    ? _emptySlot('RIGHT')
+                    : _vacantCard(rootPositionId, 'right'))
+                : _memberCard(right),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _emptySlot(String side) => Container(
+    width: 90, height: 58, alignment: Alignment.center,
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: Colors.white24),
+    ),
+    child: Text('$side unavailable', style: const TextStyle(color: Colors.white54, fontSize: 9)),
+  );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF052411),
+      backgroundColor: const Color(0xFF071426),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF060D1A),
-        title: const Text('Binary Network Tree', style: TextStyle(color: Colors.white, fontSize: 18)),
+        title: const Text('My Genealogy', style: TextStyle(color: Colors.white, fontSize: 18)),
         leading: _backStack.isEmpty ? null : IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: _goBack),
-        actions: [IconButton(
-          icon: const Icon(Icons.refresh, color: Colors.white),
-          onPressed: () => setState(() {
-            _genealogyFuture = LiveDataService.instance.fetchGenealogy(rootMemberId: _rootMemberId);
-          }))],
+        actions: [
+          IconButton(
+            tooltip: 'Return to my ID',
+            icon: const Icon(Icons.home_outlined, color: Colors.white),
+            onPressed: () => setState(() {
+              _backStack.clear();
+              _rootMemberId = null;
+              _genealogyFuture = LiveDataService.instance.fetchGenealogy();
+            }),
+          ),
+          IconButton(
+            tooltip: 'Refresh genealogy',
+            icon: const Icon(Icons.refresh, color: Colors.white),
+            onPressed: () => setState(() {
+              _genealogyFuture = LiveDataService.instance.fetchGenealogy(rootMemberId: _rootMemberId);
+            }),
+          ),
+        ],
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _genealogyFuture,
@@ -1345,7 +1415,7 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
             return Center(child: Padding(
               padding: const EdgeInsets.all(24),
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Text('Unable to load live genealogy: ${snapshot.error}',
+                Text('Unable to load your genealogy: ${snapshot.error}',
                   textAlign: TextAlign.center, style: const TextStyle(color: Colors.orangeAccent)),
                 TextButton(onPressed: () => setState(() {
                   _genealogyFuture = LiveDataService.instance.fetchGenealogy(rootMemberId: _rootMemberId);
@@ -1353,6 +1423,7 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
               ]),
             ));
           }
+
           final data = snapshot.data ?? {};
           final nodes = data['nodes'];
           if (nodes is! List || nodes.isEmpty) {
@@ -1361,7 +1432,7 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
           }
           final rootNode = LiveDataService.buildGenealogyTree(nodes);
           if (rootNode == null) {
-            return const Center(child: Text('The genealogy root position is missing.',
+            return const Center(child: Text('Your genealogy root position could not be found.',
               style: TextStyle(color: Colors.white70)));
           }
           final rootId = (data['root'] is Map ? data['root']['member_id'] : rootNode['member_id'])?.toString();
@@ -1370,17 +1441,79 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
               if (mounted && _rootMemberId == null) setState(() => _rootMemberId = rootId);
             });
           }
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(12),
-            child: Center(child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: _tree(rootNode, root: true),
-            )),
+
+          return Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter, end: Alignment.bottomCenter,
+                colors: [Color(0xFF102A3B), Color(0xFF071426)],
+              ),
+            ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+                  child: Text(
+                    'OCTO7 ${rootNode['member_id'] ?? ''}  •  Tap any member to open their downline',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                ),
+                Expanded(
+                  child: InteractiveViewer(
+                    minScale: 0.65,
+                    maxScale: 2.5,
+                    boundaryMargin: const EdgeInsets.all(80),
+                    child: Center(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+                          child: _tree(rootNode),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(12, 8, 12, 16),
+                  child: Text(
+                    'Each view shows the selected ID and its immediate left and right positions. Select an ID to navigate deeper. Select AVAILABLE to register in that position.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white54, fontSize: 10, height: 1.4),
+                  ),
+                ),
+              ],
+            ),
           );
         },
       ),
     );
   }
+}
+
+class _BinaryBranchPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFF18A77C)
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+    final path = Path()
+      ..moveTo(size.width / 2, 0)
+      ..lineTo(size.width / 2, 0.5)
+      ..moveTo(45, 0.5)
+      ..lineTo(size.width - 45, 0.5)
+      ..moveTo(45, 0.5)
+      ..lineTo(45, 1)
+      ..moveTo(size.width - 45, 0.5)
+      ..lineTo(size.width - 45, 1);
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class ProductCatalogScreen extends StatefulWidget {
