@@ -254,6 +254,39 @@ class MemberWelcomeScreen extends StatelessWidget {
     return id.toUpperCase().startsWith('OCTO7') ? id : 'OCTO7 $id';
   }
 
+  Widget _octo7Brand(double size) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          width: size * 0.88,
+          height: size * 0.88,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: size * 0.09),
+          ),
+          child: Text('🌍', style: TextStyle(fontSize: size * 0.53, height: 1)),
+        ),
+        const SizedBox(width: 2),
+        Text('CTO', style: TextStyle(
+          color: Colors.white, fontSize: size, fontWeight: FontWeight.w900,
+          letterSpacing: 0.4, height: 1,
+        )),
+        Text('7', style: TextStyle(
+          color: const Color(0xFFD6A84B), fontSize: size,
+          fontWeight: FontWeight.w900, height: 1,
+        )),
+        SizedBox(width: size * 0.16),
+        Text('India', style: TextStyle(
+          color: Colors.white, fontSize: size * 0.58,
+          fontWeight: FontWeight.w700, letterSpacing: 0.5, height: 1,
+        )),
+      ],
+    );
+  }
+
   Widget _memberWelcomeMenuItem(
       BuildContext context, IconData icon, String title, int destination) {
     return ListTile(
@@ -313,7 +346,9 @@ class MemberWelcomeScreen extends StatelessWidget {
         final memberId = _formatMemberId(member['member_id']);
         return Scaffold(
           backgroundColor: const Color(0xFF071426),
-          appBar: AppBar(title: const Text('OCTO7 India')),
+          appBar: AppBar(
+            title: _octo7Brand(20),
+          ),
           drawer: Drawer(
             backgroundColor: const Color(0xFF060D1A),
             child: SafeArea(
@@ -362,9 +397,7 @@ class MemberWelcomeScreen extends StatelessWidget {
                   Image.asset('assets/images/OCTO7_emblem_transparent-2.png',
                     width: 176, height: 176, fit: BoxFit.contain),
                   const SizedBox(height: 18),
-                  const Text('OCTO7 India', textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white, fontSize: 29,
-                      fontWeight: FontWeight.w800, letterSpacing: 1.2)),
+                  _octo7Brand(29),
                   const SizedBox(height: 24),
                   if (snapshot.connectionState == ConnectionState.waiting)
                     const CircularProgressIndicator(color: Color(0xFFD6A84B))
