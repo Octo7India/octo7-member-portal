@@ -254,6 +254,52 @@ class MemberWelcomeScreen extends StatelessWidget {
     return id.toUpperCase().startsWith('OCTO7') ? id : 'OCTO7 $id';
   }
 
+  Widget _memberWelcomeMenuItem(
+      BuildContext context, IconData icon, String title, int destination) {
+    return ListTile(
+      leading: Icon(icon,
+          color: destination == 14 ? Colors.orangeAccent : const Color(0xFF10B981)),
+      title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 14)),
+      onTap: () async {
+        Navigator.pop(context);
+        if (destination == 14) {
+          await AuthService.instance.signOut();
+          if (!context.mounted) return;
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+            (route) => false,
+          );
+          return;
+        }
+        if (destination >= 0 && destination <= 3) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+                builder: (_) => MainNavigationWrapper(initialIndex: destination)),
+            (route) => false,
+          );
+          return;
+        }
+        final Widget page;
+        switch (destination) {
+          case 4: page = const MemberRegistrationScreen(); break;
+          case 5: page = const MemberMenuInfoScreen(title: 'My Orders'); break;
+          case 6: page = const TransactionHistoryScreen(); break;
+          case 7: page = const MemberMenuInfoScreen(title: 'Bank Details'); break;
+          case 8: page = const MemberMenuInfoScreen(title: 'KYC Verification'); break;
+          case 9: page = const MemberMenuInfoScreen(title: 'Withdrawals'); break;
+          case 10: page = const MemberMenuInfoScreen(title: 'My Coupons'); break;
+          case 11: page = const MemberMenuInfoScreen(title: 'Change Password'); break;
+          case 12: page = const MemberMenuInfoScreen(title: 'Help Line'); break;
+          case 13: page = const MemberMenuInfoScreen(title: 'Report'); break;
+          case 15: page = const MemberMenuInfoScreen(title: 'My Profile'); break;
+          default: return;
+        }
+        if (!context.mounted) return;
+        Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, dynamic>>(
@@ -270,38 +316,37 @@ class MemberWelcomeScreen extends StatelessWidget {
           appBar: AppBar(title: const Text('OCTO7 India')),
           drawer: Drawer(
             backgroundColor: const Color(0xFF060D1A),
-            child: SafeArea(child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const DrawerHeader(
-                  decoration: BoxDecoration(color: Color(0xFF0F5127)),
-                  child: Center(child: Text('OCTO7 INDIA\\nMEMBER MENU',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white, fontSize: 21,
-                      fontWeight: FontWeight.bold, height: 1.5))),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.dashboard_outlined, color: Color(0xFF10B981)),
-                  title: const Text('Dashboard', style: TextStyle(color: Colors.white)),
-                  onTap: () => Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const MainNavigationWrapper(initialIndex: 3)),
-                    (route) => false,
+            child: SafeArea(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  const DrawerHeader(
+                    decoration: BoxDecoration(color: Color(0xFF0F5127)),
+                    child: Center(child: Text('OCTO7 INDIA\\nMEMBER MENU',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white, fontSize: 21,
+                        fontWeight: FontWeight.bold, height: 1.5))),
                   ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.logout, color: Colors.orangeAccent),
-                  title: const Text('Logout', style: TextStyle(color: Colors.white)),
-                  onTap: () async {
-                    await AuthService.instance.signOut();
-                    if (!context.mounted) return;
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
-                      (route) => false,
-                    );
-                  },
-                ),
-              ],
-            )),
+                  _memberWelcomeMenuItem(context, Icons.home_filled, 'Home', 0),
+                  _memberWelcomeMenuItem(context, Icons.dashboard, 'Dashboard', 3),
+                  _memberWelcomeMenuItem(context, Icons.person_outline, 'My Profile', 15),
+                  _memberWelcomeMenuItem(context, Icons.account_tree, 'My Genealogy', 1),
+                  _memberWelcomeMenuItem(context, Icons.person_add_alt, 'New Member Registration', 4),
+                  _memberWelcomeMenuItem(context, Icons.grid_view, 'Products', 2),
+                  _memberWelcomeMenuItem(context, Icons.shopping_bag_outlined, 'My Orders', 5),
+                  _memberWelcomeMenuItem(context, Icons.account_balance_wallet_outlined, 'My Wallet', 6),
+                  _memberWelcomeMenuItem(context, Icons.account_balance, 'Bank Details', 7),
+                  _memberWelcomeMenuItem(context, Icons.verified_user_outlined, 'KYC Verification', 8),
+                  _memberWelcomeMenuItem(context, Icons.payments_outlined, 'Withdrawals', 9),
+                  _memberWelcomeMenuItem(context, Icons.confirmation_number_outlined, 'My Coupons', 10),
+                  _memberWelcomeMenuItem(context, Icons.lock_outline, 'Change Password', 11),
+                  _memberWelcomeMenuItem(context, Icons.support_agent, 'Help Line', 12),
+                  _memberWelcomeMenuItem(context, Icons.report_outlined, 'Report', 13),
+                  const Divider(color: Colors.white24),
+                  _memberWelcomeMenuItem(context, Icons.logout, 'Logout', 14),
+                ],
+              ),
+            ),
           ),
           body: Container(
             width: double.infinity,
