@@ -106,17 +106,6 @@ class AuthGate extends StatefulWidget {
 }
 
 class _AuthGateState extends State<AuthGate> {
-  late Future<bool> _sessionCheck;
-  bool _loggedIn = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _sessionCheck = AuthService.instance.validateSession();
-  }
-
-  void _onLogin() => setState(() => _loggedIn = true);
-
   @override
   Widget build(BuildContext context) {
     if (!SupabaseConfig.isSecurelyConfigured) {
@@ -132,45 +121,9 @@ class _AuthGateState extends State<AuthGate> {
         )),
       );
     }
-    if (_loggedIn) return const MainNavigationWrapper(initialIndex: 3);
-    return FutureBuilder<bool>(
-      future: _sessionCheck,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(backgroundColor: Color(0xFF052411),
-            body: Center(child: CircularProgressIndicator()));
-        }
-        if (snapshot.hasError) {
-          return Scaffold(
-            backgroundColor: const Color(0xFF052411),
-            body: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      'Unable to verify your OCTO7 session. Check your internet connection and try again.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () => setState(() {
-                        _sessionCheck = AuthService.instance.validateSession();
-                      }),
-                      child: const Text('RETRY'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }
-        if (snapshot.data == true) return const MainNavigationWrapper(initialIndex: 3);
-        return const WelcomeScreen();
-      },
-    );
+    // Always show the original public welcome page on app launch.
+    // Do not clear or modify any previously saved member session.
+    return const WelcomeScreen();
   }
 }
 
@@ -243,7 +196,7 @@ class WelcomeScreen extends StatelessWidget {
                             onPressed: () => Navigator.push(context, MaterialPageRoute(
                               builder: (_) => MemberLoginScreen(onLogin: () {
                                 Navigator.of(context).pushAndRemoveUntil(
-                                  MaterialPageRoute(builder: (_) => const MainNavigationWrapper(initialIndex: 3)),
+                                  MaterialPageRoute(builder: (_) => const MemberWelcomeScreen()),
                                   (route) => false,
                                 );
                               }),
@@ -291,6 +244,116 @@ class WelcomeScreen extends StatelessWidget {
   }
 }
 
+/// Personalised welcome page shown after successful member authentication.
+class MemberWelcomeScreen extends StatelessWidget {
+  const MemberWelcomeScreen({super.key});
+
+  String _formatMemberId(dynamic value) {
+    final id = (value ?? '').toString().trim();
+    if (id.isEmpty) return 'Unavailable';
+    return id.toUpperCase().startsWith('OCTO7') ? id : 'OCTO7 $id';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: LiveDataService.instance.fetchMemberProfile(),
+      builder: (context, snapshot) {
+        final response = snapshot.data ?? <String, dynamic>{};
+        final member = response['member'] is Map
+            ? Map<String, dynamic>.from(response['member'])
+            : <String, dynamic>{};
+        final name = (member['full_name'] ?? '').toString().trim();
+        final memberId = _formatMemberId(member['member_id']);
+        return Scaffold(
+          backgroundColor: const Color(0xFF071426),
+          appBar: AppBar(title: const Text('OCTO7 India')),
+          drawer: Drawer(
+            backgroundColor: const Color(0xFF060D1A),
+            child: SafeArea(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const DrawerHeader(
+                  decoration: BoxDecoration(color: Color(0xFF0F5127)),
+                  child: Center(child: Text('OCTO7 INDIA\\nMEMBER MENU',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white, fontSize: 21,
+                      fontWeight: FontWeight.bold, height: 1.5))),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.dashboard_outlined, color: Color(0xFF10B981)),
+                  title: const Text('Dashboard', style: TextStyle(color: Colors.white)),
+                  onTap: () => Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const MainNavigationWrapper(initialIndex: 3)),
+                    (route) => false,
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.logout, color: Colors.orangeAccent),
+                  title: const Text('Logout', style: TextStyle(color: Colors.white)),
+                  onTap: () async {
+                    await AuthService.instance.signOut();
+                    if (!context.mounted) return;
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+                      (route) => false,
+                    );
+                  },
+                ),
+              ],
+            )),
+          ),
+          body: Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(gradient: LinearGradient(
+              begin: Alignment.topLeft, end: Alignment.bottomRight,
+              colors: [Color(0xFF123C56), Color(0xFF071426), Color(0xFF052411)],
+            )),
+            child: SafeArea(child: Center(child: SingleChildScrollView(
+              padding: const EdgeInsets.all(26),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 440),
+                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Image.asset('assets/images/OCTO7_emblem_transparent-2.png',
+                    width: 176, height: 176, fit: BoxFit.contain),
+                  const SizedBox(height: 18),
+                  const Text('OCTO7 India', textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white, fontSize: 29,
+                      fontWeight: FontWeight.w800, letterSpacing: 1.2)),
+                  const SizedBox(height: 24),
+                  if (snapshot.connectionState == ConnectionState.waiting)
+                    const CircularProgressIndicator(color: Color(0xFFD6A84B))
+                  else if (snapshot.hasError)
+                    const Text('Unable to load member details. Open Dashboard from the menu.',
+                      textAlign: TextAlign.center, style: TextStyle(color: Colors.orangeAccent))
+                  else ...[
+                    Text(name.isEmpty ? 'Welcome!' : 'Welcome, $name!',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white, fontSize: 25,
+                        fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 12),
+                    const Text('Together For a Better Tomorrow',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Color(0xFFE5D6B8), fontSize: 15,
+                        fontStyle: FontStyle.italic)),
+                    const SizedBox(height: 16),
+                    Text('Member ID: $memberId', textAlign: TextAlign.center,
+                      style: const TextStyle(color: Color(0xFFD6A84B),
+                        fontSize: 16, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 18),
+                    const Text('Open the menu to access your Dashboard.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white70, fontSize: 14)),
+                  ],
+                ]),
+              ),
+            ))),
+          ),
+        );
+      },
+    );
+  }
+}
 class MemberLoginScreen extends StatefulWidget {
   const MemberLoginScreen({super.key, required this.onLogin});
   final VoidCallback onLogin;
