@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 
 class MemberRegistrationScreen extends StatefulWidget {
-  const MemberRegistrationScreen({super.key});
+  const MemberRegistrationScreen({super.key, this.initialParentPositionId, this.initialSide});
+
+  final int? initialParentPositionId;
+  final String? initialSide;
 
   @override
   State<MemberRegistrationScreen> createState() => _MemberRegistrationScreenState();
@@ -29,6 +32,13 @@ class _MemberRegistrationScreenState extends State<MemberRegistrationScreen> {
   String? _message;
   bool _error = false;
   Map<String, dynamic>? _createdMember;
+
+  @override
+  void initState() {
+    super.initState();
+    _parent.text = widget.initialParentPositionId?.toString() ?? '';
+    _side = widget.initialSide == 'right' ? 'right' : 'left';
+  }
 
   String _details() =>
       '${_name.text.trim()}|${_sponsor.text.trim()}|${_email.text.trim().toLowerCase()}|${_phone.text.trim()}|$_method|${_parent.text.trim()}|$_side';
