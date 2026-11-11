@@ -1240,6 +1240,22 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
   late Future<Map<String, dynamic>> _genealogyFuture;
   String? _rootMemberId;
   final List<String> _backStack = [];
+  final TransformationController _treeTransform = TransformationController();
+
+  @override
+  void dispose() {
+    _treeTransform.dispose();
+    super.dispose();
+  }
+
+  void _zoomTree(double factor) {
+    final next = _treeTransform.value.clone()..scale(factor);
+    _treeTransform.value = next;
+  }
+
+  void _resetTreeZoom() {
+    _treeTransform.value = Matrix4.identity();
+  }
 
   @override
   void initState() {
@@ -1265,13 +1281,17 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
     });
   }
 
-  void _openVacantPosition(int parentPositionId, String side) {
-    Navigator.of(context).push(MaterialPageRoute(
+  Future<void> _openVacantPosition(int parentPositionId, String side) async {
+    await Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => MemberRegistrationScreen(
         initialParentPositionId: parentPositionId,
         initialSide: side,
       ),
     ));
+    if (!mounted) return;
+    setState(() {
+      _genealogyFuture = LiveDataService.instance.fetchGenealogy(rootMemberId: _rootMemberId);
+    });
   }
 
   Widget _memberCard(Map<String, dynamic> node, {bool root = false}) {
@@ -1387,6 +1407,21 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: _goBack),
         actions: [
           IconButton(
+            tooltip: 'Zoom out',
+            icon: const Icon(Icons.remove, color: Colors.white),
+            onPressed: () => _zoomTree(0.8),
+          ),
+          IconButton(
+            tooltip: 'Reset zoom',
+            icon: const Icon(Icons.center_focus_strong, color: Colors.white),
+            onPressed: _resetTreeZoom,
+          ),
+          IconButton(
+            tooltip: 'Zoom in',
+            icon: const Icon(Icons.add, color: Colors.white),
+            onPressed: () => _zoomTree(1.25),
+          ),
+          IconButton(
             tooltip: 'Return to my ID',
             icon: const Icon(Icons.home_outlined, color: Colors.white),
             onPressed: () => setState(() {
@@ -1461,7 +1496,8 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
                 ),
                 Expanded(
                   child: InteractiveViewer(
-                    minScale: 0.65,
+                    transformationController: _treeTransform,
+                    minScale: 0.45,
                     maxScale: 2.5,
                     boundaryMargin: const EdgeInsets.all(80),
                     child: Center(
