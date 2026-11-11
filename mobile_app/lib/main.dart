@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:crop_your_image/crop_your_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'config/supabase_config.dart';
@@ -1138,34 +1140,41 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
   Future<void> _pickAndUploadPhoto() async {
     if (_uploadingPhoto) return;
     setState(() => _uploadingPhoto = true);
+    Directory? temporaryDirectory;
     try {
-      // Use Android's system photo picker directly. Avoid launching a second
-      // native crop activity, which was closing the app on some devices.
+      // Select first, then crop inside Flutter (no second native activity).
       final picked = await _imagePicker.pickImage(
         source: ImageSource.gallery,
-        imageQuality: 82,
-        maxWidth: 1200,
-        maxHeight: 1200,
+        imageQuality: 92,
+        maxWidth: 1800,
+        maxHeight: 1800,
       );
       if (picked == null || !mounted) return;
 
-      final file = File(picked.path);
-      final bytes = await file.length();
-      if (bytes == 0 || bytes > 5 * 1024 * 1024) {
-        throw const FormatException('Please choose a valid image smaller than 5 MB.');
+      final originalFile = File(picked.path);
+      final originalBytes = await originalFile.readAsBytes();
+      if (originalBytes.isEmpty || originalBytes.length > 10 * 1024 * 1024) {
+        throw const FormatException('Please choose a valid image smaller than 10 MB.');
       }
 
-      final extension = picked.path.split('.').last.toLowerCase();
-      final mimeType = switch (extension) {
-        'png' => 'image/png',
-        'webp' => 'image/webp',
-        'jpg' || 'jpeg' => 'image/jpeg',
-        _ => 'image/jpeg',
-      };
+      final croppedBytes = await Navigator.of(context).push<Uint8List>(
+        MaterialPageRoute(
+          fullscreenDialog: true,
+          builder: (_) => ProfilePhotoCropScreen(imageBytes: originalBytes),
+        ),
+      );
+      if (croppedBytes == null || !mounted) return;
+      if (croppedBytes.isEmpty || croppedBytes.length > 5 * 1024 * 1024) {
+        throw const FormatException('The cropped photo must be smaller than 5 MB.');
+      }
+
+      temporaryDirectory = await Directory.systemTemp.createTemp('octo7_profile_');
+      final file = File('${temporaryDirectory.path}/profile_photo.jpg');
+      await file.writeAsBytes(croppedBytes, flush: true);
 
       final signed = await AuthService.instance.invokeMemberAction(
         'profile_photo_upload_url',
-        {'content_type': mimeType},
+        {'content_type': 'image/jpeg'},
       );
       final path = signed['path']?.toString() ?? '';
       final token = signed['token']?.toString() ?? '';
@@ -1179,7 +1188,7 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
             path,
             token,
             file,
-            FileOptions(contentType: mimeType, upsert: false),
+            const FileOptions(contentType: 'image/jpeg', upsert: false),
           );
 
       await AuthService.instance.invokeMemberAction(
@@ -1189,7 +1198,7 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
       await _refresh();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile photo updated successfully.')),
+        const SnackBar(content: Text('Profile photo cropped and updated successfully.')),
       );
     } catch (error) {
       if (!mounted) return;
@@ -1197,6 +1206,9 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
         SnackBar(content: Text('Photo upload failed: $error')),
       );
     } finally {
+      if (temporaryDirectory != null) {
+        try { await temporaryDirectory.delete(recursive: true); } catch (_) {}
+      }
       if (mounted) setState(() => _uploadingPhoto = false);
     }
   }
@@ -2585,6 +2597,112 @@ class _MemberDashboardScreenState extends State<MemberDashboardScreen> {
         onPressed: () => onPressed(context),
         icon: Icon(icon, size: 18, color: const Color(0xFF10B981)),
         label: Text(label, style: const TextStyle(fontSize: 13)),
+      ),
+    );
+  }
+}
+
+
+/// In-app profile-photo cropper. It stays in Flutter and does not launch
+/// Android's external crop activity, avoiding the crash seen in earlier builds.
+class ProfilePhotoCropScreen extends StatefulWidget {
+  const ProfilePhotoCropScreen({super.key, required this.imageBytes});
+
+  final Uint8List imageBytes;
+
+  @override
+  State<ProfilePhotoCropScreen> createState() => _ProfilePhotoCropScreenState();
+}
+
+class _ProfilePhotoCropScreenState extends State<ProfilePhotoCropScreen> {
+  final CropController _cropController = CropController();
+  bool _isCropping = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF071321),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF0B192C),
+        title: const Text('Adjust profile photo'),
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: _isCropping ? null : () => Navigator.pop(context),
+        ),
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Text(
+                'Move and zoom the photo inside the circle. Your saved photo will be square and display as a circle.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Crop(
+                  image: widget.imageBytes,
+                  controller: _cropController,
+                  aspectRatio: 1,
+                  withCircleUi: true,
+                  interactive: true,
+                  fixCropRect: true,
+                  radius: 180,
+                  baseColor: const Color(0xFF071321),
+                  maskColor: Colors.black.withOpacity(0.62),
+                  cornerDotBuilder: (size, edgeAlignment) =>
+                      const DotControl(color: Color(0xFF10B981)),
+                  progressIndicator: const CircularProgressIndicator(
+                    color: Color(0xFF10B981),
+                  ),
+                  onCropped: (result) {
+                    if (!mounted) return;
+                    switch (result) {
+                      case CropSuccess(:final croppedImage):
+                        Navigator.of(context).pop<Uint8List>(croppedImage);
+                      case CropFailure(:final cause):
+                        setState(() => _isCropping = false);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Could not crop photo: $cause')),
+                        );
+                    }
+                  },
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: _isCropping
+                      ? null
+                      : () {
+                          setState(() => _isCropping = true);
+                          _cropController.crop();
+                        },
+                  icon: _isCropping
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.check_circle_outline),
+                  label: Text(_isCropping ? 'Cropping…' : 'Crop and use photo'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF10B981),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
