@@ -56,13 +56,25 @@ class AuthService {
   Future<Map<String, dynamic>> signIn({
     required String identifier,
     required String password,
+    String identifierType = 'member_id',
   }) async {
+    if (!const {'member_id', 'email', 'phone'}.contains(identifierType)) {
+      throw ArgumentError.value(identifierType, 'identifierType', 'Unsupported login method');
+    }
+    final rawIdentifier = identifier.trim();
+    final normalizedIdentifier = switch (identifierType) {
+      'member_id' => rawIdentifier.replaceFirst(
+          RegExp(r'^OCTO7\\s*', caseSensitive: false), ''),
+      'email' => rawIdentifier.toLowerCase(),
+      'phone' => rawIdentifier.replaceAll(RegExp(r'\\s+'), ''),
+      _ => rawIdentifier,
+    };
     final response = await _client.functions.invoke(
       'octo7-api',
       body: {
         'action': 'member_login',
-        'identifier': identifier.trim().replaceFirst(RegExp(r'^OCTO7\s*', caseSensitive: false), ''),
-        'identifier_type': 'member_id',
+        'identifier': normalizedIdentifier,
+        'identifier_type': identifierType,
         'password': password,
       },
       headers: {'Authorization': 'Bearer ${SupabaseConfig.anonKey}'},
