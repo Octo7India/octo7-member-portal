@@ -1,1 +1,1 @@
-Rebuild Android APK from the current feature/supabase-mobile-integration source.
+Rebuild Android APK from the latest feature/supabase-mobile-integration source. Preserve OCTO7 app branding and launcher icon.
