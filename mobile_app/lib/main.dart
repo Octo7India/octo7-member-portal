@@ -745,6 +745,16 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
           setState(() => _selectedIndex = _tabHistory.removeLast());
           return false;
         }
+        if (_selectedIndex == 1) {
+          // Genealogy was opened as the initial page of this wrapper: pop to
+          // the route that opened it instead of redirecting to Dashboard/menu.
+          final navigator = Navigator.of(context);
+          if (navigator.canPop()) {
+            navigator.pop();
+            return false;
+          }
+          return true;
+        }
         if (widget.returnToWelcomeMenuOnBack &&
             !_welcomeMenuRestoredByBack) {
           _welcomeMenuRestoredByBack = true;
@@ -1579,6 +1589,9 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
   @override
   void initState() {
     super.initState();
+    // Start zoomed out so the phone initially shows as much of the tree as
+    // practical; members can still zoom in/out with the toolbar or gestures.
+    _treeTransform.value = Matrix4.identity()..scale(0.45);
     _genealogyFuture = LiveDataService.instance.fetchGenealogy();
   }
 
@@ -1871,7 +1884,7 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
                 Expanded(
                   child: InteractiveViewer(
                     transformationController: _treeTransform,
-                    minScale: 0.45,
+                    minScale: 0.2,
                     maxScale: 2.5,
                     boundaryMargin: const EdgeInsets.all(80),
                     child: Center(
