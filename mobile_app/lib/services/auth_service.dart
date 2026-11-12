@@ -64,9 +64,9 @@ class AuthService {
     final rawIdentifier = identifier.trim();
     final normalizedIdentifier = switch (identifierType) {
       'member_id' => rawIdentifier.replaceFirst(
-          RegExp(r'^OCTO7\\s*', caseSensitive: false), ''),
+          RegExp(r'^OCTO7\s*', caseSensitive: false), ''),
       'email' => rawIdentifier.toLowerCase(),
-      'phone' => rawIdentifier.replaceAll(RegExp(r'\\s+'), ''),
+      'phone' => rawIdentifier.replaceAll(RegExp(r'\s+'), ''),
       _ => rawIdentifier,
     };
     final response = await _client.functions.invoke(
