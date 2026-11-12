@@ -659,6 +659,17 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     });
   }
 
+  void _handleGenealogyBack() {
+    if (_tabHistory.isNotEmpty) {
+      setState(() => _selectedIndex = _tabHistory.removeLast());
+      return;
+    }
+    // If this wrapper was opened as a page from another screen, pop back to
+    // that exact route. Never force the member to the Dashboard tab.
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) navigator.pop();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -712,9 +723,12 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     }
   }
 
+  final GlobalKey<_BinaryTreeViewScreenState> _genealogyKey =
+      GlobalKey<_BinaryTreeViewScreenState>();
+
   final List<Widget> _pages = [
     const Octo7WebsiteHomeScreen(),
-    const BinaryTreeViewScreen(),
+    BinaryTreeViewScreen(key: _genealogyKey, onBack: _handleGenealogyBack),
     const ProductCatalogScreen(),
     const MemberDashboardScreen(),
   ];
@@ -723,6 +737,10 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
+        if (_selectedIndex == 1 &&
+            (_genealogyKey.currentState?.handleSystemBack() ?? false)) {
+          return false;
+        }
         if (_tabHistory.isNotEmpty) {
           setState(() => _selectedIndex = _tabHistory.removeLast());
           return false;
@@ -1529,7 +1547,9 @@ class MemberMenuInfoScreen extends StatelessWidget {
 
 // --- BINARY TREE NETWORK VIEW SCREEN ---
 class BinaryTreeViewScreen extends StatefulWidget {
-  const BinaryTreeViewScreen({super.key});
+  const BinaryTreeViewScreen({super.key, this.onBack});
+
+  final VoidCallback? onBack;
 
   @override
   State<BinaryTreeViewScreen> createState() => _BinaryTreeViewScreenState();
@@ -1578,6 +1598,24 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
       _rootMemberId = previous;
       _genealogyFuture = LiveDataService.instance.fetchGenealogy(rootMemberId: previous);
     });
+  }
+
+  bool handleSystemBack() {
+    if (_backStack.isEmpty) return false;
+    _goBack();
+    return true;
+  }
+
+  void _handleBackPressed() {
+    if (_backStack.isNotEmpty) {
+      _goBack();
+      return;
+    }
+    if (widget.onBack != null) {
+      widget.onBack!();
+      return;
+    }
+    Navigator.of(context).maybePop();
   }
 
   Future<void> _openVacantPosition(int parentPositionId, String side) async {
@@ -1653,37 +1691,71 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
     );
   }
 
-  Widget _tree(Map<String, dynamic> root) {
-    final rootPositionId = int.tryParse('${root['id']}');
-    final left = root['left'] is Map ? Map<String, dynamic>.from(root['left']) : null;
-    final right = root['right'] is Map ? Map<String, dynamic>.from(root['right']) : null;
+  // Width is calculated from the full binary subtree so every generation
+  // remains aligned without changing the fixed 90x58 cards, 120px sibling
+  // gap, or 57px level gap.
+  double _subtreeWidth(Map<String, dynamic> node) {
+    final left = node['left'] is Map
+        ? Map<String, dynamic>.from(node['left'])
+        : null;
+    final right = node['right'] is Map
+        ? Map<String, dynamic>.from(node['right'])
+        : null;
+    final leftWidth = left == null ? 90.0 : _subtreeWidth(left);
+    final rightWidth = right == null ? 90.0 : _subtreeWidth(right);
+    return leftWidth + 120.0 + rightWidth;
+  }
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _memberCard(root, root: true),
-        SizedBox(
-          width: 300,
-          height: 57,
-          child: CustomPaint(painter: _BinaryBranchPainter()),
-        ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            left == null
-                ? (rootPositionId == null
-                    ? _emptySlot('LEFT')
-                    : _vacantCard(rootPositionId, 'left'))
-                : _memberCard(left),
-            const SizedBox(width: 120),
-            right == null
-                ? (rootPositionId == null
-                    ? _emptySlot('RIGHT')
-                    : _vacantCard(rootPositionId, 'right'))
-                : _memberCard(right),
-          ],
-        ),
-      ],
+  Widget _tree(Map<String, dynamic> root, {bool isRoot = false}) {
+    final rootPositionId = int.tryParse('${root['id']}');
+    final left = root['left'] is Map
+        ? Map<String, dynamic>.from(root['left'])
+        : null;
+    final right = root['right'] is Map
+        ? Map<String, dynamic>.from(root['right'])
+        : null;
+    final leftWidth = left == null ? 90.0 : _subtreeWidth(left);
+    final rightWidth = right == null ? 90.0 : _subtreeWidth(right);
+    final totalWidth = leftWidth + 120.0 + rightWidth;
+    final leftCenter = leftWidth / 2;
+    final rightCenter = leftWidth + 120.0 + rightWidth / 2;
+
+    return SizedBox(
+      width: totalWidth,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Center(child: _memberCard(root, root: isRoot)),
+          SizedBox(
+            width: totalWidth,
+            height: 57,
+            child: CustomPaint(
+              painter: _BinaryBranchPainter(
+                parentCenter: totalWidth / 2,
+                leftCenter: leftCenter,
+                rightCenter: rightCenter,
+              ),
+            ),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              left == null
+                  ? (rootPositionId == null
+                      ? SizedBox(width: leftWidth, child: _emptySlot('LEFT'))
+                      : _vacantCard(rootPositionId, 'left'))
+                  : _tree(left),
+              const SizedBox(width: 120),
+              right == null
+                  ? (rootPositionId == null
+                      ? SizedBox(width: rightWidth, child: _emptySlot('RIGHT'))
+                      : _vacantCard(rootPositionId, 'right'))
+                  : _tree(right),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -1702,8 +1774,11 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
       backgroundColor: const Color(0xFF071426),
       appBar: AppBar(
         title: const Text('My Genealogy', style: TextStyle(color: Colors.white, fontSize: 18)),
-        leading: _backStack.isEmpty ? null : IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: _goBack),
+        leading: IconButton(
+          tooltip: 'Back to previous page',
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: _handleBackPressed,
+        ),
         actions: [
           IconButton(
             tooltip: 'Zoom out',
@@ -1804,7 +1879,7 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
                         scrollDirection: Axis.horizontal,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
-                          child: _tree(rootNode),
+                          child: _tree(rootNode, isRoot: true),
                         ),
                       ),
                     ),
@@ -1813,7 +1888,7 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
                 const Padding(
                   padding: EdgeInsets.fromLTRB(12, 8, 12, 16),
                   child: Text(
-                    'Each view shows the selected ID and its immediate left and right positions. Select an ID to navigate deeper. Select AVAILABLE to register in that position.',
+                    'The full downline is shown across all returned generations. Select any member to focus on their downline; select AVAILABLE to register in that position.',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.white54, fontSize: 10, height: 1.4),
                   ),
@@ -1828,6 +1903,16 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
 }
 
 class _BinaryBranchPainter extends CustomPainter {
+  const _BinaryBranchPainter({
+    required this.parentCenter,
+    required this.leftCenter,
+    required this.rightCenter,
+  });
+
+  final double parentCenter;
+  final double leftCenter;
+  final double rightCenter;
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
@@ -1836,19 +1921,22 @@ class _BinaryBranchPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
     final midY = size.height / 2;
     final path = Path()
-      ..moveTo(size.width / 2, 0)
-      ..lineTo(size.width / 2, midY)
-      ..moveTo(45, midY)
-      ..lineTo(size.width - 45, midY)
-      ..moveTo(45, midY)
-      ..lineTo(45, size.height)
-      ..moveTo(size.width - 45, midY)
-      ..lineTo(size.width - 45, size.height);
+      ..moveTo(parentCenter, 0)
+      ..lineTo(parentCenter, midY)
+      ..moveTo(leftCenter, midY)
+      ..lineTo(rightCenter, midY)
+      ..moveTo(leftCenter, midY)
+      ..lineTo(leftCenter, size.height)
+      ..moveTo(rightCenter, midY)
+      ..lineTo(rightCenter, size.height);
     canvas.drawPath(path, paint);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _BinaryBranchPainter oldDelegate) =>
+      oldDelegate.parentCenter != parentCenter ||
+      oldDelegate.leftCenter != leftCenter ||
+      oldDelegate.rightCenter != rightCenter;
 }
 
 class ProductCatalogScreen extends StatefulWidget {
