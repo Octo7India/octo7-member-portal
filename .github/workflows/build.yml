@@ -156,7 +156,7 @@ jobs:
           content = gradle.read_text()
           if "octo7Release" in content:
               raise SystemExit("OCTO7 signing block already exists; refusing duplicate configuration")
-          gradle.write_text(content.rstrip() + "\\n" + block)
+          gradle.write_text(content.rstrip() + "\n" + block)
           print(f"Configured permanent OCTO7 signing in {gradle}")
           PY
         working-directory: ./mobile_app
