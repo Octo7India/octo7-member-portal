@@ -290,13 +290,8 @@ class _PublicWebsiteScreenState extends State<PublicWebsiteScreen>
       backgroundColor: _green,
       appBar: AppBar(
         backgroundColor: _navy,
-        toolbarHeight: 64,
-        title: _brand(size: 22),
-        actions: [
-          TextButton(onPressed: widget.onMemberLogin,
-            child: const Text('LOGIN', style: TextStyle(color: _gold, fontWeight: FontWeight.bold))),
-          const SizedBox(width: 6),
-        ],
+        automaticallyImplyLeading: false,
+        toolbarHeight: 0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: TabBar(
