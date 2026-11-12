@@ -1750,10 +1750,8 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(side.toUpperCase(), style: const TextStyle(color: Color(0xFF8DDCC2), fontSize: 9, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 3),
-            const Text('AVAILABLE', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
-            const Text('Tap to add', style: TextStyle(color: Colors.white54, fontSize: 8)),
+            Text(side.toUpperCase(), style: const TextStyle(color: Color(0xFF7040B5), fontSize: 10, fontWeight: FontWeight.bold)),
+            const Text('Position Available', style: TextStyle(color: Color(0xFF7040B5), fontSize: 8, fontWeight: FontWeight.w500)),
           ],
         ),
       ),
