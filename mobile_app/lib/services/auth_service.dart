@@ -56,10 +56,9 @@ class AuthService {
   Future<Map<String, dynamic>> signIn({
     required String identifier,
     required String password,
-    String identifierType = 'member_id',
   }) async {
     final normalizedIdentifier = identifier.trim().replaceFirst(
-      RegExp(r'^OCTO7\\s*', caseSensitive: false), '',
+      RegExp(r'^OCTO7\s*', caseSensitive: false), '',
     );
     if (!RegExp(r'^[0-9]+$').hasMatch(normalizedIdentifier)) {
       throw ArgumentError('Enter your OCTO7 User ID number.');
