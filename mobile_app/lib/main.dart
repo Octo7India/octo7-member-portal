@@ -1759,7 +1759,7 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
   }
 
   // Width is calculated from the full binary subtree so every generation
-  // remains aligned without changing the fixed 90x58 cards, 120px sibling
+  // remains aligned without changing the fixed 90x58 cards, 40px sibling
   // gap, or 57px level gap.
   // Match the website's recursive equal-width branch layout.
   double _subtreeWidth(Map<String, dynamic> node) {
@@ -1768,7 +1768,7 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
     final leftWidth = left == null ? 90.0 : _subtreeWidth(left);
     final rightWidth = right == null ? 90.0 : _subtreeWidth(right);
     final branchWidth = leftWidth > rightWidth ? leftWidth : rightWidth;
-    return branchWidth * 2 + 120.0;
+    return branchWidth * 2 + 40.0;
   }
 
   // Estimate the full rendered tree height using the fixed 58px cards and
@@ -1792,9 +1792,9 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
     final leftWidth = left == null ? 90.0 : _subtreeWidth(left);
     final rightWidth = right == null ? 90.0 : _subtreeWidth(right);
     final branchWidth = leftWidth > rightWidth ? leftWidth : rightWidth;
-    final totalWidth = branchWidth * 2 + 120.0;
+    final totalWidth = branchWidth * 2 + 40.0;
     final leftCenter = branchWidth / 2;
-    final rightCenter = branchWidth + 120.0 + branchWidth / 2;
+    final rightCenter = branchWidth + 40.0 + branchWidth / 2;
 
     return SizedBox(
       width: totalWidth,
@@ -1825,7 +1825,7 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
                       : _tree(left),
                 ),
               ),
-              const SizedBox(width: 120),
+              const SizedBox(width: 40),
               SizedBox(
                 width: branchWidth,
                 child: Center(
