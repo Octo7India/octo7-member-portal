@@ -1589,8 +1589,8 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
   @override
   void initState() {
     super.initState();
-    // Start zoomed out so the phone initially shows as much of the tree as
-    // practical; members can still zoom in/out with the toolbar or gestures.
+    // The first viewport fit is calculated from the complete returned tree
+    // after layout, so the largest practical number of positions is visible.
     _treeTransform.value = Matrix4.identity()..scale(0.45);
     _genealogyFuture = LiveDataService.instance.fetchGenealogy();
   }
@@ -1717,6 +1717,20 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
     final leftWidth = left == null ? 90.0 : _subtreeWidth(left);
     final rightWidth = right == null ? 90.0 : _subtreeWidth(right);
     return leftWidth + 120.0 + rightWidth;
+  }
+
+  // Estimate the full rendered tree height using the fixed 58px cards and
+  // 57px generation spacing. This is paired with _subtreeWidth for auto-fit.
+  double _subtreeHeight(Map<String, dynamic> node) {
+    final left = node['left'] is Map
+        ? Map<String, dynamic>.from(node['left'])
+        : null;
+    final right = node['right'] is Map
+        ? Map<String, dynamic>.from(node['right'])
+        : null;
+    final leftHeight = left == null ? 58.0 : _subtreeHeight(left);
+    final rightHeight = right == null ? 58.0 : _subtreeHeight(right);
+    return 58.0 + 57.0 + (leftHeight > rightHeight ? leftHeight : rightHeight);
   }
 
   Widget _tree(Map<String, dynamic> root, {bool isRoot = false}) {
@@ -1882,20 +1896,39 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
                   ),
                 ),
                 Expanded(
-                  child: InteractiveViewer(
-                    transformationController: _treeTransform,
-                    minScale: 0.2,
-                    maxScale: 2.5,
-                    boundaryMargin: const EdgeInsets.all(80),
-                    child: Center(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final treeWidth = _subtreeWidth(rootNode) + 48.0;
+                      final treeHeight = _subtreeHeight(rootNode) + 48.0;
+                      final widthScale = (constraints.maxWidth - 24.0) / treeWidth;
+                      final heightScale = (constraints.maxHeight - 24.0) / treeHeight;
+                      final fitScale = (widthScale < heightScale
+                          ? widthScale
+                          : heightScale).clamp(0.12, 1.0).toDouble();
+
+                      // Re-fit when a different member's downline is opened.
+                      // Members can then zoom/pan manually without a scroll
+                      // view clipping the full-width binary tree.
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) {
+                          _treeTransform.value = Matrix4.identity()..scale(fitScale);
+                        }
+                      });
+
+                      return InteractiveViewer(
+                        transformationController: _treeTransform,
+                        constrained: false,
+                        alignment: Alignment.topCenter,
+                        minScale: 0.12,
+                        maxScale: 2.5,
+                        boundaryMargin: const EdgeInsets.all(120),
+                        clipBehavior: Clip.none,
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+                          padding: const EdgeInsets.all(24),
                           child: _tree(rootNode, isRoot: true),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ),
                 const Padding(
