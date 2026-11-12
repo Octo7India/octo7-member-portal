@@ -484,20 +484,12 @@ footer .logo {color:white}
   <div class="login-box" id="loginBox">
     <h3 style="text-align:center;color:#49306c">Member Login</h3>
 
-    <div class="login-mode-switch" role="group" aria-label="Choose login method">
-      <button type="button" id="emailLoginMode" class="active" aria-pressed="true" onclick="setLoginMode('email')">Email</button>
-      <button type="button" id="phoneLoginMode" aria-pressed="false" onclick="setLoginMode('phone')">Phone</button>
-      <button type="button" id="memberIdLoginMode" aria-pressed="false" onclick="setLoginMode('member')">User ID</button>
-    </div>
-    <label for="email" id="loginIdentifierLabel">Email Address</label>
-    <div class="user-id-input" id="userIdInput" hidden>
+    <label for="memberNumberInput">OCTO7 User ID</label>
+    <div class="user-id-input">
       <span class="user-id-prefix">OCTO7</span>
       <input id="memberNumberInput" type="text" inputmode="numeric" autocomplete="username"
              placeholder="Enter your User ID number" aria-label="Enter your User ID number">
     </div>
-    <input id="email" type="text" inputmode="email" autocomplete="username"
-           placeholder="Enter your registered email address">
-    <small class="login-hint" id="loginIdentifierHint" hidden>Include your country code (India: +91).</small>
 
     <label for="password">Password</label>
     <div class="password-box">
@@ -1222,45 +1214,14 @@ async function api(action, payload = {}) {
 
 // MEMBER LOGIN
 
-function setLoginMode(mode) {
-  loginMode = ["email","phone","member"].includes(mode) ? mode : "email";
-  const memberMode = loginMode === "member";
-  const phoneMode = loginMode === "phone";
-  const input = document.getElementById("email");
-  const userIdInput = document.getElementById("userIdInput");
-  const memberNumberInput = document.getElementById("memberNumberInput");
-  const label = document.getElementById("loginIdentifierLabel");
-  const hint = document.getElementById("loginIdentifierHint");
-  const emailButton = document.getElementById("emailLoginMode");
-  const phoneButton = document.getElementById("phoneLoginMode");
-  const memberButton = document.getElementById("memberIdLoginMode");
-
-  label.textContent = memberMode ? "User ID" : phoneMode ? "Phone Number" : "Email Address";
-  userIdInput.hidden = !memberMode;
-  input.hidden = memberMode;
-  input.placeholder = phoneMode ? "Enter your mobile number" : "Enter your registered email address";
-  input.inputMode = phoneMode ? "tel" : "email";
-  input.autocomplete = phoneMode ? "tel" : "email";
-  if (memberMode) memberNumberInput.value = "";
-  hint.hidden = !phoneMode;
-  hint.textContent = "Include your country code (India: +91).";
-  emailButton.classList.toggle("active", loginMode === "email");
-  phoneButton.classList.toggle("active", phoneMode);
-  memberButton.classList.toggle("active", memberMode);
-  emailButton.setAttribute("aria-pressed", String(loginMode === "email"));
-  phoneButton.setAttribute("aria-pressed", String(phoneMode));
-  memberButton.setAttribute("aria-pressed", String(memberMode));
-}
-
 async function login() {
-  const identifier = (loginMode === "member"
-    ? document.getElementById("memberNumberInput").value.trim()
-    : document.getElementById("email").value.trim());
+  const memberNumber = document.getElementById("memberNumberInput").value.trim();
+  const identifier = memberNumber.replace(/^OCTO7\\s*/i, "");
   const password = document.getElementById("password").value;
   const button = document.getElementById("loginButton");
 
-  if (!identifier || !password) {
-    showMessage("loginMessage", "Please enter your login ID and password.", true);
+  if (!/^[0-9]+$/.test(identifier) || !password) {
+    showMessage("loginMessage", "Enter your OCTO7 User ID number and password.", true);
     return;
   }
 
@@ -1273,34 +1234,27 @@ async function login() {
     memberIdSession = false;
     sessionStorage.removeItem("octo7MemberSessionToken");
 
-    const identifierType = loginMode === "member" ? "member_id" : loginMode;
     const response = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", "apikey": SUPABASE_KEY },
       body: JSON.stringify({
         action: "member_login",
         identifier: identifier,
-        identifier_type: identifierType,
+        identifier_type: "member_id",
         password: password
       })
     });
     const result = await response.json().catch(() => ({}));
-
-    // One authentication path for email, mobile and OCTO7 Member ID.
-    // The server verifies either the existing OCTO7 password hash or the
-    // linked legacy Supabase Auth password, then issues the same OCTO7 session.
     if (!response.ok || result.success !== true || !result.session_token) {
-      throw new Error(result.error || result.message || "Invalid login ID or password.");
+      throw new Error(result.error || result.message || "Invalid OCTO7 User ID or password.");
     }
     accessToken = result.session_token;
     memberIdSession = true;
     sessionStorage.setItem("octo7MemberSessionToken", accessToken);
-
     document.getElementById("loginBox").hidden = true;
     showMemberPortal();
     showPortalPage("home");
     loadMemberWelcome();
-
   } catch(error) {
     showMessage("loginMessage", error.message || "Login failed.", true);
   } finally {
