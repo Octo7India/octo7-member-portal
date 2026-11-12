@@ -818,7 +818,6 @@ const client = window.supabase.createClient(
 
 let accessToken = null;
 let memberIdSession = false;
-let loginMode = "email";
 
 // Keep the API token synchronized when Supabase refreshes an email/phone session.
 client.auth.onAuthStateChange((event, session) => {
