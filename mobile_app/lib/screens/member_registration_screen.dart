@@ -29,6 +29,8 @@ class _MemberRegistrationScreenState extends State<MemberRegistrationScreen> {
   String _snapshot = '';
   bool _verified = false;
   bool _busy = false;
+  bool _showPassword = false;
+  bool _showConfirmPassword = false;
   String? _message;
   bool _error = false;
   Map<String, dynamic>? _createdMember;
@@ -240,6 +242,8 @@ class _MemberRegistrationScreenState extends State<MemberRegistrationScreen> {
     bool required = true,
     String? hint,
     bool obscure = false,
+    bool? isObscured,
+    VoidCallback? onToggleObscure,
     bool numericOnly = false,
     bool editableAfterVerification = false,
     bool invalidateVerificationOnChange = true,
@@ -249,11 +253,21 @@ class _MemberRegistrationScreenState extends State<MemberRegistrationScreen> {
       child: TextFormField(
         controller: controller,
         keyboardType: type,
-        obscureText: obscure,
+        obscureText: isObscured ?? obscure,
         enabled: _createdMember == null &&
             !_busy &&
             (!_verified || editableAfterVerification),
-        decoration: _dec(label, hint: hint),
+        decoration: _dec(label, hint: hint).copyWith(
+          suffixIcon: onToggleObscure == null
+              ? null
+              : IconButton(
+                  tooltip: (isObscured ?? obscure) ? 'Show password' : 'Hide password',
+                  onPressed: onToggleObscure,
+                  icon: Icon(
+                    (isObscured ?? obscure) ? Icons.visibility_off : Icons.visibility,
+                  ),
+                ),
+        ),
         validator: (value) {
           final text = (value ?? '').trim();
           if (required && text.isEmpty) return 'Required';
@@ -419,6 +433,8 @@ class _MemberRegistrationScreenState extends State<MemberRegistrationScreen> {
                       _password,
                       'Create Password',
                       obscure: true,
+                      isObscured: !_showPassword,
+                      onToggleObscure: () => setState(() => _showPassword = !_showPassword),
                       editableAfterVerification: true,
                       invalidateVerificationOnChange: false,
                     ),
@@ -426,6 +442,8 @@ class _MemberRegistrationScreenState extends State<MemberRegistrationScreen> {
                       _confirm,
                       'Confirm Password',
                       obscure: true,
+                      isObscured: !_showConfirmPassword,
+                      onToggleObscure: () => setState(() => _showConfirmPassword = !_showConfirmPassword),
                       editableAfterVerification: true,
                       invalidateVerificationOnChange: false,
                     ),
