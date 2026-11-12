@@ -215,6 +215,22 @@ jobs:
             --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
         working-directory: ./mobile_app
 
+      - name: Verify OCTO7 APK signature and certificate
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          APK="build/app/outputs/flutter-apk/app-release.apk"
+          APKSIGNER="$(find "${ANDROID_HOME:-$ANDROID_SDK_ROOT}/build-tools" -type f -name apksigner | sort -V | tail -n1)"
+          test -x "$APKSIGNER" || { echo "Android apksigner tool not found"; exit 1; }
+          "$APKSIGNER" verify --verbose --print-certs "$APK" | tee /tmp/octo7-apk-signature.txt
+          APK_CERT="$(sed -n 's/.*certificate SHA-256 digest: //p' /tmp/octo7-apk-signature.txt | head -n1 | tr -d ':' | tr '[:upper:]' '[:lower:]')"
+          KEY_CERT="$(keytool -list -v -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" -alias upload 2>/dev/null | sed -n 's/^[[:space:]]*SHA256: //p' | head -n1 | tr -d ':' | tr '[:upper:]' '[:lower:]')"
+          test -n "$APK_CERT" && test -n "$KEY_CERT" || { echo "Could not read APK or keystore certificate fingerprint"; exit 1; }
+          test "$APK_CERT" = "$KEY_CERT" || { echo "APK signer does not match the permanent OCTO7 keystore"; exit 1; }
+          echo "Verified: APK is signed by the permanent OCTO7 upload key."
+        working-directory: ./mobile_app
+
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v5
         with:
