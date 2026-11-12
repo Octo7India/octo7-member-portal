@@ -1768,7 +1768,7 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
     final leftWidth = left == null ? 90.0 : _subtreeWidth(left);
     final rightWidth = right == null ? 90.0 : _subtreeWidth(right);
     final branchWidth = leftWidth > rightWidth ? leftWidth : rightWidth;
-    return branchWidth * 2 + 40.0;
+    return branchWidth * 2 + 120.0;
   }
 
   // Estimate the full rendered tree height using the fixed 58px cards and
@@ -1792,9 +1792,9 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
     final leftWidth = left == null ? 90.0 : _subtreeWidth(left);
     final rightWidth = right == null ? 90.0 : _subtreeWidth(right);
     final branchWidth = leftWidth > rightWidth ? leftWidth : rightWidth;
-    final totalWidth = branchWidth * 2 + 40.0;
+    final totalWidth = branchWidth * 2 + 120.0;
     final leftCenter = branchWidth / 2;
-    final rightCenter = branchWidth + 40.0 + branchWidth / 2;
+    final rightCenter = branchWidth + 120.0 + branchWidth / 2;
 
     return SizedBox(
       width: totalWidth,
@@ -1825,7 +1825,7 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
                       : _tree(left),
                 ),
               ),
-              const SizedBox(width: 40),
+              const SizedBox(width: 120),
               SizedBox(
                 width: branchWidth,
                 child: Center(
@@ -1964,7 +1964,7 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
                       final heightScale = (constraints.maxHeight - 24.0) / treeHeight;
                       final fitScale = (widthScale < heightScale
                           ? widthScale
-                          : heightScale).clamp(0.12, 1.0).toDouble();
+                          : heightScale).clamp(0.01, 1.0).toDouble();
                       _fitScale = fitScale;
 
                       // Re-fit when a different member's downline is opened.
@@ -1980,7 +1980,7 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
                         transformationController: _treeTransform,
                         constrained: false,
                         alignment: Alignment.topCenter,
-                        minScale: 0.12,
+                        minScale: 0.01,
                         maxScale: 2.5,
                         boundaryMargin: const EdgeInsets.all(120),
                         clipBehavior: Clip.none,
