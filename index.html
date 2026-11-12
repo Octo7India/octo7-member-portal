@@ -1023,13 +1023,6 @@ function showForgotForm() {
   document.getElementById("loginBox").hidden = true;
   document.getElementById("forgotBox").hidden = false;
   document.getElementById("newPasswordBox").hidden = true;
-
-  const enteredIdentifier = document.getElementById("email").value.trim();
-  setLoginMode("email");
-
-  if (enteredIdentifier.includes("@")) {
-    document.getElementById("resetEmail").value = enteredIdentifier;
-  }
 }
 
 function showNewPasswordForm() {
