@@ -89,6 +89,78 @@ jobs:
           PY
         working-directory: ./mobile_app
 
+      - name: Configure permanent OCTO7 release signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test -n "$KEYSTORE_BASE64" || { echo "Missing KEYSTORE_BASE64 secret"; exit 1; }
+          test -n "$KEYSTORE_PASSWORD" || { echo "Missing KEYSTORE_PASSWORD secret"; exit 1; }
+          test -n "$KEY_PASSWORD" || { echo "Missing KEY_PASSWORD secret"; exit 1; }
+          mkdir -p android/app
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          keytool -list -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" -alias upload >/dev/null
+          python3 - <<'PY'
+          from pathlib import Path
+
+          candidates = [Path("android/app/build.gradle.kts"), Path("android/app/build.gradle")]
+          gradle = next((p for p in candidates if p.exists()), None)
+          if gradle is None:
+              raise SystemExit("Generated Android app Gradle file not found for signing")
+
+          if gradle.suffix == ".kts":
+              block = """
+          val octo7KeyPassword = System.getenv("KEY_PASSWORD") ?: error("KEY_PASSWORD is missing")
+          val octo7StorePassword = System.getenv("KEYSTORE_PASSWORD") ?: error("KEYSTORE_PASSWORD is missing")
+          android {
+              signingConfigs {
+                  create("octo7Release") {
+                      keyAlias = "upload"
+                      keyPassword = octo7KeyPassword
+                      storeFile = file("upload-keystore.jks")
+                      storePassword = octo7StorePassword
+                  }
+              }
+              buildTypes {
+                  getByName("release") {
+                      signingConfig = signingConfigs.getByName("octo7Release")
+                  }
+              }
+          }
+          """
+          else:
+              block = """
+          def octo7KeyPassword = System.getenv("KEY_PASSWORD")
+          def octo7StorePassword = System.getenv("KEYSTORE_PASSWORD")
+          if (!octo7KeyPassword || !octo7StorePassword) {
+              throw new GradleException("OCTO7 release signing secrets are missing")
+          }
+          android {
+              signingConfigs {
+                  octo7Release {
+                      keyAlias 'upload'
+                      keyPassword octo7KeyPassword
+                      storeFile file('upload-keystore.jks')
+                      storePassword octo7StorePassword
+                  }
+              }
+              buildTypes {
+                  release {
+                      signingConfig signingConfigs.octo7Release
+                  }
+              }
+          }
+          """
+          content = gradle.read_text()
+          if "octo7Release" in content:
+              raise SystemExit("OCTO7 signing block already exists; refusing duplicate configuration")
+          gradle.write_text(content.rstrip() + "\\n" + block)
+          print(f"Configured permanent OCTO7 signing in {gradle}")
+          PY
+        working-directory: ./mobile_app
+
       - name: Set OCTO7 app name and generate company launcher icon
         run: |
           python3 - <<'PY'
@@ -135,6 +207,8 @@ jobs:
         env:
           SUPABASE_URL: https://oqggzpbxrlglsqzdkbpy.supabase.co
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           flutter build apk --release --target-platform android-arm64 \
             --dart-define=SUPABASE_URL="$SUPABASE_URL" \
