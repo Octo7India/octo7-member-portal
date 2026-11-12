@@ -62,6 +62,18 @@ jobs:
 
           if not re.search(r'minSdk(?:Version)?\s*(?:=)?\s*21', content):
               raise SystemExit("Failed to enforce Android minSdk 21")
+
+          # Flutter's generated Android release lint currently crashes inside
+          # CommentDetector/JavaDocParser. Keep normal compilation and packaging,
+          # but prevent this broken release-only lint preflight from blocking APKs.
+          if gradle.suffix == ".kts":
+              lint_block = """\n    lint {\n        checkReleaseBuilds = false\n        abortOnError = false\n    }\n"""
+          else:
+              lint_block = """\n    lint {\n        checkReleaseBuilds false\n        abortOnError false\n    }\n"""
+          if re.search(r'\\blint\\s*\\{', content) is None:
+              content = content.replace("android {", "android {" + lint_block, 1)
+          if re.search(r'checkReleaseBuilds\\s*(?:=)?\\s*false', content) is None:
+              raise SystemExit("Failed to disable crashing release lint preflight")
           gradle.write_text(content)
 
           props = Path("android/gradle.properties")
