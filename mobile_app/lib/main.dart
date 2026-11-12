@@ -1972,7 +1972,13 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
                       // view clipping the full-width binary tree.
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         if (mounted) {
-                          _treeTransform.value = Matrix4.identity()..scale(fitScale);
+                          // Center the fitted tree in both dimensions whenever
+                          // genealogy opens or a member's downline is selected.
+                          final offsetX = (constraints.maxWidth - treeWidth * fitScale) / 2;
+                          final offsetY = (constraints.maxHeight - treeHeight * fitScale) / 2;
+                          _treeTransform.value = Matrix4.identity()
+                            ..translate(offsetX < 0 ? 0.0 : offsetX, offsetY < 0 ? 0.0 : offsetY)
+                            ..scale(fitScale);
                         }
                       });
 
