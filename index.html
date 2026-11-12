@@ -1871,7 +1871,7 @@ async function submitNewMemberRegistration(event){
       '<h3>Registration completed</h3>'+
       '<p><strong>New Member ID:</strong> '+memberId+'</p>'+
       '<p><strong>Account status:</strong> '+status+'</p>'+
-      '<p class="registration-note">Please share the Member ID with the new member. Membership remains pending until activation. The new member can sign in using the password created during registration.</p>'+
+      '<p class="registration-note">'+(member.status==='active'?'This Member ID is automatically activated. No activation code is required for OCTO7 IDs 1–15.':'Membership remains pending until activation. An activation code is required. The new member can sign in using the password created during registration.')+'</p>'+
       '<button type="button" class="btn" onclick="loadGenealogy()">RETURN TO GENEALOGY</button>';
   }catch(error){
     showMessage("registrationMessage",error.message||"Member registration failed. Please try again.",true);
