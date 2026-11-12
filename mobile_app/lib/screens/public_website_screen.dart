@@ -129,7 +129,7 @@ class _PublicWebsiteScreenState extends State<PublicWebsiteScreen>
                 'WELCOME',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: (width * 0.065).clamp(20.0, 29.0),
+                  fontSize: (width * 0.065).clamp(20.0, 29.0).toDouble(),
                   fontWeight: FontWeight.w900,
                   letterSpacing: 2.2,
                   shadows: const [
