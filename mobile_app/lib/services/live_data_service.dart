@@ -38,7 +38,18 @@ class LiveDataService {
 
   /// Web portal's member-specific genealogy action.
   Future<Map<String, dynamic>> fetchGenealogy({String? rootMemberId}) =>
-      _call('genealogy', rootMemberId == null ? {} : {'root_member_id': rootMemberId});
+      _call('my_genealogy', rootMemberId == null ? {} : {'root_member_id': rootMemberId});
+
+  /// Finds vacant positions across the selected member's downline, matching the website.
+  Future<List<Map<String, dynamic>>> fetchVacantPositions(String rootMemberId) async {
+    final result = await _call('find_vacant_positions', {
+      'root_member_id': rootMemberId,
+      'limit': 500,
+    });
+    final raw = result['vacant_positions'];
+    if (raw is! List) return [];
+    return raw.whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList();
+  }
 
   /// Web portal's published product catalog action.
   Future<List<Map<String, dynamic>>> fetchProducts() async {
