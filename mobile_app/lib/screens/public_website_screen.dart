@@ -98,49 +98,87 @@ class _PublicWebsiteScreenState extends State<PublicWebsiteScreen>
         child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
       );
 
-  Widget _homePage() => _page(Column(
-    children: [
-      const SizedBox(height: 8),
-      const Text('Welcome', textAlign: TextAlign.center,
-        style: TextStyle(color: _navy, fontSize: 29,
-          fontWeight: FontWeight.w800, height: 1.15, letterSpacing: 1.2)),
-      const SizedBox(height: 10),
-      FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Text.rich(
-          const TextSpan(children: [
-            TextSpan(text: 'OCTO', style: TextStyle(color: _navy)),
-            TextSpan(text: '7', style: TextStyle(color: _navy)),
-          ]),
-          style: const TextStyle(fontSize: 58, fontWeight: FontWeight.w900,
-            letterSpacing: 2, height: 1),
-        ),
-      ),
-      const SizedBox(height: 14),
-      Image.asset('assets/images/OCTO7_emblem_transparent-2.png',
-        width: 220, height: 190, fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => const Icon(Icons.public, size: 120, color: _navy)),
-      const SizedBox(height: 8),
-      const Text('Together For a Better Tomorrow',
-        textAlign: TextAlign.center,
-        style: TextStyle(color: _navy, fontSize: 16,
-          fontStyle: FontStyle.italic, fontWeight: FontWeight.w700)),
-      const SizedBox(height: 22),
-      _actionButton('MEMBER LOGIN', widget.onMemberLogin),
-      const SizedBox(height: 24),
-      _bodyText('Discover a world of opportunities through quality products, entrepreneurship and growing business network.'),
-      const SizedBox(height: 38),
-      const Text('OCTO7 India',
-        textAlign: TextAlign.center,
-        style: TextStyle(color: _navy, fontSize: 21, fontWeight: FontWeight.w900,
-          letterSpacing: 1.1)),
-      const SizedBox(height: 7),
-      const Text('Dream. Network. Grow',
-        textAlign: TextAlign.center,
-        style: TextStyle(color: _navy, fontSize: 14, fontWeight: FontWeight.w700,
-          letterSpacing: 1.5)),
-    ],
-  ), background: _green);
+  Widget _homePage() => LayoutBuilder(
+    builder: (context, constraints) {
+      final height = constraints.maxHeight;
+      final width = constraints.maxWidth;
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/welcome_bg.png',
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => const DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF001B54), Color(0xFF0064D8)],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 8,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Text(
+                'WELCOME',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: (width * 0.065).clamp(20.0, 29.0),
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2.2,
+                  shadows: const [
+                    Shadow(color: Colors.black87, blurRadius: 8, offset: Offset(0, 2)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Transparent hit target connects the artwork's Member Login button
+          // to the existing member authentication flow.
+          Positioned(
+            left: width * 0.06,
+            right: width * 0.06,
+            top: height * 0.695,
+            height: height * 0.085,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: widget.onMemberLogin,
+                borderRadius: BorderRadius.circular(48),
+                child: const SizedBox.expand(),
+              ),
+            ),
+          ),
+          // Hide the Create Account button printed into the supplied artwork.
+          Positioned(
+            left: 0,
+            right: 0,
+            top: height * 0.785,
+            height: height * 0.095,
+            child: const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFF003C98),
+                    Color(0xFF0056C9),
+                    Color(0xFF003B96),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    },
+  );
 
   Widget _infoCard(IconData icon, String heading, String text) => Container(
     width: double.infinity,
