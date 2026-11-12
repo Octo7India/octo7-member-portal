@@ -1583,9 +1583,11 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
   }
 
   double _fitScale = 0.45;
+  Matrix4 _fitTransform = Matrix4.identity();
+  String? _lastFitKey;
 
   void _resetTreeZoom() {
-    _treeTransform.value = Matrix4.identity()..scale(_fitScale);
+    _treeTransform.value = _fitTransform.clone();
   }
 
   Future<void> _showVacantPositions() async {
@@ -1967,39 +1969,42 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
                           : heightScale).clamp(0.01, 1.0).toDouble();
                       _fitScale = fitScale;
 
-                      // Re-fit when a different member's downline is opened.
-                      // Members can then zoom/pan manually without a scroll
-                      // view clipping the full-width binary tree.
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (mounted) {
-                          // Center the fitted tree in both dimensions whenever
-                          // genealogy opens or a member's downline is selected.
-                          final offsetX = (constraints.maxWidth - treeWidth * fitScale) / 2;
-                          final offsetY = (constraints.maxHeight - treeHeight * fitScale) / 2;
-                          // Scale first, then translate in scaled coordinates so
-                          // the fitted tree is centered in the viewport.
-                          _treeTransform.value = Matrix4.identity()
-                            ..scale(fitScale)
-                            ..translate(
-                              (offsetX < 0 ? 0.0 : offsetX) / fitScale,
-                              (offsetY < 0 ? 0.0 : offsetY) / fitScale,
-                            );
-                        }
-                      });
+                      // Apply the initial fit only when the displayed tree or
+                      // its measured size changes. Never reset the controller
+                      // during ordinary rebuilds: that would cancel a user's
+                      // pinch zoom or drag gesture.
+                      final fitKey = '${rootNode['member_id']}:$treeWidth:$treeHeight';
+                      if (_lastFitKey != fitKey) {
+                        _lastFitKey = fitKey;
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (!mounted) return;
+                          final offsetX = ((constraints.maxWidth - treeWidth * fitScale) / 2)
+                              .clamp(0.0, double.infinity).toDouble();
+                          final offsetY = ((constraints.maxHeight - treeHeight * fitScale) / 2)
+                              .clamp(0.0, double.infinity).toDouble();
+                          // Explicit viewport-space matrix: scale around the
+                          // fitted tree, then place its bounds at the center.
+                          _fitTransform = Matrix4.identity()
+                            ..setEntry(0, 0, fitScale)
+                            ..setEntry(1, 1, fitScale)
+                            ..setEntry(0, 3, offsetX)
+                            ..setEntry(1, 3, offsetY);
+                          _treeTransform.value = _fitTransform.clone();
+                        });
+                      }
 
                       return InteractiveViewer(
                         transformationController: _treeTransform,
-                        // Google Maps-style binary-tree workspace:
-                        // drag to pan, pinch with two fingers to scale,
-                        // and tap a member/vacant node to activate its action.
+                        // Maps-style workspace: one-finger drag pans, two-finger
+                        // pinch scales around the fingers, and node taps remain
+                        // available through the child InkWells.
                         panEnabled: true,
                         scaleEnabled: true,
                         constrained: false,
-                        alignment: Alignment.topCenter,
                         minScale: 0.01,
-                        maxScale: 2.5,
-                        boundaryMargin: const EdgeInsets.all(120),
-                        clipBehavior: Clip.none,
+                        maxScale: 5.0,
+                        boundaryMargin: const EdgeInsets.all(10000),
+                        clipBehavior: Clip.hardEdge,
                         child: Padding(
                           padding: const EdgeInsets.all(24),
                           child: _tree(rootNode, isRoot: true),
