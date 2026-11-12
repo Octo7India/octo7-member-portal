@@ -70,9 +70,9 @@ jobs:
               lint_block = """\n    lint {\n        checkReleaseBuilds = false\n        abortOnError = false\n    }\n"""
           else:
               lint_block = """\n    lint {\n        checkReleaseBuilds false\n        abortOnError false\n    }\n"""
-          if re.search(r'\\blint\\s*\\{', content) is None:
+          if re.search(r'\blint\s*\{', content) is None:
               content = content.replace("android {", "android {" + lint_block, 1)
-          if re.search(r'checkReleaseBuilds\\s*(?:=)?\\s*false', content) is None:
+          if re.search(r'checkReleaseBuilds\s*(?:=)?\s*false', content) is None:
               raise SystemExit("Failed to disable crashing release lint preflight")
           gradle.write_text(content)
 
