@@ -198,7 +198,9 @@ class _MemberRegistrationScreenState extends State<MemberRegistrationScreen> {
       if (!mounted) return;
       setState(() {
         _createdMember = member;
-        _message = 'Member registered successfully.';
+        _message = member['status'] == 'active'
+            ? 'Member registered and automatically activated.'
+            : 'Member registered successfully. Activation is still required.';
         _error = false;
       });
     } catch (e) {
@@ -301,7 +303,9 @@ class _MemberRegistrationScreenState extends State<MemberRegistrationScreen> {
                   ),
                   const SizedBox(height: 12),
                   const Text(
-                    'Membership remains pending until activation.',
+                    (created['status'] == 'active'
+                        ? 'This Member ID is active. No activation code is required for OCTO7 IDs 1–15.'
+                        : 'Membership remains pending until activation.'),
                     textAlign: TextAlign.center,
                   ),
                   OutlinedButton(
