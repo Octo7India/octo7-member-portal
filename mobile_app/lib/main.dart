@@ -1582,8 +1582,61 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
     _treeTransform.value = next;
   }
 
+  double _fitScale = 0.45;
+
   void _resetTreeZoom() {
-    _treeTransform.value = Matrix4.identity();
+    _treeTransform.value = Matrix4.identity()..scale(_fitScale);
+  }
+
+  Future<void> _showVacantPositions() async {
+    final rootId = _rootMemberId;
+    if (rootId == null || rootId.isEmpty) return;
+    try {
+      final vacancies = await LiveDataService.instance.fetchVacantPositions(rootId);
+      if (!mounted) return;
+      showModalBottomSheet(
+        context: context,
+        backgroundColor: const Color(0xFF102238),
+        isScrollControlled: true,
+        builder: (sheetContext) => SafeArea(
+          child: SizedBox(
+            height: MediaQuery.of(sheetContext).size.height * 0.65,
+            child: vacancies.isEmpty
+                ? const Center(child: Text('No vacant positions found in this downline.',
+                    style: TextStyle(color: Colors.white70)))
+                : ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: vacancies.length,
+                    separatorBuilder: (_, __) => const Divider(color: Colors.white12),
+                    itemBuilder: (context, index) {
+                      final vacancy = vacancies[index];
+                      final parentId = int.tryParse('${vacancy['parent_position_id']}') ?? 0;
+                      final side = (vacancy['side'] ?? '').toString().toLowerCase();
+                      return ListTile(
+                        leading: const Icon(Icons.add_circle_outline, color: Color(0xFF8DDCC2)),
+                        title: Text('OCTO7 ${vacancy['parent_member_id'] ?? ''} · ${side.toUpperCase()}',
+                          style: const TextStyle(color: Colors.white)),
+                        subtitle: Text('Level ${vacancy['depth'] ?? '-'}',
+                          style: const TextStyle(color: Colors.white60)),
+                        onTap: parentId > 0 && (side == 'left' || side == 'right')
+                            ? () {
+                                Navigator.pop(sheetContext);
+                                _openVacantPosition(parentId, side);
+                              }
+                            : null,
+                      );
+                    },
+                  ),
+          ),
+        ),
+      );
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Unable to find vacant positions: $error')),
+        );
+      }
+    }
   }
 
   @override
@@ -1646,32 +1699,35 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
 
   Widget _memberCard(Map<String, dynamic> node, {bool root = false}) {
     final memberId = (node['member_id'] ?? '').toString();
-    final status = (node['status'] ?? 'registered').toString();
+    final active = (node['status'] ?? '').toString().toLowerCase() == 'active';
     return InkWell(
       onTap: memberId.isEmpty ? null : () => _openMember(memberId),
-      borderRadius: BorderRadius.circular(8),
       child: Container(
         width: 90,
         height: 58,
         padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 4),
         decoration: BoxDecoration(
-          color: const Color(0xFF102238),
-          borderRadius: BorderRadius.circular(8),
+          color: root ? const Color(0xFF102238) : Colors.white,
+          borderRadius: BorderRadius.circular(3),
           border: Border.all(
-            color: root ? const Color(0xFFD6A84B) : const Color(0xFF18A77C),
-            width: root ? 1.8 : 1.2,
+            color: root ? const Color(0xFFD6A84B) : const Color(0xFF7040B5),
+            width: 2,
           ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('OCTO7 ${memberId.isEmpty ? '—' : memberId}',
-              maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 3),
-            Text(status.toUpperCase(), maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Color(0xFF8DDCC2), fontSize: 8)),
-            const Text('Tap to view', style: TextStyle(color: Colors.white54, fontSize: 7)),
+            Text('OCTO7', style: TextStyle(
+              color: root ? Colors.white : const Color(0xFF102238),
+              fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: .7)),
+            Text(memberId.isEmpty ? '—' : memberId, maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: root ? Colors.white : const Color(0xFF102238),
+                fontSize: 15, fontWeight: FontWeight.w900)),
+            Text(active ? 'ACTIVE' : 'INACTIVE', style: TextStyle(
+              color: root ? (active ? const Color(0xFF65E99A) : const Color(0xFFFF8888))
+                  : (active ? const Color(0xFF168344) : const Color(0xFFD22)),
+              fontSize: 8, fontWeight: FontWeight.w800)),
           ],
         ),
       ),
@@ -1687,9 +1743,9 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
         height: 58,
         padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 4),
         decoration: BoxDecoration(
-          color: const Color(0xFF0B192C),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFF18A77C), style: BorderStyle.solid),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(3),
+          border: Border.all(color: const Color(0xFFAAAAAA), width: 2, style: BorderStyle.solid),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -1707,16 +1763,14 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
   // Width is calculated from the full binary subtree so every generation
   // remains aligned without changing the fixed 90x58 cards, 120px sibling
   // gap, or 57px level gap.
+  // Match the website's recursive equal-width branch layout.
   double _subtreeWidth(Map<String, dynamic> node) {
-    final left = node['left'] is Map
-        ? Map<String, dynamic>.from(node['left'])
-        : null;
-    final right = node['right'] is Map
-        ? Map<String, dynamic>.from(node['right'])
-        : null;
+    final left = node['left'] is Map ? Map<String, dynamic>.from(node['left']) : null;
+    final right = node['right'] is Map ? Map<String, dynamic>.from(node['right']) : null;
     final leftWidth = left == null ? 90.0 : _subtreeWidth(left);
     final rightWidth = right == null ? 90.0 : _subtreeWidth(right);
-    return leftWidth + 120.0 + rightWidth;
+    final branchWidth = leftWidth > rightWidth ? leftWidth : rightWidth;
+    return branchWidth * 2 + 40.0;
   }
 
   // Estimate the full rendered tree height using the fixed 58px cards and
@@ -1735,17 +1789,14 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
 
   Widget _tree(Map<String, dynamic> root, {bool isRoot = false}) {
     final rootPositionId = int.tryParse('${root['id']}');
-    final left = root['left'] is Map
-        ? Map<String, dynamic>.from(root['left'])
-        : null;
-    final right = root['right'] is Map
-        ? Map<String, dynamic>.from(root['right'])
-        : null;
+    final left = root['left'] is Map ? Map<String, dynamic>.from(root['left']) : null;
+    final right = root['right'] is Map ? Map<String, dynamic>.from(root['right']) : null;
     final leftWidth = left == null ? 90.0 : _subtreeWidth(left);
     final rightWidth = right == null ? 90.0 : _subtreeWidth(right);
-    final totalWidth = leftWidth + 120.0 + rightWidth;
-    final leftCenter = leftWidth / 2;
-    final rightCenter = leftWidth + 120.0 + rightWidth / 2;
+    final branchWidth = leftWidth > rightWidth ? leftWidth : rightWidth;
+    final totalWidth = branchWidth * 2 + 40.0;
+    final leftCenter = branchWidth / 2;
+    final rightCenter = branchWidth + 40.0 + branchWidth / 2;
 
     return SizedBox(
       width: totalWidth,
@@ -1768,17 +1819,23 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              left == null
-                  ? (rootPositionId == null
-                      ? SizedBox(width: leftWidth, child: _emptySlot('LEFT'))
-                      : _vacantCard(rootPositionId, 'left'))
-                  : _tree(left),
-              const SizedBox(width: 120),
-              right == null
-                  ? (rootPositionId == null
-                      ? SizedBox(width: rightWidth, child: _emptySlot('RIGHT'))
-                      : _vacantCard(rootPositionId, 'right'))
-                  : _tree(right),
+              SizedBox(
+                width: branchWidth,
+                child: Center(
+                  child: left == null
+                      ? (rootPositionId == null ? _emptySlot('LEFT') : _vacantCard(rootPositionId, 'left'))
+                      : _tree(left),
+                ),
+              ),
+              const SizedBox(width: 40),
+              SizedBox(
+                width: branchWidth,
+                child: Center(
+                  child: right == null
+                      ? (rootPositionId == null ? _emptySlot('RIGHT') : _vacantCard(rootPositionId, 'right'))
+                      : _tree(right),
+                ),
+              ),
             ],
           ),
         ],
@@ -1813,9 +1870,14 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
             onPressed: () => _zoomTree(0.8),
           ),
           IconButton(
-            tooltip: 'Reset zoom',
-            icon: const Icon(Icons.center_focus_strong, color: Colors.white),
+            tooltip: 'Fit tree to screen',
+            icon: const Icon(Icons.fit_screen, color: Colors.white),
             onPressed: _resetTreeZoom,
+          ),
+          IconButton(
+            tooltip: 'Show all vacant positions',
+            icon: const Icon(Icons.playlist_add, color: Colors.white),
+            onPressed: _showVacantPositions,
           ),
           IconButton(
             tooltip: 'Zoom in',
@@ -1905,6 +1967,7 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
                       final fitScale = (widthScale < heightScale
                           ? widthScale
                           : heightScale).clamp(0.12, 1.0).toDouble();
+                      _fitScale = fitScale;
 
                       // Re-fit when a different member's downline is opened.
                       // Members can then zoom/pan manually without a scroll
