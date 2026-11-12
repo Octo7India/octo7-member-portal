@@ -125,6 +125,7 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           flutter build apk --release --target-platform android-arm64 \
+            -x :image_picker_android:lintVitalAnalyzeRelease \
             --dart-define=SUPABASE_URL="$SUPABASE_URL" \
             --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
         working-directory: ./mobile_app
