@@ -515,47 +515,14 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
-  String _loginMethod = 'member_id';
   bool _busy = false;
   bool _hidePassword = true;
   String? _error;
 
-  String get _identifierLabel {
-    switch (_loginMethod) {
-      case 'email': return 'Email Address';
-      case 'phone': return 'Mobile Number';
-      default: return 'OCTO7 User ID';
-    }
-  }
-
-  TextInputType get _identifierKeyboard {
-    switch (_loginMethod) {
-      case 'email': return TextInputType.emailAddress;
-      case 'phone': return TextInputType.phone;
-      default: return TextInputType.number;
-    }
-  }
-
   String? _validateIdentifier(String? value) {
     final v = (value ?? '').trim();
-    if (v.isEmpty) return 'Enter your ${_identifierLabel.toLowerCase()}';
-    if (_loginMethod == 'member_id' &&
-        !RegExp(r'^(?:OCTO7\s*)?[0-9]+$', caseSensitive: false).hasMatch(v)) {
-      return 'Enter your OCTO7 User ID number';
-    }
-    if (_loginMethod == 'email' &&
-        !RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(v)) {
-      return 'Enter a valid email address';
-    }
-    if (_loginMethod == 'phone') {
-      final digits = v.replaceAll(RegExp(r'\D'), '');
-      if (digits.length < 8 || digits.length > 15) {
-        return 'Enter a valid mobile number with country code';
-      }
-      if (!v.startsWith('+')) {
-        return 'Include your country code, e.g. +91 9876543210';
-      }
-    }
+    if (v.isEmpty) return 'Enter your OCTO7 User ID number';
+    if (!RegExp(r'^[0-9]+$').hasMatch(v)) return 'Enter numbers only';
     return null;
   }
 
@@ -572,7 +539,6 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
     try {
       await AuthService.instance.signIn(
         identifier: _identifierController.text.trim(),
-        identifierType: _loginMethod,
         password: _passwordController.text,
       );
       if (mounted) widget.onLogin();
@@ -583,40 +549,8 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
     }
   }
 
-  Widget _methodChip(String value, String label, IconData icon) {
-    final selected = _loginMethod == value;
-    return Expanded(
-      child: ChoiceChip(
-        selected: selected,
-        onSelected: _busy ? null : (_) => setState(() {
-          _loginMethod = value;
-          _identifierController.clear();
-          _error = null;
-        }),
-        avatar: Icon(icon, size: 17,
-          color: selected ? const Color(0xFF052411) : const Color(0xFF10B981)),
-        label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
-        labelStyle: TextStyle(
-          color: selected ? const Color(0xFF052411) : Colors.white,
-          fontWeight: FontWeight.w600,
-          fontSize: 12,
-        ),
-        selectedColor: const Color(0xFF10B981),
-        backgroundColor: const Color(0xFF142238),
-        side: BorderSide(color: selected ? const Color(0xFF10B981) : Colors.white24),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        showCheckmark: false,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final hint = switch (_loginMethod) {
-      'email' => 'Enter your registered email address',
-      'phone' => 'Include country code, e.g. +91 9876543210',
-      _ => 'Enter your OCTO7 ID number',
-    };
     return Scaffold(
       backgroundColor: const Color(0xFF052411),
       body: Center(child: SingleChildScrollView(
@@ -635,71 +569,57 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
                 const Text('MEMBER LOGIN', style: TextStyle(color: Color(0xFFD97706),
                   fontWeight: FontWeight.w600)),
                 const SizedBox(height: 22),
-                const Text('Log in using any one of your registered details and the same member password.',
+                const Text('Log in with your OCTO7 User ID and your existing password.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.white60, fontSize: 12, height: 1.4)),
                 const SizedBox(height: 18),
-                Row(children: [
-                  _methodChip('member_id', 'User ID', Icons.badge_outlined),
-                  const SizedBox(width: 6),
-                  _methodChip('email', 'Email', Icons.email_outlined),
-                  const SizedBox(width: 6),
-                  _methodChip('phone', 'Mobile', Icons.phone_android),
-                ]),
-                const SizedBox(height: 18),
                 TextFormField(
-                  key: ValueKey(_loginMethod),
                   controller: _identifierController,
-                  keyboardType: _identifierKeyboard,
+                  keyboardType: TextInputType.number,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  validator: _validateIdentifier,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    labelText: 'OCTO7 User ID',
+                    hintText: 'Enter your User ID number',
+                    prefixText: 'OCTO7 ',
+                    prefixStyle: TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.bold),
+                    prefixIcon: Icon(Icons.badge_outlined, color: Color(0xFF10B981)),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: _hidePassword,
                   autocorrect: false,
                   enableSuggestions: false,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    labelText: _identifierLabel,
-                    hintText: hint,
-                    hintStyle: const TextStyle(color: Colors.white30, fontSize: 12),
-                    labelStyle: const TextStyle(color: Colors.white70),
-                    prefixText: _loginMethod == 'member_id' ? 'OCTO7 ' : null,
-                    prefixStyle: const TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.bold),
-                    prefixIcon: Icon(
-                      _loginMethod == 'email' ? Icons.email_outlined :
-                      _loginMethod == 'phone' ? Icons.phone_android : Icons.badge_outlined,
-                      color: const Color(0xFF10B981)),
-                    enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
-                    focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Color(0xFF10B981)))),
-                  validator: _validateIdentifier,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _passwordController, obscureText: _hidePassword,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(labelText: 'Password',
-                    labelStyle: const TextStyle(color: Colors.white70),
+                    labelText: 'Password',
                     prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF10B981)),
-                    suffixIcon: IconButton(onPressed: () => setState(() => _hidePassword = !_hidePassword),
-                      icon: Icon(_hidePassword ? Icons.visibility : Icons.visibility_off, color: Colors.white54)),
-                    enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
-                    focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Color(0xFF10B981)))),
-                  validator: (value) => value == null || value.isEmpty ? 'Enter your password' : null,
+                    suffixIcon: IconButton(
+                      onPressed: () => setState(() => _hidePassword = !_hidePassword),
+                      icon: Icon(_hidePassword ? Icons.visibility : Icons.visibility_off,
+                        color: Colors.white54),
+                    ),
+                  ),
+                  validator: (v) => (v == null || v.isEmpty) ? 'Enter your password' : null,
                   onFieldSubmitted: (_) => _login(),
                 ),
                 if (_error != null) ...[
-                  const SizedBox(height: 14),
-                  Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.redAccent)),
+                  const SizedBox(height: 12),
+                  Text(_error!, style: const TextStyle(color: Colors.redAccent),
+                    textAlign: TextAlign.center),
                 ],
-                const SizedBox(height: 24),
-                SizedBox(width: double.infinity, height: 48,
-                  child: ElevatedButton(
-                    onPressed: _busy ? null : _login,
-                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFD97706),
-                      foregroundColor: Colors.white),
-                    child: _busy ? const SizedBox(width: 22, height: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) :
-                      const Text('MEMBER LOGIN', style: TextStyle(fontWeight: FontWeight.bold)),
-                  )),
-                const SizedBox(height: 14),
-                const Text('Email, mobile number and OCTO7 User ID all use the same member password.',
-                  textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 12)),
+                const SizedBox(height: 20),
+                SizedBox(width: double.infinity, child: ElevatedButton(
+                  onPressed: _busy ? null : _login,
+                  child: _busy
+                    ? const SizedBox(width: 20, height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Text('MEMBER LOGIN'),
+                )),
               ])),
             ),
           ),
