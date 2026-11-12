@@ -302,10 +302,10 @@ class _MemberRegistrationScreenState extends State<MemberRegistrationScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 12),
-                  const Text(
-                    (created['status'] == 'active'
+                  Text(
+                    created['status'] == 'active'
                         ? 'This Member ID is active. No activation code is required for OCTO7 IDs 1–15.'
-                        : 'Membership remains pending until activation.'),
+                        : 'Membership remains pending until activation.',
                     textAlign: TextAlign.center,
                   ),
                   OutlinedButton(
