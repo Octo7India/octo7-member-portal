@@ -402,7 +402,7 @@ class MemberWelcomeScreen extends StatelessWidget {
           await AuthService.instance.signOut();
           if (!context.mounted) return;
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+            MaterialPageRoute(builder: (_) => const AuthGate()),
             (route) => false,
           );
           return;
@@ -443,7 +443,7 @@ class MemberWelcomeScreen extends StatelessWidget {
                 await AuthService.instance.signOut();
                 if (!context.mounted) return;
                 Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const WelcomeScreen()), (route) => false);
+                  MaterialPageRoute(builder: (_) => const AuthGate()), (route) => false);
                 return;
               }
               if (destination < 0 || destination > 15) return;
