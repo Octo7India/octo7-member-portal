@@ -1976,14 +1976,24 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
                           // genealogy opens or a member's downline is selected.
                           final offsetX = (constraints.maxWidth - treeWidth * fitScale) / 2;
                           final offsetY = (constraints.maxHeight - treeHeight * fitScale) / 2;
+                          // Scale first, then translate in scaled coordinates so
+                          // the fitted tree is centered in the viewport.
                           _treeTransform.value = Matrix4.identity()
-                            ..translate(offsetX < 0 ? 0.0 : offsetX, offsetY < 0 ? 0.0 : offsetY)
-                            ..scale(fitScale);
+                            ..scale(fitScale)
+                            ..translate(
+                              (offsetX < 0 ? 0.0 : offsetX) / fitScale,
+                              (offsetY < 0 ? 0.0 : offsetY) / fitScale,
+                            );
                         }
                       });
 
                       return InteractiveViewer(
                         transformationController: _treeTransform,
+                        // Google Maps-style binary-tree workspace:
+                        // drag to pan, pinch with two fingers to scale,
+                        // and tap a member/vacant node to activate its action.
+                        panEnabled: true,
+                        scaleEnabled: true,
                         constrained: false,
                         alignment: Alignment.topCenter,
                         minScale: 0.01,
