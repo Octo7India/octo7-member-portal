@@ -726,7 +726,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   final GlobalKey<_BinaryTreeViewScreenState> _genealogyKey =
       GlobalKey<_BinaryTreeViewScreenState>();
 
-  final List<Widget> _pages = [
+  late final List<Widget> _pages = [
     const Octo7WebsiteHomeScreen(),
     BinaryTreeViewScreen(key: _genealogyKey, onBack: _handleGenealogyBack),
     const ProductCatalogScreen(),
