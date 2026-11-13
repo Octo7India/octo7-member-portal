@@ -1758,7 +1758,7 @@ function setupGenealogyControls(){
     if(number)number.style.cssText="font-size:15px!important;font-weight:700!important;margin:2px 0!important;color:#fff!important;line-height:1.15!important";
     if(status)status.style.cssText="font-size:8px!important;font-weight:700!important;margin:0!important;color:"+(status.classList.contains("active")?"#2ecc71":"#ff8888")+"!important";
   }
-  const zoomBy=delta=>focalZoom(clamp(scale+delta),window.innerWidth/2,window.innerHeight/2);(clamp(scale+delta),window.innerWidth/2,window.innerHeight/2);
+  const zoomBy=delta=>focalZoom(clamp(scale+delta),window.innerWidth/2,window.innerHeight/2);
   document.getElementById("genealogyZoomIn")?.addEventListener("click",()=>zoomBy(.15));
   document.getElementById("genealogyZoomOut")?.addEventListener("click",()=>zoomBy(-.15));
   document.getElementById("genealogyFit")?.addEventListener("click",reset);
