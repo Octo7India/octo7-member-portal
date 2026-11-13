@@ -1857,6 +1857,7 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
   String? _rootMemberId;
   final List<String> _backStack=[];
   double _zoomScale=1,_baseZoomScale=1,_verticalPanOffset=0;
+  int _zoomFocusLevel=0;
   static const double _minZoom=.85,_maxZoom=2.4,_baseTreeWidth=370,_permanentTopAnchorY=28;
   static const List<double> _levelWidths=[108,88,68,41],_levelHeights=[54,46,38,34],_levelOffsetY=[0,96,180,256];
   List<_BaseSlot> _slots=[];
@@ -1899,11 +1900,28 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
     for(int level=0;level<4;level++){final count=levels[level].length,sector=_baseTreeWidth/count;for(int i=0;i<count;i++){computed.add(_BaseSlot(node:levels[level][i],level:level,offsetX:sector*i+sector/2-_baseTreeWidth/2,offsetY:_levelOffsetY[level],width:_levelWidths[level],height:_levelHeights[level]));}}
     _slots=computed;
   }
+  int _focusLevelAt(Offset point,double centerX){
+    var nearestLevel=0,nearestDistance=double.infinity;
+    for(final slot in _slots){
+      final root=slot.level==0,nodeScale=root?1.0:_zoomScale;
+      final width=slot.width*nodeScale,height=slot.height*nodeScale;
+      final left=centerX+slot.offsetX*nodeScale-width/2;
+      final top=_permanentTopAnchorY+_verticalPanOffset+(root?0:_levelHeights[0]+(slot.offsetY-_levelHeights[0])*_zoomScale);
+      final rect=Rect.fromLTWH(left,top,width,height);
+      if(rect.contains(point))return slot.level;
+      final distance=(rect.center-point).distance;
+      if(distance<nearestDistance){nearestDistance=distance;nearestLevel=slot.level;}
+    }
+    return nearestLevel;
+  }
+  void _updateFocusLift(){
+    _verticalPanOffset=-(((_zoomScale-1).clamp(0.0,1.4))*(44+_zoomFocusLevel*36)).clamp(0.0,170.0);
+  }
   void _onNodeTapped(MemberNode n){
     if(n.isAvailable){if(n.parentPositionId>0){_openVacantPosition(n.parentPositionId,n.side);}else{ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('This position is not available for registration.')));}return;}
     final id=RegExp(r'\d+').firstMatch(n.id)?.group(0);if(id!=null&&id!=_rootMemberId)_openMember(id);
   }
-  void _stepZoom(double factor){setState((){_zoomScale=(_zoomScale*factor).clamp(_minZoom,_maxZoom);if(_zoomScale<=1.05)_verticalPanOffset=0;});}
+  void _stepZoom(double factor){setState((){_zoomScale=(_zoomScale*factor).clamp(_minZoom,_maxZoom);_updateFocusLift();});}
   @override
   Widget build(BuildContext context){
     return PopScope(canPop:_backStack.isEmpty,onPopInvokedWithResult:(didPop,result){if(!didPop&&_backStack.isNotEmpty)_goBackOneLevel();},
@@ -1934,14 +1952,16 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
             child:Column(children:[
               Padding(padding:const EdgeInsets.only(top:10,bottom:4),child:Text(root.id+'  •  Tap any ID to view its downline',textAlign:TextAlign.center,style:TextStyle(color:Colors.white.withOpacity(.65),fontSize:11.5))),
               Expanded(child:LayoutBuilder(builder:(context,c){
-                final cx=c.maxWidth/2,top=_permanentTopAnchorY; // Keep the selected root fixed; pan only descendant cards and their connector lines.
+                final cx=c.maxWidth/2,top=_permanentTopAnchorY+_verticalPanOffset;
                 return GestureDetector(behavior:HitTestBehavior.opaque,
-                  onScaleStart:(d){_baseZoomScale=_zoomScale;},
+                  onScaleStart:(d){_baseZoomScale=_zoomScale;_zoomFocusLevel=_focusLevelAt(d.localFocalPoint,cx);},
                   onScaleUpdate:(d){setState((){
                     if(d.scale!=1)_zoomScale=(_baseZoomScale*d.scale).clamp(_minZoom,_maxZoom);
-                    if(_zoomScale>1){final max=( _zoomScale-1)*320;_verticalPanOffset=(_verticalPanOffset+d.focalPointDelta.dy).clamp(-max,max);}else{_verticalPanOffset=0;}
+                    // Pinching zooms around the touched ID without changing the genealogy root.
+                    // Lift the complete tree in screen space so that ID's descendants remain visible.
+                    _updateFocusLift();
                   });},
-                  child:SizedBox.expand(child:CustomPaint(painter:_AnchoredLinePainter(slots:_slots,anchorCenterX:cx,anchorTopY:top,scale:_zoomScale,verticalPanOffset:_verticalPanOffset),
+                  child:SizedBox.expand(child:CustomPaint(painter:_AnchoredLinePainter(slots:_slots,anchorCenterX:cx,anchorTopY:top,scale:_zoomScale),
                     child:Stack(clipBehavior:Clip.none,children:_slots.map((s)=>_buildAnchoredNodeCard(slot:s,anchorCenterX:cx,anchorTopY:top,scale:_zoomScale)).toList()))));
               })),
               const Padding(padding:EdgeInsets.fromLTRB(12,8,12,14),child:Text('Pinch to enlarge boxes & lines • Tap AVAILABLE to register',textAlign:TextAlign.center,style:TextStyle(color:Colors.white54,fontSize:10))),
@@ -1954,7 +1974,7 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
     final w=slot.width*nodeScale,h=slot.height*nodeScale;
     final left=anchorCenterX+slot.offsetX*nodeScale-w/2;
     // Root position and dimensions are invariant. Descendants stretch away from it.
-    final top=root?anchorTopY:anchorTopY+_levelHeights[0]+(slot.offsetY-_levelHeights[0])*scale+_verticalPanOffset;
+    final top=root?anchorTopY:anchorTopY+_levelHeights[0]+(slot.offsetY-_levelHeights[0])*scale;
     final idSize=[11.5,9.5,8.0,6.5][slot.level]*nodeScale,statusSize=[8.5,7.2,6.2,5.2][slot.level]*nodeScale;
     return Positioned(left:left,top:top,width:w,height:h,child:GestureDetector(behavior:HitTestBehavior.opaque,onTap:()=>_onNodeTapped(slot.node),
       child:Container(decoration:BoxDecoration(color:root?const Color(0xFF0F2537):(available?const Color(0xFFE2E8F0):Colors.white),
@@ -1971,13 +1991,12 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
 }
 class _AnchoredLinePainter extends CustomPainter {
   final List<_BaseSlot> slots;
-  final double anchorCenterX,anchorTopY,scale,verticalPanOffset;
+  final double anchorCenterX,anchorTopY,scale;
   _AnchoredLinePainter({
     required this.slots,
     required this.anchorCenterX,
     required this.anchorTopY,
     required this.scale,
-    required this.verticalPanOffset,
   });
 
   Rect _cardRect(_BaseSlot slot) {
@@ -1990,8 +2009,7 @@ class _AnchoredLinePainter extends CustomPainter {
         ? anchorTopY
         : anchorTopY +
             slots.first.height +
-            (slot.offsetY - slots.first.height) * scale +
-            verticalPanOffset;
+            (slot.offsetY - slots.first.height) * scale;
     return Rect.fromLTWH(left, top, width, height);
   }
 
@@ -2036,7 +2054,6 @@ class _AnchoredLinePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _AnchoredLinePainter oldDelegate) =>
       oldDelegate.scale != scale ||
-      oldDelegate.verticalPanOffset != verticalPanOffset ||
       oldDelegate.anchorTopY != anchorTopY ||
       oldDelegate.anchorCenterX != anchorCenterX ||
       oldDelegate.slots != slots;
