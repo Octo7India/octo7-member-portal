@@ -504,131 +504,125 @@ class MemberWelcomeScreen extends StatelessWidget {
     );
   }
 }
+
 class MemberLoginScreen extends StatefulWidget {
   const MemberLoginScreen({super.key, required this.onLogin});
   final VoidCallback onLogin;
   @override
   State<MemberLoginScreen> createState() => _MemberLoginScreenState();
 }
-
 class _MemberLoginScreenState extends State<MemberLoginScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _identifierController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _busy = false;
-  bool _hidePassword = true;
+  final _formKey=GlobalKey<FormState>();
+  final _identifierController=TextEditingController();
+  final _passwordController=TextEditingController();
+  bool _busy=false,_hidePassword=true;
   String? _error;
-
-  String? _validateIdentifier(String? value) {
-    final v = (value ?? '').trim();
-    if (v.isEmpty) return 'Enter your OCTO7 User ID number';
-    if (!RegExp(r'^[0-9]+$').hasMatch(v)) return 'Enter numbers only';
+  String? _validateIdentifier(String? value){
+    final v=(value??'').trim().replaceFirst(RegExp(r'^OCTO7\\s*',caseSensitive:false),'');
+    if(v.isEmpty)return 'Enter your OCTO7 User ID number';
+    if(!RegExp(r'^[0-9]+$').hasMatch(v))return 'Enter numbers only';
     return null;
   }
-
-  @override
-  void dispose() {
-    _identifierController.dispose();
-    _passwordController.dispose();
-    super.dispose();
+  @override void dispose(){_identifierController.dispose();_passwordController.dispose();super.dispose();}
+  Future<void> _login() async{
+    if(!_formKey.currentState!.validate()||_busy)return;
+    setState(()=>_busy=true);_error=null;
+    try{
+      await AuthService.instance.signIn(identifier:_identifierController.text.trim(),password:_passwordController.text);
+      if(mounted)widget.onLogin();
+    }catch(error){
+      if(mounted){setState(()=>_error=error.toString().replaceFirst('Exception: ',''));ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(_error!)));}
+    }finally{if(mounted)setState(()=>_busy=false);}
   }
-
-  Future<void> _login() async {
-    if (!_formKey.currentState!.validate() || _busy) return;
-    setState(() { _busy = true; _error = null; });
-    try {
-      await AuthService.instance.signIn(
-        identifier: _identifierController.text.trim(),
-        password: _passwordController.text,
-      );
-      if (mounted) widget.onLogin();
-    } catch (error) {
-      if (mounted) setState(() => _error = error.toString().replaceFirst('Exception: ', ''));
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
+  Future<void> _showRecoveryDialog() async{
+    final memberId=TextEditingController(text:_identifierController.text.trim());
+    final destination=TextEditingController(),code=TextEditingController(),newPassword=TextEditingController(),confirmPassword=TextEditingController();
+    String method='email',message='';String? verificationId;bool busy=false,codeSent=false;
+    await showDialog<void>(context:context,barrierDismissible:false,builder:(dialogContext)=>StatefulBuilder(builder:(context,setDialogState)=>AlertDialog(
+      backgroundColor:const Color(0xFF102238),title:const Text('Reset Your Password',style:TextStyle(color:Colors.white)),
+      content:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[
+        TextField(controller:memberId,keyboardType:TextInputType.number,style:const TextStyle(color:Colors.white),decoration:const InputDecoration(labelText:'OCTO7 User ID number',prefixText:'OCTO7 ')),
+        const SizedBox(height:12),
+        DropdownButtonFormField<String>(value:method,dropdownColor:const Color(0xFF102238),style:const TextStyle(color:Colors.white),decoration:const InputDecoration(labelText:'Verification method'),
+          items:const [DropdownMenuItem(value:'email',child:Text('Email OTP')),DropdownMenuItem(value:'phone',child:Text('Mobile SMS OTP'))],
+          onChanged:codeSent?null:(v)=>setDialogState(()=>{method=v??'email';destination.clear();})),
+        const SizedBox(height:12),
+        TextField(controller:destination,keyboardType:method=='email'?TextInputType.emailAddress:TextInputType.phone,style:const TextStyle(color:Colors.white),
+          decoration:InputDecoration(labelText:method=='email'?'Registered email address':'Registered mobile number',hintText:method=='phone'?'Include country code, e.g. +91':'Enter registered email')),
+        if(!codeSent)...[
+          const SizedBox(height:16),SizedBox(width:double.infinity,child:ElevatedButton(onPressed:busy?null:()async{
+            if(memberId.text.trim().isEmpty||destination.text.trim().isEmpty){setDialogState(()=>message='Enter your User ID and registered contact.');return;}
+            setDialogState(()=>{busy=true;message='';});
+            try{
+              final result=await AuthService.instance.startPasswordRecovery(memberId:memberId.text.trim(),method:method,destination:destination.text.trim());
+              verificationId=result['verification_id']?.toString();
+              setDialogState(()=>{codeSent=verificationId!=null&&verificationId!.isNotEmpty;message=codeSent?'Code sent to ${result['destination']}.':'If the details match, a code has been sent.';});
+            }catch(e){setDialogState(()=>message=e.toString().replaceFirst('Exception: ',''));}
+            finally{if(dialogContext.mounted)setDialogState(()=>busy=false);}
+          },child:busy?const CircularProgressIndicator():const Text('SEND OTP'))),
+        ],
+        if(codeSent)...[
+          const SizedBox(height:12),
+          TextField(controller:code,keyboardType:TextInputType.number,maxLength:6,style:const TextStyle(color:Colors.white),decoration:const InputDecoration(labelText:'6-digit verification code')),
+          TextField(controller:newPassword,obscureText:true,style:const TextStyle(color:Colors.white),decoration:const InputDecoration(labelText:'New password (8–72 characters)')),
+          TextField(controller:confirmPassword,obscureText:true,style:const TextStyle(color:Colors.white),decoration:const InputDecoration(labelText:'Confirm new password')),
+          const SizedBox(height:16),SizedBox(width:double.infinity,child:ElevatedButton(onPressed:busy?null:()async{
+            if(newPassword.text.length<8||newPassword.text.length>72){setDialogState(()=>message='Password must contain 8 to 72 characters.');return;}
+            if(newPassword.text!=confirmPassword.text){setDialogState(()=>message='Passwords do not match.');return;}
+            setDialogState(()=>{busy=true;message='';});
+            try{
+              await AuthService.instance.completePasswordRecovery(verificationId:verificationId!,code:code.text.trim(),newPassword:newPassword.text);
+              if(!dialogContext.mounted)return;
+              Navigator.of(dialogContext).pop();
+              if(mounted)ScaffoldMessenger.of(this.context).showSnackBar(const SnackBar(content:Text('Password updated. Sign in with your new password.')));
+            }catch(e){if(dialogContext.mounted)setDialogState(()=>message=e.toString().replaceFirst('Exception: ',''));}
+            finally{if(dialogContext.mounted)setDialogState(()=>busy=false);}
+          },child:busy?const CircularProgressIndicator():const Text('UPDATE PASSWORD'))),
+        ],
+        if(message.isNotEmpty)...[const SizedBox(height:10),Text(message,style:const TextStyle(color:Color(0xFFFFD166)),textAlign:TextAlign.center)]
+      ])),
+      actions:[TextButton(onPressed:busy?null:()=>Navigator.of(dialogContext).pop(),child:const Text('CLOSE'))],
+    )));
+    memberId.dispose();destination.dispose();code.dispose();newPassword.dispose();confirmPassword.dispose();
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF052411),
-      body: Center(child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
-          child: Card(
-            color: const Color(0xFF060D1A),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18),
-              side: const BorderSide(color: Color(0xFFD97706))),
-            child: Padding(padding: const EdgeInsets.all(24),
-              child: Form(key: _formKey, child: Column(mainAxisSize: MainAxisSize.min, children: [
-                const Text('OCTO7 INDIA', style: TextStyle(color: Colors.white, fontSize: 25,
-                  fontWeight: FontWeight.bold, letterSpacing: 1.5)),
-                const SizedBox(height: 8),
-                const Text('MEMBER LOGIN', style: TextStyle(color: Color(0xFFD97706),
-                  fontWeight: FontWeight.w600)),
-                const SizedBox(height: 22),
-                const Text('Log in with your OCTO7 User ID and your existing password.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white60, fontSize: 12, height: 1.4)),
-                const SizedBox(height: 18),
-                TextFormField(
-                  controller: _identifierController,
-                  keyboardType: TextInputType.number,
-                  autocorrect: false,
-                  enableSuggestions: false,
-                  validator: _validateIdentifier,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(
-                    labelText: 'OCTO7 User ID',
-                    hintText: 'Enter your User ID number',
-                    prefixText: 'OCTO7 ',
-                    prefixStyle: TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.bold),
-                    prefixIcon: Icon(Icons.badge_outlined, color: Color(0xFF10B981)),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _hidePassword,
-                  autocorrect: false,
-                  enableSuggestions: false,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF10B981)),
-                    suffixIcon: IconButton(
-                      onPressed: () => setState(() => _hidePassword = !_hidePassword),
-                      icon: Icon(_hidePassword ? Icons.visibility : Icons.visibility_off,
-                        color: Colors.white54),
-                    ),
-                  ),
-                  validator: (v) => (v == null || v.isEmpty) ? 'Enter your password' : null,
-                  onFieldSubmitted: (_) => _login(),
-                ),
-                if (_error != null) ...[
-                  const SizedBox(height: 12),
-                  Text(_error!, style: const TextStyle(color: Colors.redAccent),
-                    textAlign: TextAlign.center),
-                ],
-                const SizedBox(height: 20),
-                SizedBox(width: double.infinity, child: ElevatedButton(
-                  onPressed: _busy ? null : _login,
-                  child: _busy
-                    ? const SizedBox(width: 20, height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('MEMBER LOGIN'),
-                )),
-              ])),
-            ),
-          ),
-        ),
-      )),
-    );
+  @override Widget build(BuildContext context){
+    return Scaffold(backgroundColor:const Color(0xFF052411),resizeToAvoidBottomInset:false,
+      body:LayoutBuilder(builder:(context,c){
+        final w=c.maxWidth,h=c.maxHeight;
+        return Form(key:_formKey,child:Stack(children:[
+          Positioned.fill(child:Image.asset('1794527061741.jpg',fit:BoxFit.fill)),
+          Positioned(left:w*.17,top:h*.568,width:w*.66,height:h*.065,child:TextFormField(
+            controller:_identifierController,keyboardType:TextInputType.number,autocorrect:false,enableSuggestions:false,validator:_validateIdentifier,
+            style:const TextStyle(color:Color(0xFF1C2942),fontSize:17),
+            decoration:InputDecoration(hintText:'Enter Your User ID',hintStyle:const TextStyle(color:Color(0xFF34435D)),
+              prefixIcon:const Icon(Icons.badge_outlined,color:Color(0xFF34435D)),filled:true,fillColor:const Color(0xFFFDFDFD),
+              contentPadding:const EdgeInsets.symmetric(horizontal:12,vertical:14),border:OutlineInputBorder(borderRadius:BorderRadius.circular(16),borderSide:BorderSide.none),
+              enabledBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(16),borderSide:BorderSide.none)))),
+          Positioned(left:w*.17,top:h*.647,width:w*.66,height:h*.065,child:TextFormField(
+            controller:_passwordController,obscureText:_hidePassword,autocorrect:false,enableSuggestions:false,
+            style:const TextStyle(color:Color(0xFF1C2942),fontSize:17),
+            decoration:InputDecoration(hintText:'Password',hintStyle:const TextStyle(color:Color(0xFF34435D)),
+              prefixIcon:const Icon(Icons.lock_outline,color:Color(0xFF34435D)),
+              suffixIcon:IconButton(onPressed:()=>setState(()=>_hidePassword=!_hidePassword),icon:Icon(_hidePassword?Icons.visibility:Icons.visibility_off,color:const Color(0xFF34435D))),
+              filled:true,fillColor:const Color(0xFFFDFDFD),contentPadding:const EdgeInsets.symmetric(horizontal:12,vertical:14),
+              border:OutlineInputBorder(borderRadius:BorderRadius.circular(16),borderSide:BorderSide.none),
+              enabledBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(16),borderSide:BorderSide.none)),
+            validator:(v)=>(v==null||v.isEmpty)?'Enter your password':null,onFieldSubmitted:(_)=>_login())),
+          if(_error!=null)Positioned(left:w*.17,top:h*.713,width:w*.66,child:Text(_error!,style:const TextStyle(color:Colors.red,fontSize:11),textAlign:TextAlign.center)),
+          Positioned(left:w*.17,top:h*.738,width:w*.66,height:h*.058,child:DecoratedBox(
+            decoration:BoxDecoration(gradient:const LinearGradient(colors:[Color(0xFFFFD66B),Color(0xFF0C347D),Color(0xFF174DB0)]),
+              borderRadius:BorderRadius.circular(16),border:Border.all(color:const Color(0xFFD9A83B),width:2),
+              boxShadow:const [BoxShadow(color:Color(0x44333333),blurRadius:8,offset:Offset(0,4))]),
+            child:ElevatedButton(onPressed:_busy?null:_login,style:ElevatedButton.styleFrom(backgroundColor:Colors.transparent,shadowColor:Colors.transparent,
+              shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(14))),
+              child:_busy?const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)):
+                const Text('MEMBER LOGIN',style:TextStyle(color:Colors.white,fontWeight:FontWeight.bold,fontSize:17))))),
+          Positioned(left:w*.22,top:h*.835,width:w*.56,height:h*.045,child:TextButton(onPressed:_showRecoveryDialog,
+            child:const Text('Forgot Password?',style:TextStyle(color:Color(0xFF101010),fontSize:16,fontWeight:FontWeight.w500))))
+        ]));
+      }));
   }
 }
-
 class MainNavigationWrapper extends StatefulWidget {
   const MainNavigationWrapper({
     super.key,

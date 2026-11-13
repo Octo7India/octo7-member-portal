@@ -113,6 +113,29 @@ class AuthService {
     return result;
   }
 
+
+  Future<Map<String, dynamic>> startPasswordRecovery({required String memberId, required String method, required String destination}) async {
+    final response = await _client.functions.invoke('octo7-api',
+      body: {'action':'start_password_recovery','member_id':memberId,'method':method,'destination':destination},
+      headers: {'Authorization':'Bearer ${SupabaseConfig.anonKey}'});
+    final data=response.data;
+    if(response.status<200||response.status>=300||data is! Map) throw Exception('Could not send the recovery code. Please try again.');
+    final result=Map<String,dynamic>.from(data);
+    if(result['success']!=true) throw Exception(result['error']?.toString()??'Could not send the recovery code.');
+    return result;
+  }
+
+  Future<Map<String, dynamic>> completePasswordRecovery({required String verificationId, required String code, required String newPassword}) async {
+    final response = await _client.functions.invoke('octo7-api',
+      body: {'action':'complete_password_recovery','verification_id':verificationId,'code':code,'new_password':newPassword},
+      headers: {'Authorization':'Bearer ${SupabaseConfig.anonKey}'});
+    final data=response.data;
+    if(response.status<200||response.status>=300||data is! Map) throw Exception('Password recovery failed. Please try again.');
+    final result=Map<String,dynamic>.from(data);
+    if(result['success']!=true) throw Exception(result['error']?.toString()??'Password recovery failed.');
+    return result;
+  }
+
   Future<void> signOut() async {
     final token = await sessionToken;
     if (token != null && token.isNotEmpty && SupabaseConfig.isConfigured) {
