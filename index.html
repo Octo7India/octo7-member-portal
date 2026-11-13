@@ -1634,13 +1634,14 @@ function setupGenealogyControls(){
     const candidates=Array.from(canvas.querySelectorAll(".genealogy-slot"));
     let slot=null;
     if(midpoint){
-      let bestDistance=Infinity;
+      let best=null,bestDistance=Infinity;
       for(const candidate of candidates){
         const r=candidate.getBoundingClientRect();
         if(r.left<=midpoint.x&&r.right>=midpoint.x&&r.top<=midpoint.y&&r.bottom>=midpoint.y){slot=candidate;break;}
         const d=Math.hypot(midpoint.x-(r.left+r.width/2),midpoint.y-(r.top+r.height/2));
-        if(d<bestDistance){bestDistance=d;if(!slot)slot=candidate;}
+        if(d<bestDistance){bestDistance=d;best=candidate;}
       }
+      if(!slot)slot=best;
     }
     if(!slot&&target&&target.closest)slot=target.closest(".genealogy-slot");
     if(!slot)return 0;
