@@ -1624,8 +1624,9 @@ function setupGenealogyControls(){
   if(!view||!canvas)return;
 
   let scale=1;
-  let drag=false,dragX=0,dragY=0,startLeft=0,startTop=0;
-  let pinchDistance=0,pinchScale=1;
+  const pointers=new Map();
+  let panStart=null;
+  let pinchStart=null;
   const label=document.getElementById("genealogyZoomLabel");
   const clamp=value=>Math.max(.35,Math.min(2.6,value));
   const apply=()=>{
@@ -1649,53 +1650,56 @@ function setupGenealogyControls(){
   if(zoomOut)zoomOut.onclick=()=>{scale=clamp(scale/1.2);apply();};
   if(fitButton)fitButton.onclick=fit;
 
-  // Touch gestures scale only the tree canvas; the surrounding portal stays fixed.
-  view.addEventListener("touchstart",event=>{
-    if(event.touches.length===2){
-      event.preventDefault();
-      const a=event.touches[0],b=event.touches[1];
-      pinchDistance=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
-      pinchScale=scale;
-      drag=false;
-    }else if(event.touches.length===1){
-      const t=event.touches[0];
-      drag=true;dragX=t.clientX;dragY=t.clientY;
-      startLeft=view.scrollLeft;startTop=view.scrollTop;
-    }
-  },{passive:false});
-  view.addEventListener("touchmove",event=>{
-    if(event.touches.length===2){
-      event.preventDefault();
-      const a=event.touches[0],b=event.touches[1];
-      const current=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
-      if(pinchDistance>0){scale=clamp(pinchScale*current/pinchDistance);apply();}
-    }else if(event.touches.length===1&&drag){
-      event.preventDefault();
-      const t=event.touches[0];
-      view.scrollLeft=startLeft-(t.clientX-dragX);
-      view.scrollTop=startTop-(t.clientY-dragY);
-    }
-  },{passive:false});
-  const endTouch=()=>{drag=false;pinchDistance=0;};
-  view.addEventListener("touchend",endTouch,{passive:true});
-  view.addEventListener("touchcancel",endTouch,{passive:true});
-
-  // Mouse/trackpad panning and Ctrl+wheel zoom.
+  // Use Pointer Events for touch and mouse so Android Chrome handles two-finger
+  // gestures consistently. The viewport's touch-action:none keeps page zoom fixed.
+  const distance=values=>{
+    const pair=Array.from(values.values()).slice(0,2);
+    return pair.length===2?Math.hypot(pair[0].x-pair[1].x,pair[0].y-pair[1].y):0;
+  };
   view.addEventListener("pointerdown",event=>{
-    if(event.pointerType!=="mouse"||event.target.closest("button"))return;
-    drag=true;dragX=event.clientX;dragY=event.clientY;
-    startLeft=view.scrollLeft;startTop=view.scrollTop;
-    view.classList.add("dragging");
-    view.setPointerCapture(event.pointerId);
-  });
+    if(event.target.closest("button"))return;
+    if(event.pointerType==="mouse"&&event.button!==0)return;
+    event.preventDefault();
+    pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
+    try{view.setPointerCapture(event.pointerId);}catch(_){}
+    if(pointers.size===2){
+      panStart=null;
+      pinchStart={distance:distance(pointers),scale};
+    }else if(pointers.size===1){
+      panStart={x:event.clientX,y:event.clientY,left:view.scrollLeft,top:view.scrollTop};
+      pinchStart=null;
+      if(event.pointerType==="mouse")view.classList.add("dragging");
+    }
+  },{passive:false});
+
   view.addEventListener("pointermove",event=>{
-    if(!drag||event.pointerType!=="mouse")return;
-    view.scrollLeft=startLeft-(event.clientX-dragX);
-    view.scrollTop=startTop-(event.clientY-dragY);
-  });
-  const stopMouse=()=>{drag=false;view.classList.remove("dragging");};
-  view.addEventListener("pointerup",stopMouse);
-  view.addEventListener("pointercancel",stopMouse);
+    if(!pointers.has(event.pointerId))return;
+    event.preventDefault();
+    pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
+    if(pointers.size>=2){
+      const currentDistance=distance(pointers);
+      if(pinchStart&&pinchStart.distance>0){
+        scale=clamp(pinchStart.scale*currentDistance/pinchStart.distance);
+        apply();
+      }
+    }else if(pointers.size===1&&panStart){
+      view.scrollLeft=panStart.left-(event.clientX-panStart.x);
+      view.scrollTop=panStart.top-(event.clientY-panStart.y);
+    }
+  },{passive:false});
+
+  const endPointer=event=>{
+    pointers.delete(event.pointerId);
+    if(pointers.size<2)pinchStart=null;
+    if(pointers.size===1){
+      const remaining=Array.from(pointers.values())[0];
+      panStart={x:remaining.x,y:remaining.y,left:view.scrollLeft,top:view.scrollTop};
+    }else panStart=null;
+    if(!pointers.size)view.classList.remove("dragging");
+  };
+  view.addEventListener("pointerup",endPointer);
+  view.addEventListener("pointercancel",endPointer);
+  view.addEventListener("lostpointercapture",endPointer);
   view.addEventListener("wheel",event=>{
     if(event.ctrlKey){
       event.preventDefault();
