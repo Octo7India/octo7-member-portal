@@ -1714,7 +1714,7 @@ function setupGenealogyControls(){
   const setPinnedRootLifted=lifted=>{
     if(!pinnedRoot||pinnedRootLifted===lifted)return;
     pinnedRootLifted=lifted;
-    pinnedRoot.style.top=lifted?"8px":"120px";
+    pinnedRoot.style.setProperty("top",lifted?"-90px":"120px","important");
     apply();
   };
   const apply=()=>{
