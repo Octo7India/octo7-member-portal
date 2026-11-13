@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -2141,13 +2142,6 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
     final rootId = (root['member_id'] ?? '').toString();
     final nodes = layout.placements;
     final edgePoints = <_TidyEdge>[];
-    final byPosition = <String, _TidyPlacement>{};
-    for (final p in nodes) {
-      if (p.node != null) {
-        final id = (p.node!['id'] ?? p.node!['position_id'] ?? '').toString();
-        byPosition[id] = p;
-      }
-    }
     // Connect each real member to its immediate left/right child (member or
     // vacancy), retaining the binary genealogy's branch direction.
     for (final p in nodes.where((item) => item.node != null)) {
