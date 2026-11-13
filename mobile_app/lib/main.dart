@@ -1856,18 +1856,18 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
   late Future<Map<String,dynamic>> _genealogyFuture;
   String? _rootMemberId;
   final List<String> _backStack=[];
-  double _zoomScale=1,_baseZoomScale=1,_verticalPanOffset=0,_horizontalPanOffset=0;
+  double _zoomScale=1,_baseZoomScale=1,_verticalPanOffset=0,_horizontalPanOffset=0,_manualVerticalPanOffset=0;
   int _zoomFocusLevel=0;
   static const double _minZoom=.85,_maxZoom=2.4,_baseTreeWidth=370,_permanentTopAnchorY=28;
   static const List<double> _levelWidths=[108,88,68,41],_levelHeights=[54,46,38,34],_levelOffsetY=[0,96,180,256];
   List<_BaseSlot> _slots=[];
   @override
   void initState(){super.initState();_genealogyFuture=LiveDataService.instance.fetchGenealogy();}
-  void _reload({String? rootId}){setState((){_genealogyFuture=LiveDataService.instance.fetchGenealogy(rootMemberId:rootId);_zoomScale=1;_verticalPanOffset=0;_horizontalPanOffset=0;_zoomFocusLevel=0;});}
+  void _reload({String? rootId}){setState((){_genealogyFuture=LiveDataService.instance.fetchGenealogy(rootMemberId:rootId);_zoomScale=1;_verticalPanOffset=0;_horizontalPanOffset=0;_manualVerticalPanOffset=0;_zoomFocusLevel=0;});}
   Future<void> _openMember(String id)async{
     if(id.isEmpty||id==_rootMemberId)return;
     final previous=_rootMemberId;
-    setState((){if(previous!=null&&previous.isNotEmpty)_backStack.add(previous);_rootMemberId=id;_zoomScale=1;_verticalPanOffset=0;_horizontalPanOffset=0;_zoomFocusLevel=0;_genealogyFuture=LiveDataService.instance.fetchGenealogy(rootMemberId:id);});
+    setState((){if(previous!=null&&previous.isNotEmpty)_backStack.add(previous);_rootMemberId=id;_zoomScale=1;_verticalPanOffset=0;_horizontalPanOffset=0;_manualVerticalPanOffset=0;_zoomFocusLevel=0;_genealogyFuture=LiveDataService.instance.fetchGenealogy(rootMemberId:id);});
   }
   void _goBackOneLevel(){
     if(_backStack.isEmpty)return;
@@ -1915,7 +1915,8 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
     return nearestLevel;
   }
   void _updateFocusLift(){
-    _verticalPanOffset=-(((_zoomScale-1).clamp(0.0,1.4))*(44+_zoomFocusLevel*36)).clamp(0.0,170.0).toDouble();
+    final lift=(((_zoomScale-1).clamp(0.0,1.4))*(44+_zoomFocusLevel*36)).clamp(0.0,170.0).toDouble();
+    _verticalPanOffset=_manualVerticalPanOffset-lift;
   }
   void _onNodeTapped(MemberNode n){
     if(n.isAvailable){if(n.parentPositionId>0){_openVacantPosition(n.parentPositionId,n.side);}else{ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('This position is not available for registration.')));}return;}
@@ -1931,7 +1932,7 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
         actions:[
           if(_backStack.isNotEmpty)IconButton(tooltip:'Back One Level',icon:const Icon(Icons.arrow_upward,color:Colors.amber),onPressed:_goBackOneLevel),
           IconButton(tooltip:'Zoom Out',icon:const Icon(Icons.remove,color:Colors.white),onPressed:()=>_stepZoom(.85)),
-          IconButton(tooltip:'Reset Size',icon:const Icon(Icons.crop_free,color:Colors.white),onPressed:()=>setState((){_zoomScale=1;_verticalPanOffset=0;_horizontalPanOffset=0;_zoomFocusLevel=0;})),
+          IconButton(tooltip:'Reset Size',icon:const Icon(Icons.crop_free,color:Colors.white),onPressed:()=>setState((){_zoomScale=1;_verticalPanOffset=0;_horizontalPanOffset=0;_manualVerticalPanOffset=0;_zoomFocusLevel=0;})),
           IconButton(tooltip:'Zoom In',icon:const Icon(Icons.add,color:Colors.white),onPressed:()=>_stepZoom(1.2)),
           IconButton(tooltip:'Return to my ID',icon:const Icon(Icons.home_outlined,color:Colors.white),onPressed:_returnToOwnId),
           IconButton(tooltip:'Refresh genealogy',icon:const Icon(Icons.refresh,color:Colors.white),onPressed:()=>_reload(rootId:_rootMemberId)),
@@ -1957,7 +1958,7 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
                   onScaleStart:(d){_baseZoomScale=_zoomScale;_zoomFocusLevel=_focusLevelAt(d.localFocalPoint,cx);},
                   onScaleUpdate:(d){setState((){
                     _horizontalPanOffset+=d.focalPointDelta.dx;
-                    _verticalPanOffset+=d.focalPointDelta.dy;
+                    _manualVerticalPanOffset+=d.focalPointDelta.dy;
                     if(d.scale!=1)_zoomScale=(_baseZoomScale*d.scale).clamp(_minZoom,_maxZoom);
                     // Pinching zooms around the touched ID without changing the genealogy root.
                     // Lift the complete tree in screen space so that ID's descendants remain visible.
