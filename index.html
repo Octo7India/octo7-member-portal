@@ -962,18 +962,12 @@ function showMessage(id,message,error=false) {
 
 
 
-let octo7LoaderTimer;
-function showPageLoader(){
-  const loader=document.getElementById("octo7PageLoader");
-  if(!loader)return;
-  clearTimeout(octo7LoaderTimer);
-  loader.classList.add("show");
-}
+// Page navigation is immediate. Do not block the screen with a global loader.
+// Login progress is shown locally on the login button and message.
+function showPageLoader(){}
 function hidePageLoaderSoon(){
   const loader=document.getElementById("octo7PageLoader");
-  if(!loader)return;
-  clearTimeout(octo7LoaderTimer);
-  octo7LoaderTimer=setTimeout(()=>loader.classList.remove("show"),400);
+  if(loader) loader.classList.remove("show");
 }
 
 // PUBLIC WELCOME-PAGE MENU DRAWER
