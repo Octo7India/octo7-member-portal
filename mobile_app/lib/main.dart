@@ -512,50 +512,101 @@ class MemberLoginScreen extends StatefulWidget {
   State<MemberLoginScreen> createState() => _MemberLoginScreenState();
 }
 class _MemberLoginScreenState extends State<MemberLoginScreen> {
-  final _identifierController=TextEditingController(),_passwordController=TextEditingController();
-  bool _busy=false,_hidePassword=true; String? _error;
+  final _identifierController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _busy = false, _hidePassword = true;
+  String? _error;
+
   Future<void> _login() async {
-    final id=_identifierController.text.trim();
-    if(id.isEmpty||!RegExp(r'^[0-9]+$').hasMatch(id)){setState(()=>_error='Enter your OCTO7 User ID number.');return;}
-    if(_passwordController.text.isEmpty){setState(()=>_error='Enter your password.');return;}
-    if(_busy)return;setState(()=>_busy=true);setState(()=>_error=null);
-    try{await AuthService.instance.signIn(identifier:id,password:_passwordController.text);if(mounted)widget.onLogin();}
-    catch(e){if(mounted)setState(()=>_error=e.toString().replaceFirst('Exception: ',''));}
-    finally{if(mounted)setState(()=>_busy=false);}
+    final id = _identifierController.text.trim();
+    if (id.isEmpty || !RegExp(r'^[0-9]+$').hasMatch(id)) {
+      setState(() => _error = 'Enter your OCTO7 User ID number.');
+      return;
+    }
+    if (_passwordController.text.isEmpty) {
+      setState(() => _error = 'Enter your password.');
+      return;
+    }
+    if (_busy) return;
+    setState(() { _busy = true; _error = null; });
+    try {
+      await AuthService.instance.signIn(identifier: id, password: _passwordController.text);
+      if (mounted) widget.onLogin();
+    } catch (e) {
+      if (mounted) setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
+
   @override
-  void dispose(){_identifierController.dispose();_passwordController.dispose();super.dispose();}
+  void dispose() {
+    _identifierController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  InputDecoration _imageFieldDecoration() => const InputDecoration(
+    filled: false, fillColor: Colors.transparent,
+    border: InputBorder.none, enabledBorder: InputBorder.none,
+    focusedBorder: InputBorder.none, disabledBorder: InputBorder.none,
+    isDense: true, isCollapsed: true, contentPadding: EdgeInsets.zero,
+    constraints: BoxConstraints.tightFor(height: 42),
+  );
+
   @override
-  Widget build(BuildContext context)=>Scaffold(backgroundColor:const Color(0xFFFFFDF5),
-    body:SafeArea(child:LayoutBuilder(builder:(context,c){
-      final w=c.maxWidth,h=w*2;
-      return Center(child:SizedBox(width:w,height:h,child:Stack(fit:StackFit.expand,children:[
-        Image.asset('1794527061741.jpg',fit:BoxFit.fill),
-        Positioned(left:w*.27,top:h*.512,width:w*.50,height:h*.055,child:TextField(controller:_identifierController,
-          keyboardType:TextInputType.number,style:const TextStyle(color:Color(0xFF17233D),fontSize:16),
-          decoration:const InputDecoration(
-            filled:false, fillColor:Colors.transparent,
-            border:InputBorder.none, enabledBorder:InputBorder.none,
-            focusedBorder:InputBorder.none, disabledBorder:InputBorder.none,
-            isDense:true, isCollapsed:true, contentPadding:EdgeInsets.zero))),
-        Positioned(left:w*.27,top:h*.583,width:w*.47,height:h*.055,child:TextField(controller:_passwordController,obscureText:_hidePassword,
-          style:const TextStyle(color:Color(0xFF17233D),fontSize:16),
-          decoration:const InputDecoration(
-            filled:false, fillColor:Colors.transparent,
-            border:InputBorder.none, enabledBorder:InputBorder.none,
-            focusedBorder:InputBorder.none, disabledBorder:InputBorder.none,
-            isDense:true, isCollapsed:true, contentPadding:EdgeInsets.zero),onSubmitted:(_)=>_login())),
-        Positioned(left:w*.755,top:h*.585,width:w*.07,height:h*.05,child:IconButton(padding:EdgeInsets.zero,
-          onPressed:()=>setState(()=>_hidePassword=!_hidePassword),icon:Icon(_hidePassword?Icons.visibility:Icons.visibility_off,color:const Color(0xFF52617A),size:24))),
-        Positioned(left:w*.17,top:h*.656,width:w*.66,height:h*.052,child:Material(color:Colors.transparent,
-          child:InkWell(borderRadius:BorderRadius.circular(24),onTap:_busy?null:_login,
-            child:Center(child:_busy?const CircularProgressIndicator(color:Colors.white):const SizedBox.expand())))),
-        if(_error!=null)Positioned(left:w*.12,top:h*.715,width:w*.76,child:Text(_error!,textAlign:TextAlign.center,style:const TextStyle(color:Colors.red,fontSize:12))),
-        Positioned(left:w*.30,top:h*.747,width:w*.40,height:h*.035,child:TextButton(
-          onPressed:()=>Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const MemberPasswordRecoveryScreen())),
-          child:const SizedBox.expand())),
-      ])));
-    })));
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: const Color(0xFFFFFDF5),
+    body: SafeArea(child: LayoutBuilder(builder: (context, c) {
+      // Preserve the supplied 1:2 artwork ratio on all phone sizes.
+      final w = c.maxWidth < c.maxHeight / 2 ? c.maxWidth : c.maxHeight / 2;
+      final h = w * 2;
+      return Center(child: SizedBox(width: w, height: h,
+        child: Stack(fit: StackFit.expand, children: [
+          Image.asset('1794527061741.jpg', fit: BoxFit.fill),
+          // Transparent text-only overlays; no extra filled TextField boxes.
+          Positioned(left: w * .285, top: h * .520, width: w * .475, height: h * .052,
+            child: Center(child: TextField(
+              controller: _identifierController, keyboardType: TextInputType.number,
+              textAlignVertical: TextAlignVertical.center, maxLines: 1,
+              style: const TextStyle(color: Color(0xFF17233D), fontSize: 16, height: 1.1),
+              decoration: _imageFieldDecoration(),
+            ))),
+          Positioned(left: w * .285, top: h * .590, width: w * .455, height: h * .052,
+            child: Center(child: TextField(
+              controller: _passwordController, obscureText: _hidePassword,
+              textAlignVertical: TextAlignVertical.center, maxLines: 1,
+              style: const TextStyle(color: Color(0xFF17233D), fontSize: 16, height: 1.1),
+              decoration: _imageFieldDecoration(), onSubmitted: (_) => _login(),
+            ))),
+          // Centered over the eye printed in the password field artwork.
+          Positioned(left: w * .748, top: h * .582, width: w * .075, height: h * .068,
+            child: IconButton(
+              padding: EdgeInsets.zero, constraints: const BoxConstraints.expand(),
+              onPressed: () => setState(() => _hidePassword = !_hidePassword),
+              icon: Icon(_hidePassword ? Icons.visibility : Icons.visibility_off,
+                color: const Color(0xFF52617A), size: 23),
+            )),
+          Positioned(left: w * .17, top: h * .656, width: w * .66, height: h * .052,
+            child: Material(color: Colors.transparent, child: InkWell(
+              borderRadius: BorderRadius.circular(24), onTap: _busy ? null : _login,
+              child: Center(child: _busy
+                ? const CircularProgressIndicator(color: Colors.white)
+                : const SizedBox.expand()),
+            ))),
+          if (_error != null)
+            Positioned(left: w * .12, top: h * .715, width: w * .76,
+              child: Text(_error!, textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.red, fontSize: 12))),
+          Positioned(left: w * .30, top: h * .747, width: w * .40, height: h * .035,
+            child: TextButton(
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => const MemberPasswordRecoveryScreen())),
+              child: const SizedBox.expand(),
+            )),
+        ])));
+    })),
+  );
 }
 class MemberPasswordRecoveryScreen extends StatefulWidget {
   const MemberPasswordRecoveryScreen({super.key});
