@@ -1589,37 +1589,7 @@ function renderGenealogyNode(root){
   }).join("");
   return '<svg class="genealogy-connectors" viewBox="0 0 420 760" aria-hidden="true">'+paths.join("")+'</svg>'+cards;
 }
-function setupGenealogyControls(){
-  const view=document.getElementById("genealogyViewport"),canvas=document.getElementById("genealogyCanvas");
-  if(!view||!canvas)return;
-  let scale=1,drag=false,x=0,y=0,left=0,top=0;
-  const activePointers=new Map();
-  let pinchStartDistance=0,pinchStartScale=1;
-  const label=document.getElementById("genealogyZoomLabel");
-  const clampScale=value=>Math.max(.65,Math.min(2.6,value));
-  const apply=()=>{canvas.style.transform="scale("+scale+")";if(label)label.textContent=Math.round(scale*100)+"%";};
-  const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
-  document.getElementById("genealogyZoomIn").onclick=()=>{scale=clampScale(scale*1.2);apply();};
-  document.getElementById("genealogyZoomOut").onclick=()=>{scale=clampScale(scale*.85);apply();};
-  document.getElementById("genealogyFit").onclick=()=>{scale=Math.max(.65,Math.min(1,(view.clientWidth-24)/420));apply();view.scrollLeft=0;view.scrollTop=0;};
-  view.addEventListener("pointerdown",e=>{
-    if(e.target.closest("button"))return;
-    activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
-    view.setPointerCapture(e.pointerId);
-    if(activePointers.size===1){drag=true;x=e.clientX;y=e.clientY;left=view.scrollLeft;top=view.scrollTop;view.classList.add("dragging");}
-    if(activePointers.size===2){drag=false;const pts=[...activePointers.values()];pinchStartDistance=distance(pts[0],pts[1]);pinchStartScale=scale;}
-  });
-  view.addEventListener("pointermove",e=>{
-    if(!activePointers.has(e.pointerId))return;
-    activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
-    if(activePointers.size===2){const pts=[...activePointers.values()];const d=distance(pts[0],pts[1]);if(pinchStartDistance>0){scale=clampScale(pinchStartScale*d/pinchStartDistance);apply();}return;}
-    if(drag){view.scrollLeft=left-(e.clientX-x);view.scrollTop=top-(e.clientY-y);}
-  });
-  const stop=e=>{activePointers.delete(e.pointerId);if(activePointers.size<2)pinchStartDistance=0;if(activePointers.size===0){drag=false;view.classList.remove("dragging");}else if(activePointers.size===1){const p=[...activePointers.values()][0];x=p.x;y=p.y;left=view.scrollLeft;top=view.scrollTop;drag=true;}};
-  view.addEventListener("pointerup",stop);view.addEventListener("pointercancel",stop);view.addEventListener("lostpointercapture",stop);
-  view.addEventListener("wheel",e=>{if(e.ctrlKey){e.preventDefault();scale=clampScale(scale+(e.deltaY<0?.08:-.08));apply();}},{passive:false});
-  apply();setTimeout(()=>document.getElementById("genealogyFit")?.click(),50);
-}
+
 let genealogyCurrentMemberId=null;
 let genealogyNavigationStack=[];
 async function loadAllGenealogyVacancies(){
@@ -1649,19 +1619,93 @@ async function genealogyGoBack(){
   await loadGenealogy(previous,"back");
 }
 function setupGenealogyControls(){
-  const view=document.getElementById("genealogyViewport"),canvas=document.getElementById("genealogyCanvas");
+  const view=document.getElementById("genealogyViewport");
+  const canvas=document.getElementById("genealogyCanvas");
   if(!view||!canvas)return;
-  let scale=1,drag=false,x=0,y=0,left=0,top=0;
-  const apply=()=>{canvas.style.transform="scale("+scale+")";document.getElementById("genealogyZoomLabel").textContent=Math.round(scale*100)+"%";};
-  document.getElementById("genealogyZoomIn").onclick=()=>{scale=Math.min(2.2,scale+.15);apply();};
-  document.getElementById("genealogyZoomOut").onclick=()=>{scale=Math.max(.35,scale-.15);apply();};
-  document.getElementById("genealogyFit").onclick=()=>{const w=(canvas.scrollWidth||canvas.offsetWidth),h=(canvas.scrollHeight||canvas.offsetHeight);scale=Math.max(.35,Math.min(1,(view.clientWidth-30)/w,(view.clientHeight-30)/h));apply();view.scrollLeft=0;view.scrollTop=0;};
-  view.addEventListener("pointerdown",e=>{if(e.target.closest("button"))return;drag=true;x=e.clientX;y=e.clientY;left=view.scrollLeft;top=view.scrollTop;view.classList.add("dragging");view.setPointerCapture(e.pointerId);});
-  view.addEventListener("pointermove",e=>{if(drag){view.scrollLeft=left-(e.clientX-x);view.scrollTop=top-(e.clientY-y);}});
-  const stop=()=>{drag=false;view.classList.remove("dragging");};
-  view.addEventListener("pointerup",stop);view.addEventListener("pointercancel",stop);
-  view.addEventListener("wheel",e=>{if(e.ctrlKey){e.preventDefault();scale=Math.max(.35,Math.min(2.2,scale+(e.deltaY<0?.08:-.08)));apply();}},{passive:false});
-  apply();setTimeout(()=>document.getElementById("genealogyFit").click(),60);
+
+  let scale=1;
+  let drag=false,dragX=0,dragY=0,startLeft=0,startTop=0;
+  let pinchDistance=0,pinchScale=1;
+  const label=document.getElementById("genealogyZoomLabel");
+  const clamp=value=>Math.max(.35,Math.min(2.6,value));
+  const apply=()=>{
+    canvas.style.transformOrigin="top left";
+    canvas.style.transform="scale("+scale+")";
+    if(label)label.textContent=Math.round(scale*100)+"%";
+  };
+  const fit=()=>{
+    const availableWidth=Math.max(180,view.clientWidth-24);
+    const availableHeight=Math.max(180,view.clientHeight-24);
+    scale=clamp(Math.min(1,availableWidth/420,availableHeight/760));
+    apply();
+    view.scrollLeft=0;
+    view.scrollTop=0;
+  };
+
+  const zoomIn=document.getElementById("genealogyZoomIn");
+  const zoomOut=document.getElementById("genealogyZoomOut");
+  const fitButton=document.getElementById("genealogyFit");
+  if(zoomIn)zoomIn.onclick=()=>{scale=clamp(scale*1.2);apply();};
+  if(zoomOut)zoomOut.onclick=()=>{scale=clamp(scale/1.2);apply();};
+  if(fitButton)fitButton.onclick=fit;
+
+  // Touch gestures scale only the tree canvas; the surrounding portal stays fixed.
+  view.addEventListener("touchstart",event=>{
+    if(event.touches.length===2){
+      event.preventDefault();
+      const a=event.touches[0],b=event.touches[1];
+      pinchDistance=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
+      pinchScale=scale;
+      drag=false;
+    }else if(event.touches.length===1){
+      const t=event.touches[0];
+      drag=true;dragX=t.clientX;dragY=t.clientY;
+      startLeft=view.scrollLeft;startTop=view.scrollTop;
+    }
+  },{passive:false});
+  view.addEventListener("touchmove",event=>{
+    if(event.touches.length===2){
+      event.preventDefault();
+      const a=event.touches[0],b=event.touches[1];
+      const current=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
+      if(pinchDistance>0){scale=clamp(pinchScale*current/pinchDistance);apply();}
+    }else if(event.touches.length===1&&drag){
+      event.preventDefault();
+      const t=event.touches[0];
+      view.scrollLeft=startLeft-(t.clientX-dragX);
+      view.scrollTop=startTop-(t.clientY-dragY);
+    }
+  },{passive:false});
+  const endTouch=()=>{drag=false;pinchDistance=0;};
+  view.addEventListener("touchend",endTouch,{passive:true});
+  view.addEventListener("touchcancel",endTouch,{passive:true});
+
+  // Mouse/trackpad panning and Ctrl+wheel zoom.
+  view.addEventListener("pointerdown",event=>{
+    if(event.pointerType!=="mouse"||event.target.closest("button"))return;
+    drag=true;dragX=event.clientX;dragY=event.clientY;
+    startLeft=view.scrollLeft;startTop=view.scrollTop;
+    view.classList.add("dragging");
+    view.setPointerCapture(event.pointerId);
+  });
+  view.addEventListener("pointermove",event=>{
+    if(!drag||event.pointerType!=="mouse")return;
+    view.scrollLeft=startLeft-(event.clientX-dragX);
+    view.scrollTop=startTop-(event.clientY-dragY);
+  });
+  const stopMouse=()=>{drag=false;view.classList.remove("dragging");};
+  view.addEventListener("pointerup",stopMouse);
+  view.addEventListener("pointercancel",stopMouse);
+  view.addEventListener("wheel",event=>{
+    if(event.ctrlKey){
+      event.preventDefault();
+      scale=clamp(scale+(event.deltaY<0?.08:-.08));
+      apply();
+    }
+  },{passive:false});
+
+  apply();
+  requestAnimationFrame(fit);
 }
 async function openMemberRegistration(parentId,side){
   const parent=Number(parentId);
