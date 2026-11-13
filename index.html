@@ -1619,8 +1619,8 @@ function setupGenealogyControls(){
   const view=document.getElementById("genealogyViewport");
   const canvas=document.getElementById("genealogyCanvas");
   if(!view||!canvas)return;
-  const expandLayer=canvas.querySelector(".genealogy-expand-layer");
-  if(!expandLayer)return;
+  const connectorSvg=canvas.querySelector(".genealogy-connectors");
+  if(!canvas.querySelector(".genealogy-expand-layer"))return;
 
   let scale=1;
   let touchStart=null;
@@ -1630,7 +1630,6 @@ function setupGenealogyControls(){
   let panX=0,panY=0;
   const label=document.getElementById("genealogyZoomLabel");
   const clamp=value=>Math.max(.4,Math.min(2.4,value));
-  const connectorSvg=canvas.querySelector(".genealogy-connectors");
   const focusLevelFromTarget=(target,midpoint)=>{
     const candidates=Array.from(canvas.querySelectorAll(".genealogy-slot"));
     let slot=null;
@@ -1650,39 +1649,12 @@ function setupGenealogyControls(){
     return y>=220?3:y>=130?2:y>=60?1:0;
   };
   const apply=()=>{
-    // The root remains the selected genealogy ID, but it moves with the complete tree.
-    // Descendant cards expand from its bottom-centre.
-    expandLayer.style.transformOrigin="185px 54px";
-    expandLayer.style.transform="scale("+scale+")";
-    // Translate the complete tree in both axes. The selected root is deliberately not
-    // screen-pinned: it may move off-screen while remaining the logical genealogy root.
+    // Scale the WHOLE tree as one coordinate plane: root, every member card,
+    // available positions, and every connector are transformed together.
+    // The selected root is not screen-pinned and may move off-screen.
     const lift=Math.min(170,Math.max(0,(scale-1)*(44+zoomFocusLevel*36)));
-    canvas.style.transform="translate("+panX+"px,"+(panY-lift)+"px)";
-    // Recompute every parent-to-child edge independently from the live card rectangles.
-    // The SVG is outside the transformed card layer, so only its path geometry stretches.
-    if(connectorSvg){
-      const slots=Array.from(canvas.querySelectorAll(".genealogy-slot"));
-      const rects=slots.map((slot,index)=>{
-        const left=parseFloat(slot.style.left)||0,top=parseFloat(slot.style.top)||0;
-        const width=parseFloat(slot.style.width)||0,height=parseFloat(slot.style.height)||0;
-        if(index===0)return {left,top,width,height};
-        return {left:185+(left-185)*scale,top:54+(top-54)*scale,width:width*scale,height:height*scale};
-      });
-      const paths=[];
-      for(let parentIndex=0;parentIndex<7;parentIndex++){
-        const parent=rects[parentIndex];
-        if(!parent)continue;
-        for(const childIndex of [parentIndex*2+1,parentIndex*2+2]){
-          const child=rects[childIndex];
-          if(!child)continue;
-          const sx=parent.left+parent.width/2,sy=parent.top+parent.height;
-          const ex=child.left+child.width/2,ey=child.top;
-          const bend=Math.max(8,Math.abs(ey-sy)*.48);
-          paths.push('<path d="M '+sx.toFixed(2)+' '+sy.toFixed(2)+' C '+sx.toFixed(2)+' '+(sy+bend).toFixed(2)+' '+ex.toFixed(2)+' '+(ey-bend).toFixed(2)+' '+ex.toFixed(2)+' '+ey.toFixed(2)+'" fill="none" stroke="#2c7a7b" stroke-width="1.6" stroke-linecap="round"/>');
-        }
-      }
-      connectorSvg.innerHTML=paths.join("");
-    }
+    canvas.style.transformOrigin="185px 54px";
+    canvas.style.transform="translate("+panX+"px,"+(panY-lift)+"px) scale("+scale+")";
     if(label)label.textContent=Math.round(scale*100)+"%";
   };
   const fit=()=>{
