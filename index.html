@@ -266,7 +266,22 @@ footer .logo {color:white}
 .member-topbar{justify-content:flex-start;gap:18px;background:#071a2c;margin:-65px -7vw 24px;padding:18px 22px}
 .member-menu-link{width:48px;height:44px;justify-content:center;padding:8px;border:1px solid #ffffff70;border-radius:7px;background:#ffffff12;color:#fff}
 .member-brand{margin-left:auto;color:#fff;font-size:20px;font-weight:800;letter-spacing:1px}
-.member-welcome-screen{max-width:660px;min-height:calc(100vh - 150px);margin:0 auto;padding:28px 22px 34px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;background:radial-gradient(ellipse at 18% 34%,#b77c3c55 0 7%,transparent 22%),radial-gradient(ellipse at 85% 70%,#b77c3c44 0 8%,transparent 24%),linear-gradient(145deg,#17452f,#0c3828 55%,#08291f);border-radius:0 0 18px 18px;box-shadow:0 10px 28px #001b1433}
+.member-welcome-screen{max-width:590px;margin:0 auto 28px;padding:0 0 0;overflow:hidden;border-radius:0 0 18px 18px;background:#d8d0c3;box-shadow:0 12px 36px #0004;text-align:center;color:#fff}
+.member-welcome-panel{position:relative;isolation:isolate;min-height:780px;padding:42px 28px 26px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;background:linear-gradient(135deg,#173e2c 0%,#17472f 48%,#092b20 100%);overflow:hidden}
+.member-welcome-panel:before,.member-welcome-panel:after{content:"";position:absolute;z-index:-1;width:250px;height:250px;border-radius:50%;filter:blur(34px);background:radial-gradient(ellipse,#c47a43aa 0%,#a85f37aa 25%,transparent 68%);transform:rotate(-25deg)}
+.member-welcome-panel:before{left:-110px;top:190px}.member-welcome-panel:after{right:-110px;bottom:120px}
+.member-welcome-brand{font-size:clamp(42px,8vw,64px);font-weight:800;letter-spacing:3px;color:#f3eee3;text-shadow:0 3px 5px #0009;margin:0 0 16px}
+.member-welcome-logo{display:block;width:clamp(190px,42vw,280px);height:clamp(190px,42vw,280px);object-fit:contain;margin:0 auto 8px}
+.member-welcome-tagline{font-size:clamp(12px,2.2vw,16px);font-weight:600;letter-spacing:.5px;text-transform:none;color:#d6a15f;margin:10px 0 30px}
+.member-welcome-greeting{font-size:clamp(28px,5vw,38px);font-weight:400;color:#e9c39c;margin:0 0 10px}
+.member-welcome-panel h1{font-size:clamp(28px,5.3vw,42px);line-height:1.18;margin:0;color:#fff;font-weight:800;overflow-wrap:anywhere}
+.member-welcome-id{margin:8px 0 0;font-size:16px;font-weight:700;color:#f0d7b7}
+.member-welcome-copy{margin:28px 0 0;color:#e7c59e;font-size:clamp(16px,2.8vw,21px);line-height:1.45}
+.member-welcome-description{max-width:510px;margin:42px auto 0;color:#eadcc9;font-size:clamp(14px,2.4vw,18px);line-height:1.5}
+.member-welcome-footer{padding:12px 10px 9px;color:#153c28;background:#d8d0c3;display:flex;flex-direction:column;gap:2px}
+.member-welcome-footer strong{font-size:19px}.member-welcome-footer span{font-size:14px}
+.member-welcome-panel .welcome-status{margin-top:10px}
+@media(max-width:520px){.member-welcome-panel{min-height:calc(100vh - 170px);padding:30px 20px 24px}.member-welcome-description{margin-top:30px}}
 .member-welcome-logo{display:block;width:clamp(150px,28vw,210px);height:auto;max-height:210px;object-fit:contain;margin:0 auto 10px}
 .member-welcome-tagline{font-size:clamp(11px,2vw,14px);font-weight:600;letter-spacing:.7px;text-transform:none;color:#e8c58d;margin:2px 0 20px}
 .member-welcome-greeting{font-size:clamp(26px,4vw,34px);font-weight:400;color:#e8c58d;margin:0 0 8px}
@@ -585,14 +600,18 @@ footer .logo {color:white}
 
   <div id="homeView" class="portal-view">
     <div class="member-welcome-screen">
-      <img class="member-welcome-logo" src="OCTO7_emblem_transparent-2.png" alt="Original OCTO7 logo">
-      <div class="member-welcome-tagline">Together for a better tomorrow</div>
-      <div class="member-welcome-greeting">Welcome</div>
-      <h1 id="welcomeMemberName">Loading member...</h1>
-      <div id="welcomeMemberId" class="member-welcome-id">Member ID loading...</div>
-      <div id="welcomeAccountStatus" class="welcome-status pending" hidden></div>
-      <p class="member-welcome-copy">Plant the seed of effort, harvest a lifetime of success.</p>
-      <p class="member-welcome-description">Discover a world of opportunities through quality products, entrepreneurship and a growing business network.</p>
+      <div class="member-welcome-panel">
+        <div class="member-welcome-brand">OCTO7</div>
+        <img class="member-welcome-logo" src="OCTO7_emblem_transparent-2.png" alt="Original OCTO7 globe emblem">
+        <div class="member-welcome-tagline">Together for a better tomorrow</div>
+        <div class="member-welcome-greeting">Welcome</div>
+        <h1 id="welcomeMemberName">Loading member...</h1>
+        <div id="welcomeMemberId" class="member-welcome-id">Member ID loading...</div>
+        <div id="welcomeAccountStatus" class="welcome-status pending" hidden></div>
+        <p class="member-welcome-copy">Plant the Seed of Effort, Harvest a Lifetime of Success.</p>
+        <p class="member-welcome-description">Discover a world of opportunities through quality products, entrepreneurship and growing business network.</p>
+      </div>
+      <div class="member-welcome-footer"><strong>OCTO7 India</strong><span>Dream. Network. Grow.</span></div>
     </div>
     <div id="welcomeMessage" class="message" aria-live="polite"></div>
   </div>
