@@ -517,6 +517,7 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
   final _passwordController = TextEditingController();
   bool _busy = false;
   bool _hidePassword = true;
+  bool _hideUserId = true;
   String? _error;
 
   Future<void> _login() async {
@@ -558,8 +559,11 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
     required String hint,
     required IconData leading,
     Widget? trailing,
+    String? prefixText,
   }) => InputDecoration(
     hintText: hint,
+    prefixText: prefixText,
+    prefixStyle: const TextStyle(color: Color(0xFF17233D), fontSize: 15, fontWeight: FontWeight.w800, letterSpacing: .3),
     hintStyle: const TextStyle(color: Color(0xFF737373), fontSize: 14),
     prefixIcon: Icon(leading, color: const Color(0xFF495057), size: 19),
     suffixIcon: trailing,
@@ -670,14 +674,24 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
                             TextField(
                               controller: _identifierController,
                               keyboardType: TextInputType.number,
+                              obscureText: _hideUserId,
                               textInputAction: TextInputAction.next,
                               maxLines: 1,
                               style: const TextStyle(
                                 color: Color(0xFF17233D), fontSize: 15,
                               ),
                               decoration: _fieldDecoration(
-                                hint: 'Enter Your User ID',
+                                hint: 'Enter number only',
                                 leading: Icons.badge_outlined,
+                                prefixText: 'OCTO7 ',
+                                trailing: IconButton(
+                                  tooltip: _hideUserId ? 'Show User ID' : 'Hide User ID',
+                                  onPressed: () => setState(() => _hideUserId = !_hideUserId),
+                                  icon: Icon(
+                                    _hideUserId ? Icons.visibility : Icons.visibility_off,
+                                    color: const Color(0xFF3D4856), size: 20,
+                                  ),
+                                ),
                               ),
                               onChanged: (_) {
                                 if (_error != null) setState(() => _error = null);
