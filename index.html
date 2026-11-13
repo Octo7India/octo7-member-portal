@@ -1715,6 +1715,13 @@ function setupGenealogyControls(){
   const label=document.getElementById("genealogyZoomLabel");
   const clamp=v=>Math.max(.25,Math.min(2.5,v));
   let pinnedRoot=null;
+  let pinnedRootLifted=false;
+  const setPinnedRootLifted=lifted=>{
+    if(!pinnedRoot||pinnedRootLifted===lifted)return;
+    pinnedRootLifted=lifted;
+    pinnedRoot.style.top=lifted?"8px":"120px";
+    apply();
+  };
   const apply=()=>{
     canvas.style.transform="translate("+x+"px,"+y+"px) scale("+scale+")";
     if(label)label.textContent=Math.round(scale*100)+"%";
@@ -1749,7 +1756,7 @@ function setupGenealogyControls(){
     // Move the real ID 1 card out of the transformed canvas. Do not clone it:
     // the original member button itself stays fixed while the rest of the tree moves.
     pinnedRoot=rootCard;
-    pinnedRoot.style.cssText="visibility:visible!important;position:fixed!important;top:120px!important;left:50%!important;transform:translateX(-50%)!important;width:90px!important;height:62px!important;box-sizing:border-box!important;padding:8px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;z-index:30!important;pointer-events:auto!important;background:#25212e!important;color:#fff!important;border:2px solid #f39c12!important;border-radius:8px!important;box-shadow:0 4px 10px rgba(0,0,0,.4)!important;cursor:pointer!important";
+    pinnedRoot.style.cssText="visibility:visible!important;position:fixed!important;top:120px!important;left:50%!important;transform:translateX(-50%)!important;width:90px!important;height:62px!important;box-sizing:border-box!important;padding:8px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;z-index:30!important;pointer-events:auto!important;background:#25212e!important;color:#fff!important;border:2px solid #f39c12!important;border-radius:8px!important;box-shadow:0 4px 10px rgba(0,0,0,.4)!important;cursor:pointer!important;transition:top .18s ease!important";
     view.appendChild(pinnedRoot);
     const brand=pinnedRoot.querySelector(".binary-brand");
     const number=pinnedRoot.querySelector(".binary-id");
@@ -1768,6 +1775,7 @@ function setupGenealogyControls(){
     if(e.touches.length===2){
       e.preventDefault();const mid=midpoint(e.touches[0],e.touches[1]);
       gesture={mode:"pinch",distance:distance(e.touches[0],e.touches[1]),scale,midX:mid.x,midY:mid.y};
+      setPinnedRootLifted(true);
     }else if(e.touches.length===1){
       gesture={mode:"pan",x:e.touches[0].clientX,y:e.touches[0].clientY,moved:false};
     }
@@ -1784,21 +1792,21 @@ function setupGenealogyControls(){
       gesture.midX=mid.x;gesture.midY=mid.y;apply();suppressClickUntil=Date.now()+450;
     }else if(gesture.mode==="pan"&&e.touches.length===1){
       const t=e.touches[0],dx=t.clientX-gesture.x,dy=t.clientY-gesture.y;
-      if(Math.hypot(dx,dy)>3)gesture.moved=true;
+      if(Math.hypot(dx,dy)>3&&!gesture.moved){gesture.moved=true;setPinnedRootLifted(true);}
       if(gesture.moved){e.preventDefault();x+=dx;y+=dy;gesture.x=t.clientX;gesture.y=t.clientY;apply();suppressClickUntil=Date.now()+350;}
     }
   },{passive:false});
-  const endTouch=()=>{gesture=null;};
+  const endTouch=()=>{gesture=null;setPinnedRootLifted(false);};
   view.addEventListener("touchend",endTouch,{passive:true});
   view.addEventListener("touchcancel",endTouch,{passive:true});
   view.addEventListener("mousedown",e=>{if(e.button!==0)return;mouse={x:e.clientX,y:e.clientY,moved:false};view.classList.add("dragging");});
   window.addEventListener("mousemove",e=>{
     if(!mouse)return;const dx=e.clientX-mouse.x,dy=e.clientY-mouse.y;
     if(Math.hypot(dx,dy)>3)mouse.moved=true;
-    if(mouse.moved){x+=dx;y+=dy;apply();suppressClickUntil=Date.now()+300;}
+    if(mouse.moved){setPinnedRootLifted(true);x+=dx;y+=dy;apply();suppressClickUntil=Date.now()+300;}
     mouse.x=e.clientX;mouse.y=e.clientY;
   });
-  const endMouse=()=>{mouse=null;view.classList.remove("dragging");};
+  const endMouse=()=>{mouse=null;view.classList.remove("dragging");setPinnedRootLifted(false);};
   window.addEventListener("mouseup",endMouse);
   view.addEventListener("click",e=>{
     if(Date.now()<suppressClickUntil){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();}
