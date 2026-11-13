@@ -1939,7 +1939,7 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
                   onScaleStart:(d){_baseZoomScale=_zoomScale;},
                   onScaleUpdate:(d){setState((){
                     if(d.scale!=1)_zoomScale=(_baseZoomScale*d.scale).clamp(_minZoom,_maxZoom);
-                    if(_zoomScale>1){final max=( _zoomScale-1)*320;_verticalPanOffset=(_verticalPanOffset+d.focalPointDelta.dy).clamp(-max,0.0);}else{_verticalPanOffset=0;}
+                    if(_zoomScale>1){final max=( _zoomScale-1)*320;_verticalPanOffset=(_verticalPanOffset+d.focalPointDelta.dy).clamp(-max,max);}else{_verticalPanOffset=0;}
                   });},
                   child:SizedBox.expand(child:CustomPaint(painter:_AnchoredLinePainter(slots:_slots,anchorCenterX:cx,anchorTopY:top,scale:_zoomScale),
                     child:Stack(clipBehavior:Clip.none,children:_slots.map((s)=>_buildAnchoredNodeCard(slot:s,anchorCenterX:cx,anchorTopY:top,scale:_zoomScale)).toList()))));
@@ -1950,14 +1950,18 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
   }
   Widget _buildAnchoredNodeCard({required _BaseSlot slot,required double anchorCenterX,required double anchorTopY,required double scale}){
     final root=slot.level==0,compact=slot.level==3,available=slot.node.isAvailable;
-    final w=slot.width*scale,h=slot.height*scale,left=anchorCenterX+slot.offsetX*scale-w/2,top=anchorTopY+slot.offsetY*scale;
-    final idSize=[11.5,9.5,8.0,6.5][slot.level]*scale,statusSize=[8.5,7.2,6.2,5.2][slot.level]*scale;
+    final nodeScale=root?1.0:scale;
+    final w=slot.width*nodeScale,h=slot.height*nodeScale;
+    final left=anchorCenterX+slot.offsetX*nodeScale-w/2;
+    // Root position and dimensions are invariant. Descendants stretch away from it.
+    final top=anchorTopY+(root?0:slot.offsetY*scale+_verticalPanOffset);
+    final idSize=[11.5,9.5,8.0,6.5][slot.level]*nodeScale,statusSize=[8.5,7.2,6.2,5.2][slot.level]*nodeScale;
     return Positioned(left:left,top:top,width:w,height:h,child:GestureDetector(behavior:HitTestBehavior.opaque,onTap:()=>_onNodeTapped(slot.node),
       child:Container(decoration:BoxDecoration(color:root?const Color(0xFF0F2537):(available?const Color(0xFFE2E8F0):Colors.white),
-        borderRadius:BorderRadius.circular((compact?3:5)*scale),
-        border:Border.all(color:root?const Color(0xFFD4AF37):(available?Colors.blueGrey.shade400:const Color(0xFF2B6CB0)),width:(root?1.8:1.2)*scale.clamp(1.0,1.6)),
-        boxShadow:[BoxShadow(color:Colors.black.withOpacity(.28),blurRadius:3*scale,offset:Offset(0,1.5*scale))]),
-        padding:EdgeInsets.symmetric(horizontal:2.5*scale,vertical:2*scale),
+        borderRadius:BorderRadius.circular((compact?3:5)*nodeScale),
+        border:Border.all(color:root?const Color(0xFFD4AF37):(available?Colors.blueGrey.shade400:const Color(0xFF2B6CB0)),width:(root?1.8:1.2)*nodeScale.clamp(1.0,1.6)),
+        boxShadow:[BoxShadow(color:Colors.black.withOpacity(.28),blurRadius:3*nodeScale,offset:Offset(0,1.5*nodeScale))]),
+        padding:EdgeInsets.symmetric(horizontal:2.5*nodeScale,vertical:2*nodeScale),
         child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[
           Text(slot.node.id,maxLines:1,overflow:TextOverflow.ellipsis,style:TextStyle(fontSize:idSize,fontWeight:FontWeight.bold,color:root?Colors.white:const Color(0xFF0A1924))),
           if(!compact||!available)...[SizedBox(height:1.5*scale),Text(available?'Available':slot.node.status,maxLines:1,overflow:TextOverflow.ellipsis,
@@ -1975,8 +1979,12 @@ class _AnchoredLinePainter extends CustomPainter {
     final p=Paint()..color=const Color(0xFF319795)..strokeWidth=1.4*scale.clamp(1.0,1.8)..style=PaintingStyle.stroke;
     for(int i=0;i<7;i++){
       final parent=slots[i],l=slots[2*i+1],r=slots[2*i+2];
-      final sx=anchorCenterX+parent.offsetX*scale,sy=anchorTopY+(parent.offsetY+parent.height)*scale;
-      final lx=anchorCenterX+l.offsetX*scale,ly=anchorTopY+l.offsetY*scale,rx=anchorCenterX+r.offsetX*scale,ry=anchorTopY+r.offsetY*scale;
+      final parentScale=i==0?1.0:scale;
+      final childScale=scale;
+      final sx=anchorCenterX+parent.offsetX*parentScale;
+      final sy=anchorTopY+(parent.offsetY*parentScale+parent.height*parentScale)+(i==0?0:0);
+      final lx=anchorCenterX+l.offsetX*childScale,ly=anchorTopY+l.offsetY*childScale;
+      final rx=anchorCenterX+r.offsetX*childScale,ry=anchorTopY+r.offsetY*childScale;
       final mid=sy+(ly-sy)/2;
       final path=Path()..moveTo(sx,sy)..lineTo(sx,mid)..moveTo(lx,mid)..lineTo(rx,mid)..moveTo(lx,mid)..lineTo(lx,ly)..moveTo(rx,mid)..lineTo(rx,ry);
       canvas.drawPath(path,p);
