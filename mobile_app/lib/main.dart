@@ -1831,12 +1831,10 @@ class MemberMenuInfoScreen extends StatelessWidget {
   }
 }
 
-// --- BINARY TREE NETWORK VIEW SCREEN ---
+// --- FOUR-GENERATION STEPPED BINARY GENEALOGY ---
 class BinaryTreeViewScreen extends StatefulWidget {
   const BinaryTreeViewScreen({super.key, this.onBack});
-
   final VoidCallback? onBack;
-
   @override
   State<BinaryTreeViewScreen> createState() => _BinaryTreeViewScreenState();
 }
@@ -1845,97 +1843,63 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
   late Future<Map<String, dynamic>> _genealogyFuture;
   String? _rootMemberId;
   final List<String> _backStack = [];
-  final TransformationController _treeTransform = TransformationController();
+  final TransformationController _transformController = TransformationController();
 
-  @override
-  void dispose() {
-    _treeTransform.dispose();
-    super.dispose();
-  }
-
-  void _zoomTree(double factor) {
-    final next = _treeTransform.value.clone()..scale(factor);
-    _treeTransform.value = next;
-  }
-
-  double _fitScale = 0.45;
-  Matrix4 _fitTransform = Matrix4.identity();
-  String? _lastFitKey;
-
-  void _resetTreeZoom() {
-    _treeTransform.value = _fitTransform.clone();
-  }
-
-  Future<void> _showVacantPositions() async {
-    final rootId = _rootMemberId;
-    if (rootId == null || rootId.isEmpty) return;
-    try {
-      final vacancies = await LiveDataService.instance.fetchVacantPositions(rootId);
-      if (!mounted) return;
-      showModalBottomSheet(
-        context: context,
-        backgroundColor: const Color(0xFF102238),
-        isScrollControlled: true,
-        builder: (sheetContext) => SafeArea(
-          child: SizedBox(
-            height: MediaQuery.of(sheetContext).size.height * 0.65,
-            child: vacancies.isEmpty
-                ? const Center(child: Text('No vacant positions found in this downline.',
-                    style: TextStyle(color: Colors.white70)))
-                : ListView.separated(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: vacancies.length,
-                    separatorBuilder: (_, __) => const Divider(color: Colors.white12),
-                    itemBuilder: (context, index) {
-                      final vacancy = vacancies[index];
-                      final parentId = int.tryParse('${vacancy['parent_position_id']}') ?? 0;
-                      final side = (vacancy['side'] ?? '').toString().toLowerCase();
-                      return ListTile(
-                        leading: const Icon(Icons.add_circle_outline, color: Color(0xFF8DDCC2)),
-                        title: Text('OCTO7 ${vacancy['parent_member_id'] ?? ''} · ${side.toUpperCase()}',
-                          style: const TextStyle(color: Colors.white)),
-                        subtitle: Text('Level ${vacancy['depth'] ?? '-'}',
-                          style: const TextStyle(color: Colors.white60)),
-                        onTap: parentId > 0 && (side == 'left' || side == 'right')
-                            ? () {
-                                Navigator.pop(sheetContext);
-                                _openVacantPosition(parentId, side);
-                              }
-                            : null,
-                      );
-                    },
-                  ),
-          ),
-        ),
-      );
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unable to find vacant positions: $error')),
-        );
-      }
-    }
-  }
+  static const double _canvasWidth = 420;
+  static const double _canvasHeight = 760;
+  static const List<double> _widths = [112, 92, 72, 44];
+  static const List<double> _heights = [58, 50, 42, 36];
+  static const List<double> _tops = [28, 128, 218, 300];
+  static const double _minZoom = 0.65;
+  static const double _maxZoom = 2.6;
 
   @override
   void initState() {
     super.initState();
-    // The first viewport fit is calculated from the complete returned tree
-    // after layout, so the largest practical number of positions is visible.
-    _treeTransform.value = Matrix4.identity()..scale(0.45);
     _genealogyFuture = LiveDataService.instance.fetchGenealogy();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _resetCameraToAnchor();
+    });
+  }
+
+  @override
+  void dispose() {
+    _transformController.dispose();
+    super.dispose();
+  }
+
+  void _resetCameraToAnchor() {
+    if (!mounted) return;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final offsetX = ((screenWidth - _canvasWidth) / 2).clamp(-200.0, 200.0);
+    _transformController.value = Matrix4.identity()..translate(offsetX, 0.0);
+  }
+
+  void _zoom(double factor) {
+    final current = _transformController.value.getMaxScaleOnAxis();
+    final next = (current * factor).clamp(_minZoom, _maxZoom).toDouble();
+    final screenWidth = MediaQuery.of(context).size.width;
+    final offsetX = ((screenWidth - _canvasWidth * next) / 2).clamp(-200.0, 200.0);
+    _transformController.value = Matrix4.identity()
+      ..translate(offsetX, 0.0)
+      ..scale(next);
+  }
+
+  void _reload({String? rootId}) {
+    setState(() => _genealogyFuture = LiveDataService.instance.fetchGenealogy(rootMemberId: rootId));
   }
 
   Future<void> _openMember(String memberId) async {
     if (memberId.isEmpty || memberId == _rootMemberId) return;
+    final previous = _rootMemberId;
     setState(() {
-      if (_rootMemberId != null) _backStack.add(_rootMemberId!);
+      if (previous != null && previous.isNotEmpty) _backStack.add(previous);
       _rootMemberId = memberId;
       _genealogyFuture = LiveDataService.instance.fetchGenealogy(rootMemberId: memberId);
     });
   }
 
-  void _goBack() {
+  void _goBackOneLevel() {
     if (_backStack.isEmpty) return;
     final previous = _backStack.removeLast();
     setState(() {
@@ -1944,320 +1908,178 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
     });
   }
 
-  bool handleSystemBack() {
-    if (_backStack.isEmpty) return false;
-    _goBack();
-    return true;
-  }
-
   void _handleBackPressed() {
     if (_backStack.isNotEmpty) {
-      _goBack();
-      return;
-    }
-    if (widget.onBack != null) {
+      _goBackOneLevel();
+    } else if (widget.onBack != null) {
       widget.onBack!();
-      return;
+    } else {
+      Navigator.of(context).maybePop();
     }
-    Navigator.of(context).maybePop();
+  }
+
+  void _returnToOwnId() {
+    _backStack.clear();
+    _rootMemberId = null;
+    _reload();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _resetCameraToAnchor();
+    });
   }
 
   Future<void> _openVacantPosition(int parentPositionId, String side) async {
+    if (parentPositionId <= 0) return;
     await Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => MemberRegistrationScreen(
         initialParentPositionId: parentPositionId,
         initialSide: side,
       ),
     ));
-    if (!mounted) return;
-    setState(() {
-      _genealogyFuture = LiveDataService.instance.fetchGenealogy(rootMemberId: _rootMemberId);
-    });
+    if (mounted) _reload(rootId: _rootMemberId);
   }
 
-  Widget _memberCard(Map<String, dynamic> node, {bool root = false}) {
+  int _positionId(Map<String, dynamic> node) =>
+      int.tryParse((node['id'] ?? '').toString()) ??
+      int.tryParse((node['position_id'] ?? '').toString()) ?? 0;
+
+  List<_PyramidSlot> _buildSlots(Map<String, dynamic> root) {
+    final levels = <List<_PyramidSlot>>[[], [], [], []];
+    void add(Map<String, dynamic>? node, int depth, int parentId, String side) {
+      if (depth > 3) return;
+      levels[depth].add(_PyramidSlot(
+        node: node, level: depth, parentPositionId: parentId, side: side,
+      ));
+      if (depth == 3) return;
+      if (node == null) {
+        add(null, depth + 1, 0, 'left');
+        add(null, depth + 1, 0, 'right');
+        return;
+      }
+      final positionId = _positionId(node);
+      final left = node['left'] is Map ? Map<String, dynamic>.from(node['left'] as Map) : null;
+      final right = node['right'] is Map ? Map<String, dynamic>.from(node['right'] as Map) : null;
+      add(left, depth + 1, positionId, 'left');
+      add(right, depth + 1, positionId, 'right');
+    }
+    add(root, 0, 0, '');
+    return levels.expand((level) => level).toList();
+  }
+
+  Widget _memberCard(_PyramidSlot slot) {
+    final node = slot.node!;
     final memberId = (node['member_id'] ?? '').toString();
     final active = (node['status'] ?? '').toString().toLowerCase() == 'active';
-    return InkWell(
-      onTap: memberId.isEmpty ? null : () => _openMember(memberId),
-      child: Container(
-        width: 90,
-        height: 58,
-        padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 4),
-        decoration: BoxDecoration(
-          color: root ? const Color(0xFF102238) : Colors.white,
-          borderRadius: BorderRadius.circular(3),
-          border: Border.all(
-            color: root ? const Color(0xFFD6A84B) : const Color(0xFF7040B5),
-            width: 2,
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('OCTO7', style: TextStyle(
-              color: root ? Colors.white : const Color(0xFF102238),
-              fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: .7)),
-            Text(memberId.isEmpty ? '—' : memberId, maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: root ? Colors.white : const Color(0xFF102238),
-                fontSize: 15, fontWeight: FontWeight.w900)),
-            Text(active ? 'ACTIVE' : 'INACTIVE', style: TextStyle(
-              color: root ? (active ? const Color(0xFF65E99A) : const Color(0xFFFF8888))
-                  : (active ? const Color(0xFF168344) : const Color(0xFFD22)),
-              fontSize: 8, fontWeight: FontWeight.w800)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _vacantCard(int parentPositionId, String side) {
-    return InkWell(
-      onTap: () => _openVacantPosition(parentPositionId, side),
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        width: 90,
-        height: 58,
-        padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 4),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(3),
-          border: Border.all(color: const Color(0xFFAAAAAA), width: 2, style: BorderStyle.solid),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(side.toUpperCase(), style: const TextStyle(color: Color(0xFF7040B5), fontSize: 10, fontWeight: FontWeight.bold)),
-            const Text('Position Available', style: TextStyle(color: Color(0xFF7040B5), fontSize: 8, fontWeight: FontWeight.w500)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Compact tidy-tree layout. Existing member boxes stay 90x58; sibling
-  // boxes at every depth keep a fixed 120px clear gap and generations 57px.
-  static const double _nodeWidth = 90.0;
-  static const double _nodeHeight = 58.0;
-  static const double _horizontalGap = 120.0;
-  static const double _verticalGap = 57.0;
-
-  _TidySubtree _layoutSubtree(Map<String, dynamic> node) {
-    final positionId = int.tryParse('${node['id']}') ??
-        int.tryParse('${node['position_id']}') ?? 0;
-    final leftNode = node['left'] is Map
-        ? Map<String, dynamic>.from(node['left']) : null;
-    final rightNode = node['right'] is Map
-        ? Map<String, dynamic>.from(node['right']) : null;
-
-    // Vacant slots are represented only at the next available level. They do
-    // not reserve hypothetical descendants, so populated branches stay tight.
-    final left = leftNode != null
-        ? _layoutSubtree(leftNode)
-        : _vacantSubtree(positionId, 'left');
-    final right = rightNode != null
-        ? _layoutSubtree(rightNode)
-        : _vacantSubtree(positionId, 'right');
-
-    double shift = 0;
-    for (final level in left.rightContour.keys) {
-      final rightEdge = right.leftContour[level];
-      if (rightEdge != null) {
-        final needed = left.rightContour[level]! + _nodeWidth +
-            _horizontalGap - rightEdge;
-        if (needed > shift) shift = needed;
-      }
-    }
-
-    final parentX = (left.rootX + right.rootX + shift) / 2;
-    final placements = <_TidyPlacement>[
-      _TidyPlacement(node: node, x: 0, depth: 0),
-      ...left.placements.map((p) => p.shifted(-parentX, 1)),
-      ...right.placements.map((p) => p.shifted(shift - parentX, 1)),
-    ];
-
-    final leftContour = <int, double>{0: 0};
-    final rightContour = <int, double>{0: 0};
-    void mergeContours(Map<int, double> source, double dx) {
-      for (final entry in source.entries) {
-        final level = entry.key + 1;
-        final value = entry.value + dx - parentX;
-        final oldLeft = leftContour[level];
-        final oldRight = rightContour[level];
-        leftContour[level] = oldLeft == null ? value : min(oldLeft, value);
-        rightContour[level] = oldRight == null ? value : max(oldRight, value);
-      }
-    }
-    mergeContours(left.leftContour, 0);
-    mergeContours(left.rightContour, 0);
-    mergeContours(right.leftContour, shift);
-    mergeContours(right.rightContour, shift);
-
-    return _TidySubtree(
-      rootX: 0,
-      placements: placements,
-      leftContour: leftContour,
-      rightContour: rightContour,
-    );
-  }
-
-  _TidySubtree _vacantSubtree(int parentPositionId, String side) {
-    final vacancy = _TidyPlacement(
-      node: null,
-      x: 0,
-      depth: 0,
-      parentPositionId: parentPositionId,
-      side: side,
-    );
-    return _TidySubtree(
-      rootX: 0,
-      placements: [vacancy],
-      leftContour: const {0: 0},
-      rightContour: const {0: 0},
-    );
-  }
-
-  _TidyRenderData _prepareTree(Map<String, dynamic> root) {
-    final layout = _layoutSubtree(root);
-    var minX = double.infinity;
-    var maxX = double.negativeInfinity;
-    var maxDepth = 0;
-    for (final placement in layout.placements) {
-      minX = min(minX, placement.x);
-      maxX = max(maxX, placement.x);
-      maxDepth = max(maxDepth, placement.depth);
-    }
-    if (!minX.isFinite) minX = 0;
-    if (!maxX.isFinite) maxX = 0;
-    return _TidyRenderData(
-      placements: layout.placements,
-      minX: minX,
-      width: maxX - minX + _nodeWidth + 48,
-      height: maxDepth * (_nodeHeight + _verticalGap) + _nodeHeight + 48,
-    );
-  }
-
-  Widget _positionedTree(_TidyRenderData layout, Map<String, dynamic> root) {
-    final rootId = (root['member_id'] ?? '').toString();
-    final nodes = layout.placements;
-    final edgePoints = <_TidyEdge>[];
-    // Connect each real member to its immediate left/right child (member or
-    // vacancy), retaining the binary genealogy's branch direction.
-    for (final p in nodes.where((item) => item.node != null)) {
-      final current = p.node!;
-      for (final side in const ['left', 'right']) {
-        final child = current[side];
-        final childPlacement = nodes.cast<_TidyPlacement?>().firstWhere(
-          (candidate) {
-            if (candidate == null || candidate.depth != p.depth + 1) return false;
-            if (child is Map) {
-              if (candidate.node == null) return false;
-              final childMap = Map<String, dynamic>.from(child);
-              final childId = (childMap['id'] ?? childMap['position_id'] ?? '').toString();
-              return (candidate.node!['id'] ?? candidate.node!['position_id'] ?? '').toString() == childId;
-            }
-            return candidate.node == null &&
-                candidate.parentPositionId == (int.tryParse('${current['id']}') ?? 0) &&
-                candidate.side == side;
-          },
-          orElse: () => null,
-        );
-        if (childPlacement != null) {
-          edgePoints.add(_TidyEdge(
-            fromX: p.x - layout.minX + 24 + _nodeWidth / 2,
-            fromY: p.depth * (_nodeHeight + _verticalGap) + 24 + _nodeHeight,
-            toX: childPlacement.x - layout.minX + 24 + _nodeWidth / 2,
-            toY: childPlacement.depth * (_nodeHeight + _verticalGap) + 24,
-          ));
-        }
-      }
-    }
-
-    return SizedBox(
-      width: layout.width,
-      height: layout.height,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned.fill(
-            child: CustomPaint(painter: _TidyConnectorPainter(edgePoints)),
-          ),
-          for (final placement in nodes)
-            Positioned(
-              left: placement.x - layout.minX + 24,
-              top: placement.depth * (_nodeHeight + _verticalGap) + 24,
-              width: _nodeWidth,
-              height: _nodeHeight,
-              child: placement.node != null
-                  ? _memberCard(
-                      placement.node!,
-                      root: (placement.node!['member_id'] ?? '').toString() == rootId,
-                    )
-                  : _vacantCard(placement.parentPositionId, placement.side!),
+    final isRoot = slot.level == 0;
+    final compact = slot.level == 3;
+    return Positioned(
+      left: slot.x, top: _tops[slot.level],
+      width: _widths[slot.level], height: _heights[slot.level],
+      child: GestureDetector(
+        onTap: memberId.isEmpty ? null : () => _openMember(memberId),
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: compact ? 2 : 4, vertical: 2),
+          decoration: BoxDecoration(
+            color: isRoot ? const Color(0xFF102238) : Colors.white,
+            borderRadius: BorderRadius.circular(compact ? 3 : 5),
+            border: Border.all(
+              color: isRoot ? const Color(0xFFD6A84B) : const Color(0xFF7040B5),
+              width: isRoot ? 1.8 : 1.2,
             ),
-        ],
+            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 3, offset: Offset(0, 1.5))],
+          ),
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Text('OCTO7 ' + (memberId.isEmpty ? '—' : memberId),
+              maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: isRoot ? Colors.white : const Color(0xFF102238),
+                fontSize: [10.5, 9.0, 7.5, 6.0][slot.level],
+                fontWeight: FontWeight.bold,
+              )),
+            if (!compact || memberId.isNotEmpty)
+              Text(active ? 'ACTIVE' : 'INACTIVE',
+                maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: isRoot
+                      ? (active ? const Color(0xFF65E99A) : Colors.orangeAccent)
+                      : (active ? const Color(0xFF168344) : Colors.redAccent),
+                  fontSize: [8.5, 7.5, 6.5, 5.5][slot.level],
+                  fontWeight: FontWeight.w700,
+                )),
+          ]),
+        ),
       ),
     );
   }
 
-  Widget _emptySlot(String side) => Container(
-    width: _nodeWidth, height: _nodeHeight, alignment: Alignment.center,
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(8),
-      border: Border.all(color: Colors.white24),
-    ),
-    child: Text('$side unavailable', style: const TextStyle(color: Colors.white54, fontSize: 9)),
-  );
+  Widget _availableCard(_PyramidSlot slot) {
+    final canRegister = slot.parentPositionId > 0;
+    return Positioned(
+      left: slot.x, top: _tops[slot.level],
+      width: _widths[slot.level], height: _heights[slot.level],
+      child: InkWell(
+        onTap: canRegister ? () => _openVacantPosition(slot.parentPositionId, slot.side) : null,
+        borderRadius: BorderRadius.circular(4),
+        child: Container(
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: canRegister ? Colors.blueGrey.shade300 : Colors.white24),
+          ),
+          child: Center(child: Text(
+            canRegister ? 'AVAILABLE' : '—',
+            textAlign: TextAlign.center, maxLines: 1,
+            style: TextStyle(
+              color: canRegister ? const Color(0xFF7040B5) : Colors.black38,
+              fontSize: [8, 7, 6, 5][slot.level],
+              fontWeight: FontWeight.bold,
+            ),
+          )),
+        ),
+      ),
+    );
+  }
+
+  Widget _pyramid(List<_PyramidSlot> slots) {
+    for (int level = 0; level < 4; level++) {
+      final row = slots.where((slot) => slot.level == level).toList();
+      final sectorWidth = _canvasWidth / row.length;
+      for (int i = 0; i < row.length; i++) {
+        row[i].x = sectorWidth * i + sectorWidth / 2 - _widths[level] / 2;
+      }
+    }
+    return SizedBox(
+      width: _canvasWidth, height: _canvasHeight,
+      child: CustomPaint(
+        painter: _PyramidConnectorPainter(slots: slots),
+        child: Stack(clipBehavior: Clip.none, children: [
+          for (final slot in slots)
+            if (slot.node != null) _memberCard(slot) else _availableCard(slot),
+        ]),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF071426),
       appBar: AppBar(
-        title: const Text('My Genealogy', style: TextStyle(color: Colors.white, fontSize: 18)),
+        title: Text(_rootMemberId == null ? 'My Genealogy' : 'OCTO7 ' + _rootMemberId!,
+          style: const TextStyle(color: Colors.white, fontSize: 18)),
         leading: IconButton(
           tooltip: 'Back to previous page',
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: _handleBackPressed,
         ),
         actions: [
-          IconButton(
-            tooltip: 'Zoom out',
-            icon: const Icon(Icons.remove, color: Colors.white),
-            onPressed: () => _zoomTree(0.8),
-          ),
-          IconButton(
-            tooltip: 'Fit tree to screen',
-            icon: const Icon(Icons.fit_screen, color: Colors.white),
-            onPressed: _resetTreeZoom,
-          ),
-          IconButton(
-            tooltip: 'Show all vacant positions',
-            icon: const Icon(Icons.playlist_add, color: Colors.white),
-            onPressed: _showVacantPositions,
-          ),
-          IconButton(
-            tooltip: 'Zoom in',
-            icon: const Icon(Icons.add, color: Colors.white),
-            onPressed: () => _zoomTree(1.25),
-          ),
-          IconButton(
-            tooltip: 'Return to my ID',
-            icon: const Icon(Icons.home_outlined, color: Colors.white),
-            onPressed: () => setState(() {
-              _backStack.clear();
-              _rootMemberId = null;
-              _genealogyFuture = LiveDataService.instance.fetchGenealogy();
-            }),
-          ),
-          IconButton(
-            tooltip: 'Refresh genealogy',
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: () => setState(() {
-              _genealogyFuture = LiveDataService.instance.fetchGenealogy(rootMemberId: _rootMemberId);
-            }),
-          ),
+          if (_backStack.isNotEmpty)
+            IconButton(tooltip: 'Back one level', icon: const Icon(Icons.arrow_upward, color: Colors.amber), onPressed: _goBackOneLevel),
+          IconButton(tooltip: 'Zoom out', icon: const Icon(Icons.remove, color: Colors.white), onPressed: () => _zoom(0.85)),
+          IconButton(tooltip: 'Reset view', icon: const Icon(Icons.crop_free, color: Colors.white), onPressed: _resetCameraToAnchor),
+          IconButton(tooltip: 'Zoom in', icon: const Icon(Icons.add, color: Colors.white), onPressed: () => _zoom(1.2)),
+          IconButton(tooltip: 'Return to my ID', icon: const Icon(Icons.home_outlined, color: Colors.white), onPressed: _returnToOwnId),
+          IconButton(tooltip: 'Refresh genealogy', icon: const Icon(Icons.refresh, color: Colors.white), onPressed: () => _reload(rootId: _rootMemberId)),
         ],
       ),
       body: FutureBuilder<Map<String, dynamic>>(
@@ -2270,118 +2092,57 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
             return Center(child: Padding(
               padding: const EdgeInsets.all(24),
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Text('Unable to load your genealogy: ${snapshot.error}',
+                Text('Unable to load genealogy: ' + snapshot.error.toString(),
                   textAlign: TextAlign.center, style: const TextStyle(color: Colors.orangeAccent)),
-                TextButton(onPressed: () => setState(() {
-                  _genealogyFuture = LiveDataService.instance.fetchGenealogy(rootMemberId: _rootMemberId);
-                }), child: const Text('Retry')),
+                TextButton(onPressed: () => _reload(rootId: _rootMemberId), child: const Text('Retry')),
               ]),
             ));
           }
-
           final data = snapshot.data ?? {};
-          final nodes = data['nodes'];
-          if (nodes is! List || nodes.isEmpty) {
+          final rawNodes = data['nodes'];
+          if (rawNodes is! List || rawNodes.isEmpty) {
             return const Center(child: Text('No genealogy positions were returned for this account.',
-              textAlign: TextAlign.center, style: TextStyle(color: Colors.white70)));
+              style: TextStyle(color: Colors.white70)));
           }
-          final rootNode = LiveDataService.buildGenealogyTree(nodes);
-          if (rootNode == null) {
+          final root = LiveDataService.buildGenealogyTree(rawNodes);
+          if (root == null) {
             return const Center(child: Text('Your genealogy root position could not be found.',
               style: TextStyle(color: Colors.white70)));
           }
-          final rootId = (data['root'] is Map ? data['root']['member_id'] : rootNode['member_id'])?.toString();
-          if (_rootMemberId == null && rootId != null) {
+          final returnedRootId = (data['root'] is Map
+              ? data['root']['member_id'] : root['member_id'])?.toString();
+          if (_rootMemberId == null && returnedRootId != null) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted && _rootMemberId == null) setState(() => _rootMemberId = rootId);
+              if (mounted && _rootMemberId == null) setState(() => _rootMemberId = returnedRootId);
             });
           }
-
+          final slots = _buildSlots(root);
           return Container(
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter, end: Alignment.bottomCenter,
-                colors: [Color(0xFF102A3B), Color(0xFF071426)],
+            decoration: const BoxDecoration(gradient: LinearGradient(
+              begin: Alignment.topCenter, end: Alignment.bottomCenter,
+              colors: [Color(0xFF102A3B), Color(0xFF071426)],
+            )),
+            child: Column(children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+                child: Text('OCTO7 ' + (root['member_id'] ?? '').toString() +
+                    '  •  Tap an ID to view its downline',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white70, fontSize: 11.5)),
               ),
-            ),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-                  child: Text(
-                    'OCTO7 ${rootNode['member_id'] ?? ''}  •  Tap any member to open their downline',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
-                  ),
-                ),
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final treeLayout = _prepareTree(rootNode);
-                      final treeWidth = treeLayout.width;
-                      final treeHeight = treeLayout.height;
-                      final widthScale = (constraints.maxWidth - 24.0) / treeWidth;
-                      final heightScale = (constraints.maxHeight - 24.0) / treeHeight;
-                      final fitScale = (widthScale < heightScale
-                          ? widthScale
-                          : heightScale).clamp(0.01, 1.0).toDouble();
-                      _fitScale = fitScale;
-
-                      // Apply the initial fit only when the displayed tree or
-                      // its measured size changes. Never reset the controller
-                      // during ordinary rebuilds: that would cancel a user's
-                      // pinch zoom or drag gesture.
-                      final fitKey = '${rootNode['member_id']}:$treeWidth:$treeHeight';
-                      if (_lastFitKey != fitKey) {
-                        _lastFitKey = fitKey;
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (!mounted) return;
-                          final offsetX = ((constraints.maxWidth - treeWidth * fitScale) / 2)
-                              .clamp(0.0, double.infinity).toDouble();
-                          final offsetY = ((constraints.maxHeight - treeHeight * fitScale) / 2)
-                              .clamp(0.0, double.infinity).toDouble();
-                          // Explicit viewport-space matrix: scale around the
-                          // fitted tree, then place its bounds at the center.
-                          _fitTransform = Matrix4.identity()
-                            ..setEntry(0, 0, fitScale)
-                            ..setEntry(1, 1, fitScale)
-                            ..setEntry(0, 3, offsetX)
-                            ..setEntry(1, 3, offsetY);
-                          _treeTransform.value = _fitTransform.clone();
-                        });
-                      }
-
-                      return InteractiveViewer(
-                        transformationController: _treeTransform,
-                        // Maps-style workspace: one-finger drag pans, two-finger
-                        // pinch scales around the fingers, and node taps remain
-                        // available through the child InkWells.
-                        panEnabled: true,
-                        scaleEnabled: true,
-                        constrained: false,
-                        minScale: 0.01,
-                        maxScale: 5.0,
-                        boundaryMargin: const EdgeInsets.all(10000),
-                        clipBehavior: Clip.hardEdge,
-                        child: Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: _positionedTree(treeLayout, rootNode),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(12, 8, 12, 16),
-                  child: Text(
-                    'The full downline is shown across all returned generations. Select any member to focus on their downline; select AVAILABLE to register in that position.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white54, fontSize: 10, height: 1.4),
-                  ),
-                ),
-              ],
-            ),
+              Expanded(child: InteractiveViewer(
+                transformationController: _transformController,
+                constrained: false, minScale: _minZoom, maxScale: _maxZoom,
+                boundaryMargin: const EdgeInsets.all(180),
+                child: _pyramid(slots),
+              )),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(12, 8, 12, 14),
+                child: Text('Pinch to zoom • Tap AVAILABLE to register • Arrow returns one level',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white54, fontSize: 10)),
+              ),
+            ]),
           );
         },
       ),
@@ -2389,6 +2150,55 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
   }
 }
 
+class _PyramidSlot {
+  _PyramidSlot({
+    required this.node, required this.level,
+    required this.parentPositionId, required this.side,
+  });
+  final Map<String, dynamic>? node;
+  final int level;
+  final int parentPositionId;
+  final String side;
+  double x = 0;
+}
+
+class _PyramidConnectorPainter extends CustomPainter {
+  const _PyramidConnectorPainter({required this.slots});
+  final List<_PyramidSlot> slots;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (slots.length < 15) return;
+    final paint = Paint()
+      ..color = const Color(0xFF2C7A7B)
+      ..strokeWidth = 1.4
+      ..style = PaintingStyle.stroke;
+    for (int i = 0; i < 7; i++) {
+      final parent = slots[i];
+      final left = slots[2 * i + 1];
+      final right = slots[2 * i + 2];
+      final startX = parent.x + _width(parent.level) / 2;
+      final startY = _top(parent.level) + _height(parent.level);
+      final leftX = left.x + _width(left.level) / 2;
+      final rightX = right.x + _width(right.level) / 2;
+      final childY = _top(parent.level + 1);
+      final middleY = startY + (childY - startY) / 2;
+      final path = Path()
+        ..moveTo(startX, startY)..lineTo(startX, middleY)
+        ..moveTo(leftX, middleY)..lineTo(rightX, middleY)
+        ..moveTo(leftX, middleY)..lineTo(leftX, childY)
+        ..moveTo(rightX, middleY)..lineTo(rightX, childY);
+      canvas.drawPath(path, paint);
+    }
+  }
+
+  static double _width(int level) => [112.0, 92.0, 72.0, 44.0][level];
+  static double _height(int level) => [58.0, 50.0, 42.0, 36.0][level];
+  static double _top(int level) => [28.0, 128.0, 218.0, 300.0][level];
+
+  @override
+  bool shouldRepaint(covariant _PyramidConnectorPainter oldDelegate) => true;
+}
 
 class _TidyPlacement {
   const _TidyPlacement({
