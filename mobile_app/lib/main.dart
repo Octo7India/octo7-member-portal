@@ -545,18 +545,18 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
         const SizedBox(height:12),
         DropdownButtonFormField<String>(value:method,dropdownColor:const Color(0xFF102238),style:const TextStyle(color:Colors.white),decoration:const InputDecoration(labelText:'Verification method'),
           items:const [DropdownMenuItem(value:'email',child:Text('Email OTP')),DropdownMenuItem(value:'phone',child:Text('Mobile SMS OTP'))],
-          onChanged:codeSent?null:(v)=>setDialogState(()=>{method=v??'email';destination.clear();})),
+          onChanged:codeSent?null:(v)=>setDialogState(() {method=v??'email';destination.clear();})),
         const SizedBox(height:12),
         TextField(controller:destination,keyboardType:method=='email'?TextInputType.emailAddress:TextInputType.phone,style:const TextStyle(color:Colors.white),
           decoration:InputDecoration(labelText:method=='email'?'Registered email address':'Registered mobile number',hintText:method=='phone'?'Include country code, e.g. +91':'Enter registered email')),
         if(!codeSent)...[
           const SizedBox(height:16),SizedBox(width:double.infinity,child:ElevatedButton(onPressed:busy?null:()async{
             if(memberId.text.trim().isEmpty||destination.text.trim().isEmpty){setDialogState(()=>message='Enter your User ID and registered contact.');return;}
-            setDialogState(()=>{busy=true;message='';});
+            setDialogState(() {busy=true;message='';});
             try{
               final result=await AuthService.instance.startPasswordRecovery(memberId:memberId.text.trim(),method:method,destination:destination.text.trim());
               verificationId=result['verification_id']?.toString();
-              setDialogState(()=>{codeSent=verificationId!=null&&verificationId!.isNotEmpty;message=codeSent?'Code sent to ${result['destination']}.':'If the details match, a code has been sent.';});
+              setDialogState(() {codeSent=verificationId!=null&&verificationId!.isNotEmpty;message=codeSent?'Code sent to ${result['destination']}.':'If the details match, a code has been sent.';});
             }catch(e){setDialogState(()=>message=e.toString().replaceFirst('Exception: ',''));}
             finally{if(dialogContext.mounted)setDialogState(()=>busy=false);}
           },child:busy?const CircularProgressIndicator():const Text('SEND OTP'))),
@@ -569,7 +569,7 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
           const SizedBox(height:16),SizedBox(width:double.infinity,child:ElevatedButton(onPressed:busy?null:()async{
             if(newPassword.text.length<8||newPassword.text.length>72){setDialogState(()=>message='Password must contain 8 to 72 characters.');return;}
             if(newPassword.text!=confirmPassword.text){setDialogState(()=>message='Passwords do not match.');return;}
-            setDialogState(()=>{busy=true;message='';});
+            setDialogState(() {busy=true;message='';});
             try{
               await AuthService.instance.completePasswordRecovery(verificationId:verificationId!,code:code.text.trim(),newPassword:newPassword.text);
               if(!dialogContext.mounted)return;
