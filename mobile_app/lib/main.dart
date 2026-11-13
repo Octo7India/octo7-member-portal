@@ -1941,7 +1941,7 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
                     if(d.scale!=1)_zoomScale=(_baseZoomScale*d.scale).clamp(_minZoom,_maxZoom);
                     if(_zoomScale>1){final max=( _zoomScale-1)*320;_verticalPanOffset=(_verticalPanOffset+d.focalPointDelta.dy).clamp(-max,max);}else{_verticalPanOffset=0;}
                   });},
-                  child:SizedBox.expand(child:CustomPaint(painter:_AnchoredLinePainter(slots:_slots,anchorCenterX:cx,anchorTopY:top,scale:_zoomScale),
+                  child:SizedBox.expand(child:CustomPaint(painter:_AnchoredLinePainter(slots:_slots,anchorCenterX:cx,anchorTopY:top,scale:_zoomScale,verticalPanOffset:_verticalPanOffset),
                     child:Stack(clipBehavior:Clip.none,children:_slots.map((s)=>_buildAnchoredNodeCard(slot:s,anchorCenterX:cx,anchorTopY:top,scale:_zoomScale)).toList()))));
               })),
               const Padding(padding:EdgeInsets.fromLTRB(12,8,12,14),child:Text('Pinch to enlarge boxes & lines • Tap AVAILABLE to register',textAlign:TextAlign.center,style:TextStyle(color:Colors.white54,fontSize:10))),
@@ -1971,32 +1971,75 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
 }
 class _AnchoredLinePainter extends CustomPainter {
   final List<_BaseSlot> slots;
-  final double anchorCenterX,anchorTopY,scale;
-  _AnchoredLinePainter({required this.slots,required this.anchorCenterX,required this.anchorTopY,required this.scale});
+  final double anchorCenterX,anchorTopY,scale,verticalPanOffset;
+  _AnchoredLinePainter({
+    required this.slots,
+    required this.anchorCenterX,
+    required this.anchorTopY,
+    required this.scale,
+    required this.verticalPanOffset,
+  });
+
+  Rect _cardRect(_BaseSlot slot) {
+    final isRoot = slot.level == 0;
+    final nodeScale = isRoot ? 1.0 : scale;
+    final width = slot.width * nodeScale;
+    final height = slot.height * nodeScale;
+    final left = anchorCenterX + slot.offsetX * nodeScale - width / 2;
+    final top = isRoot
+        ? anchorTopY
+        : anchorTopY +
+            slots.first.height +
+            (slot.offsetY - slots.first.height) * scale +
+            verticalPanOffset;
+    return Rect.fromLTWH(left, top, width, height);
+  }
+
   @override
-  void paint(Canvas canvas,Size size){
-    if(slots.length<15)return;
-    final p=Paint()..color=const Color(0xFF319795)..strokeWidth=1.4*scale.clamp(1.0,1.8)..style=PaintingStyle.stroke;
-    for(int i=0;i<7;i++){
-      final parent=slots[i],l=slots[2*i+1],r=slots[2*i+2];
-      final parentScale=i==0?1.0:scale;
-      final childScale=scale;
-      final rootHeight=slots.first.height;
-      final sx=anchorCenterX+parent.offsetX*parentScale;
-      final sy=i==0
-          ? anchorTopY+rootHeight
-          : anchorTopY+rootHeight+(parent.offsetY+parent.height-rootHeight)*scale+_verticalPanOffset;
-      final lx=anchorCenterX+l.offsetX*childScale;
-      final ly=anchorTopY+rootHeight+(l.offsetY-rootHeight)*scale+_verticalPanOffset;
-      final rx=anchorCenterX+r.offsetX*childScale;
-      final ry=anchorTopY+rootHeight+(r.offsetY-rootHeight)*scale+_verticalPanOffset;
-      final mid=sy+(ly-sy)/2;
-      final path=Path()..moveTo(sx,sy)..lineTo(sx,mid)..moveTo(lx,mid)..lineTo(rx,mid)..moveTo(lx,mid)..lineTo(lx,ly)..moveTo(rx,mid)..lineTo(rx,ry);
-      canvas.drawPath(path,p);
+  void paint(Canvas canvas, Size size) {
+    if (slots.length < 3) return;
+    final paint = Paint()
+      ..color = const Color(0xFF319795)
+      ..strokeWidth = 1.6
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    // Each edge is calculated from its own parent's bottom centre to its
+    // child's top centre. No pre-scaled connector group is used.
+    for (int parentIndex = 0; parentIndex < slots.length; parentIndex++) {
+      final parentRect = _cardRect(slots[parentIndex]);
+      for (final childIndex in <int>[
+        parentIndex * 2 + 1,
+        parentIndex * 2 + 2,
+      ]) {
+        if (childIndex >= slots.length) continue;
+        final childRect = _cardRect(slots[childIndex]);
+        final start = Offset(parentRect.center.dx, parentRect.bottom);
+        final end = Offset(childRect.center.dx, childRect.top);
+        final distance = (end.dy - start.dy).abs();
+        final bend = (distance * 0.48).clamp(8.0, 1000.0);
+        final path = Path()
+          ..moveTo(start.dx, start.dy)
+          ..cubicTo(
+            start.dx,
+            start.dy + bend,
+            end.dx,
+            end.dy - bend,
+            end.dx,
+            end.dy,
+          );
+        canvas.drawPath(path, paint);
+      }
     }
   }
+
   @override
-  bool shouldRepaint(covariant _AnchoredLinePainter old)=>old.scale!=scale||old.anchorTopY!=anchorTopY||old.anchorCenterX!=anchorCenterX||old.slots!=slots;
+  bool shouldRepaint(covariant _AnchoredLinePainter oldDelegate) =>
+      oldDelegate.scale != scale ||
+      oldDelegate.verticalPanOffset != verticalPanOffset ||
+      oldDelegate.anchorTopY != anchorTopY ||
+      oldDelegate.anchorCenterX != anchorCenterX ||
+      oldDelegate.slots != slots;
 }
 
 class _TidyPlacement {
