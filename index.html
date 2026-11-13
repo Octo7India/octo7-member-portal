@@ -929,7 +929,7 @@ function goMemberMenu(item) {
  async function updatePassword(){
    const code=document.getElementById("recoveryCode").value.trim(),password=document.getElementById("newPassword").value,confirm=document.getElementById("confirmPassword").value,button=document.getElementById("updatePasswordButton");
    if(!passwordRecoveryId){showMessage("recoveryMessage","Request a new OTP first.",true);return;}
-   if(passwordRecoveryMethod==="email"&&!/^\\d{6}$/.test(code)){showMessage("recoveryMessage","Enter the six-digit email code.",true);return;}
+   if(passwordRecoveryMethod==="email"&&!/^\d{6}$/.test(code)){showMessage("recoveryMessage","Enter the six-digit email code.",true);return;}
    if(passwordRecoveryMethod==="phone"&&!passwordRecoverySmsVerified){showMessage("recoveryMessage","Verify your SMS code first.",true);return;}
    if(password.length<8||password.length>72){showMessage("recoveryMessage","Password must contain 8 to 72 characters.",true);return;}
    if(password!==confirm){showMessage("recoveryMessage","Passwords do not match.",true);return;}
@@ -942,7 +942,7 @@ function goMemberMenu(item) {
    }catch(error){showMessage("recoveryMessage",error.message||"Password recovery failed.",true);}
    finally{button.disabled=false;button.textContent="UPDATE PASSWORD";}
  }
- API CONNECTION
+ // API CONNECTION
 
 async function api(action, payload = {}) {
   // Member-ID sessions use their own seven-day token. Restore it if the page
