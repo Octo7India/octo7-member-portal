@@ -512,116 +512,100 @@ class MemberLoginScreen extends StatefulWidget {
   State<MemberLoginScreen> createState() => _MemberLoginScreenState();
 }
 class _MemberLoginScreenState extends State<MemberLoginScreen> {
-  final _formKey=GlobalKey<FormState>();
-  final _identifierController=TextEditingController();
-  final _passwordController=TextEditingController();
-  bool _busy=false,_hidePassword=true;
-  String? _error;
-  String? _validateIdentifier(String? value){
-    final v=(value??'').trim().replaceFirst(RegExp(r'^OCTO7\s*',caseSensitive:false),'');
-    if(v.isEmpty)return 'Enter your OCTO7 User ID number';
-    if(!RegExp(r'^[0-9]+$').hasMatch(v))return 'Enter numbers only';
-    return null;
+  final _identifierController=TextEditingController(),_passwordController=TextEditingController();
+  bool _busy=false,_hidePassword=true; String? _error;
+  Future<void> _login() async {
+    final id=_identifierController.text.trim();
+    if(id.isEmpty||!RegExp(r'^[0-9]+$').hasMatch(id)){setState(()=>_error='Enter your OCTO7 User ID number.');return;}
+    if(_passwordController.text.isEmpty){setState(()=>_error='Enter your password.');return;}
+    if(_busy)return;setState(()=>_busy=true);setState(()=>_error=null);
+    try{await AuthService.instance.signIn(identifier:id,password:_passwordController.text);if(mounted)widget.onLogin();}
+    catch(e){if(mounted)setState(()=>_error=e.toString().replaceFirst('Exception: ',''));}
+    finally{if(mounted)setState(()=>_busy=false);}
   }
-  @override void dispose(){_identifierController.dispose();_passwordController.dispose();super.dispose();}
-  Future<void> _login() async{
-    if(!_formKey.currentState!.validate()||_busy)return;
-    setState(()=>_busy=true);_error=null;
-    try{
-      await AuthService.instance.signIn(identifier:_identifierController.text.trim(),password:_passwordController.text);
-      if(mounted)widget.onLogin();
-    }catch(error){
-      if(mounted){setState(()=>_error=error.toString().replaceFirst('Exception: ',''));ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(_error!)));}
-    }finally{if(mounted)setState(()=>_busy=false);}
+  @override
+  void dispose(){_identifierController.dispose();_passwordController.dispose();super.dispose();}
+  @override
+  Widget build(BuildContext context)=>Scaffold(backgroundColor:const Color(0xFFFFFDF5),
+    body:SafeArea(child:LayoutBuilder(builder:(context,c){
+      final w=c.maxWidth,h=w*2;
+      return Center(child:SizedBox(width:w,height:h,child:Stack(fit:StackFit.expand,children:[
+        Image.asset('1794527061741.jpg',fit:BoxFit.fill),
+        Positioned(left:w*.27,top:h*.512,width:w*.50,height:h*.055,child:TextField(controller:_identifierController,
+          keyboardType:TextInputType.number,style:const TextStyle(color:Color(0xFF17233D),fontSize:16),
+          decoration:const InputDecoration(border:InputBorder.none,isDense:true,contentPadding:EdgeInsets.symmetric(vertical:12)))),
+        Positioned(left:w*.27,top:h*.583,width:w*.47,height:h*.055,child:TextField(controller:_passwordController,obscureText:_hidePassword,
+          style:const TextStyle(color:Color(0xFF17233D),fontSize:16),
+          decoration:const InputDecoration(border:InputBorder.none,isDense:true,contentPadding:EdgeInsets.symmetric(vertical:12)),onSubmitted:(_)=>_login())),
+        Positioned(left:w*.755,top:h*.585,width:w*.07,height:h*.05,child:IconButton(padding:EdgeInsets.zero,
+          onPressed:()=>setState(()=>_hidePassword=!_hidePassword),icon:Icon(_hidePassword?Icons.visibility:Icons.visibility_off,color:const Color(0xFF52617A),size:24))),
+        Positioned(left:w*.17,top:h*.656,width:w*.66,height:h*.052,child:Material(color:Colors.transparent,
+          child:InkWell(borderRadius:BorderRadius.circular(24),onTap:_busy?null:_login,
+            child:Center(child:_busy?const CircularProgressIndicator(color:Colors.white):const SizedBox.expand())))),
+        if(_error!=null)Positioned(left:w*.12,top:h*.715,width:w*.76,child:Text(_error!,textAlign:TextAlign.center,style:const TextStyle(color:Colors.red,fontSize:12))),
+        Positioned(left:w*.30,top:h*.747,width:w*.40,height:h*.035,child:TextButton(
+          onPressed:()=>Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const MemberPasswordRecoveryScreen())),
+          child:const SizedBox.expand())),
+      ])));
+    })));
+}
+class MemberPasswordRecoveryScreen extends StatefulWidget {
+  const MemberPasswordRecoveryScreen({super.key});
+  @override
+  State<MemberPasswordRecoveryScreen> createState()=>_MemberPasswordRecoveryScreenState();
+}
+class _MemberPasswordRecoveryScreenState extends State<MemberPasswordRecoveryScreen>{
+  final _id=TextEditingController(),_code=TextEditingController(),_password=TextEditingController(),_confirm=TextEditingController();
+  String _method='email';String? _recoveryId,_message;bool _sent=false,_verified=false,_busy=false;
+  @override
+  void dispose(){_id.dispose();_code.dispose();_password.dispose();_confirm.dispose();super.dispose();}
+  Future<void> _send()async{
+    if(_id.text.trim().isEmpty){setState(()=>_message='Enter your OCTO7 User ID.');return;}
+    setState(()=>_busy=true);
+    try{final r=await AuthService.instance.startPasswordRecovery(memberId:_id.text.trim(),method:_method);
+      setState(()=>_recoveryId=r['recovery_id']?.toString());setState(()=>_sent=true);setState(()=>_message='A code has been sent to your registered contact.');}
+    catch(e){setState(()=>_message=e.toString().replaceFirst('Exception: ',''));}
+    finally{if(mounted)setState(()=>_busy=false);}
   }
-  Future<void> _showRecoveryDialog() async{
-    final memberId=TextEditingController(text:_identifierController.text.trim());
-    final destination=TextEditingController(),code=TextEditingController(),newPassword=TextEditingController(),confirmPassword=TextEditingController();
-    String method='email',message='';String? verificationId;bool busy=false,codeSent=false;
-    await showDialog<void>(context:context,barrierDismissible:false,builder:(dialogContext)=>StatefulBuilder(builder:(context,setDialogState)=>AlertDialog(
-      backgroundColor:const Color(0xFF102238),title:const Text('Reset Your Password',style:TextStyle(color:Colors.white)),
-      content:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[
-        TextField(controller:memberId,keyboardType:TextInputType.number,style:const TextStyle(color:Colors.white),decoration:const InputDecoration(labelText:'OCTO7 User ID number',prefixText:'OCTO7 ')),
-        const SizedBox(height:12),
-        DropdownButtonFormField<String>(value:method,dropdownColor:const Color(0xFF102238),style:const TextStyle(color:Colors.white),decoration:const InputDecoration(labelText:'Verification method'),
+  Future<void> _verify()async{
+    if(_recoveryId==null)return;setState(()=>_busy=true);
+    try{await AuthService.instance.verifyPasswordRecoverySms(recoveryId:_recoveryId!,code:_code.text.trim());
+      setState(()=>_verified=true);setState(()=>_message='Mobile verified. Create your new password.');}
+    catch(e){setState(()=>_message=e.toString().replaceFirst('Exception: ',''));}
+    finally{if(mounted)setState(()=>_busy=false);}
+  }
+  Future<void> _update()async{
+    if(_recoveryId==null)return;
+    if(_password.text.length<8||_password.text.length>72){setState(()=>_message='Password must be 8 to 72 characters.');return;}
+    if(_password.text!=_confirm.text){setState(()=>_message='Passwords do not match.');return;}
+    if(_method=='phone'&&!_verified){setState(()=>_message='Verify your SMS code first.');return;}
+    setState(()=>_busy=true);
+    try{await AuthService.instance.completePasswordRecovery(recoveryId:_recoveryId!,method:_method,code:_method=='email'?_code.text.trim():'',password:_password.text);
+      setState(()=>_message='Password updated. You can now log in.');setState(()=>_sent=false);setState(()=>_recoveryId=null);}
+    catch(e){setState(()=>_message=e.toString().replaceFirst('Exception: ',''));}
+    finally{if(mounted)setState(()=>_busy=false);}
+  }
+  @override
+  Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:const Text('Forgot Password?')),
+    body:Center(child:SingleChildScrollView(padding:const EdgeInsets.all(24),child:ConstrainedBox(
+      constraints:const BoxConstraints(maxWidth:420),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+        TextField(controller:_id,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'OCTO7 User ID')),
+        const SizedBox(height:14),DropdownButtonFormField<String>(value:_method,decoration:const InputDecoration(labelText:'Verify using'),
           items:const [DropdownMenuItem(value:'email',child:Text('Email OTP')),DropdownMenuItem(value:'phone',child:Text('Mobile SMS OTP'))],
-          onChanged:codeSent?null:(v)=>setDialogState(() {method=v??'email';destination.clear();})),
-        const SizedBox(height:12),
-        TextField(controller:destination,keyboardType:method=='email'?TextInputType.emailAddress:TextInputType.phone,style:const TextStyle(color:Colors.white),
-          decoration:InputDecoration(labelText:method=='email'?'Registered email address':'Registered mobile number',hintText:method=='phone'?'Include country code, e.g. +91':'Enter registered email')),
-        if(!codeSent)...[
-          const SizedBox(height:16),SizedBox(width:double.infinity,child:ElevatedButton(onPressed:busy?null:()async{
-            if(memberId.text.trim().isEmpty||destination.text.trim().isEmpty){setDialogState(()=>message='Enter your User ID and registered contact.');return;}
-            setDialogState(() {busy=true;message='';});
-            try{
-              final result=await AuthService.instance.startPasswordRecovery(memberId:memberId.text.trim(),method:method,destination:destination.text.trim());
-              verificationId=result['verification_id']?.toString();
-              setDialogState(() {codeSent=verificationId!=null&&verificationId!.isNotEmpty;message=codeSent?'Code sent to ${result['destination']}.':'If the details match, a code has been sent.';});
-            }catch(e){setDialogState(()=>message=e.toString().replaceFirst('Exception: ',''));}
-            finally{if(dialogContext.mounted)setDialogState(()=>busy=false);}
-          },child:busy?const CircularProgressIndicator():const Text('SEND OTP'))),
+          onChanged:_sent?null:(v)=>setState(()=>_method=v??'email')),
+        const SizedBox(height:14),
+        if(!_sent)ElevatedButton(onPressed:_busy?null:_send,child:Text(_busy?'PLEASE WAIT':'SEND OTP')),
+        if(_sent)...[
+          TextField(controller:_code,keyboardType:TextInputType.number,maxLength:6,decoration:const InputDecoration(labelText:'6-digit OTP')),
+          if(_method=='phone'&&!_verified)ElevatedButton(onPressed:_busy?null:_verify,child:const Text('VERIFY SMS OTP')),
+          if(_method=='email'||_verified)...[
+            TextField(controller:_password,obscureText:true,decoration:const InputDecoration(labelText:'New Password')),
+            TextField(controller:_confirm,obscureText:true,decoration:const InputDecoration(labelText:'Confirm New Password')),
+            ElevatedButton(onPressed:_busy?null:_update,child:Text(_busy?'PLEASE WAIT':'UPDATE PASSWORD')),
+          ],
         ],
-        if(codeSent)...[
-          const SizedBox(height:12),
-          TextField(controller:code,keyboardType:TextInputType.number,maxLength:6,style:const TextStyle(color:Colors.white),decoration:const InputDecoration(labelText:'6-digit verification code')),
-          TextField(controller:newPassword,obscureText:true,style:const TextStyle(color:Colors.white),decoration:const InputDecoration(labelText:'New password (8–72 characters)')),
-          TextField(controller:confirmPassword,obscureText:true,style:const TextStyle(color:Colors.white),decoration:const InputDecoration(labelText:'Confirm new password')),
-          const SizedBox(height:16),SizedBox(width:double.infinity,child:ElevatedButton(onPressed:busy?null:()async{
-            if(newPassword.text.length<8||newPassword.text.length>72){setDialogState(()=>message='Password must contain 8 to 72 characters.');return;}
-            if(newPassword.text!=confirmPassword.text){setDialogState(()=>message='Passwords do not match.');return;}
-            setDialogState(() {busy=true;message='';});
-            try{
-              await AuthService.instance.completePasswordRecovery(verificationId:verificationId!,code:code.text.trim(),newPassword:newPassword.text);
-              if(!dialogContext.mounted)return;
-              Navigator.of(dialogContext).pop();
-              if(mounted)ScaffoldMessenger.of(this.context).showSnackBar(const SnackBar(content:Text('Password updated. Sign in with your new password.')));
-            }catch(e){if(dialogContext.mounted)setDialogState(()=>message=e.toString().replaceFirst('Exception: ',''));}
-            finally{if(dialogContext.mounted)setDialogState(()=>busy=false);}
-          },child:busy?const CircularProgressIndicator():const Text('UPDATE PASSWORD'))),
-        ],
-        if(message.isNotEmpty)...[const SizedBox(height:10),Text(message,style:const TextStyle(color:Color(0xFFFFD166)),textAlign:TextAlign.center)]
-      ])),
-      actions:[TextButton(onPressed:busy?null:()=>Navigator.of(dialogContext).pop(),child:const Text('CLOSE'))],
-    )));
-    memberId.dispose();destination.dispose();code.dispose();newPassword.dispose();confirmPassword.dispose();
-  }
-  @override Widget build(BuildContext context){
-    return Scaffold(backgroundColor:const Color(0xFF052411),resizeToAvoidBottomInset:false,
-      body:LayoutBuilder(builder:(context,c){
-        final w=c.maxWidth,h=c.maxHeight;
-        return Form(key:_formKey,child:Stack(children:[
-          Positioned.fill(child:Image.asset('1794527061741.jpg',fit:BoxFit.fill)),
-          Positioned(left:w*.17,top:h*.568,width:w*.66,height:h*.065,child:TextFormField(
-            controller:_identifierController,keyboardType:TextInputType.number,autocorrect:false,enableSuggestions:false,validator:_validateIdentifier,
-            style:const TextStyle(color:Color(0xFF1C2942),fontSize:17),
-            decoration:InputDecoration(hintText:'Enter Your User ID',hintStyle:const TextStyle(color:Color(0xFF34435D)),
-              prefixIcon:const Icon(Icons.badge_outlined,color:Color(0xFF34435D)),filled:true,fillColor:const Color(0xFFFDFDFD),
-              contentPadding:const EdgeInsets.symmetric(horizontal:12,vertical:14),border:OutlineInputBorder(borderRadius:BorderRadius.circular(16),borderSide:BorderSide.none),
-              enabledBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(16),borderSide:BorderSide.none)))),
-          Positioned(left:w*.17,top:h*.647,width:w*.66,height:h*.065,child:TextFormField(
-            controller:_passwordController,obscureText:_hidePassword,autocorrect:false,enableSuggestions:false,
-            style:const TextStyle(color:Color(0xFF1C2942),fontSize:17),
-            decoration:InputDecoration(hintText:'Password',hintStyle:const TextStyle(color:Color(0xFF34435D)),
-              prefixIcon:const Icon(Icons.lock_outline,color:Color(0xFF34435D)),
-              suffixIcon:IconButton(onPressed:()=>setState(()=>_hidePassword=!_hidePassword),icon:Icon(_hidePassword?Icons.visibility:Icons.visibility_off,color:const Color(0xFF34435D))),
-              filled:true,fillColor:const Color(0xFFFDFDFD),contentPadding:const EdgeInsets.symmetric(horizontal:12,vertical:14),
-              border:OutlineInputBorder(borderRadius:BorderRadius.circular(16),borderSide:BorderSide.none),
-              enabledBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(16),borderSide:BorderSide.none)),
-            validator:(v)=>(v==null||v.isEmpty)?'Enter your password':null,onFieldSubmitted:(_)=>_login())),
-          if(_error!=null)Positioned(left:w*.17,top:h*.713,width:w*.66,child:Text(_error!,style:const TextStyle(color:Colors.red,fontSize:11),textAlign:TextAlign.center)),
-          Positioned(left:w*.17,top:h*.738,width:w*.66,height:h*.058,child:DecoratedBox(
-            decoration:BoxDecoration(gradient:const LinearGradient(colors:[Color(0xFFFFD66B),Color(0xFF0C347D),Color(0xFF174DB0)]),
-              borderRadius:BorderRadius.circular(16),border:Border.all(color:const Color(0xFFD9A83B),width:2),
-              boxShadow:const [BoxShadow(color:Color(0x44333333),blurRadius:8,offset:Offset(0,4))]),
-            child:ElevatedButton(onPressed:_busy?null:_login,style:ElevatedButton.styleFrom(backgroundColor:Colors.transparent,shadowColor:Colors.transparent,
-              shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(14))),
-              child:_busy?const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)):
-                const Text('MEMBER LOGIN',style:TextStyle(color:Colors.white,fontWeight:FontWeight.bold,fontSize:17))))),
-          Positioned(left:w*.22,top:h*.835,width:w*.56,height:h*.045,child:TextButton(onPressed:_showRecoveryDialog,
-            child:const Text('Forgot Password?',style:TextStyle(color:Color(0xFF101010),fontSize:16,fontWeight:FontWeight.w500))))
-        ]));
-      }));
-  }
+        if(_message!=null)Padding(padding:const EdgeInsets.only(top:16),child:Text(_message!,textAlign:TextAlign.center)),
+      ])))));
 }
 class MainNavigationWrapper extends StatefulWidget {
   const MainNavigationWrapper({

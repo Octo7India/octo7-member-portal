@@ -136,6 +136,26 @@ class AuthService {
     return result;
   }
 
+
+  Future<Map<String,dynamic>> _publicRecoveryAction(String action, Map<String,dynamic> payload) async {
+    final response = await _client.functions.invoke('octo7-api',
+      body:{'action':action,...payload},
+      headers:{'Authorization':'Bearer ' + SupabaseConfig.anonKey});
+    final data=response.data;
+    if(response.status<200||response.status>=300||data is! Map) throw Exception('Password recovery request failed (' + response.status.toString() + ').');
+    final result=Map<String,dynamic>.from(data);
+    if(result['success']!=true) throw Exception(result['error']?.toString()??'Password recovery failed.');
+    return result;
+  }
+  Future<Map<String,dynamic>> startPasswordRecovery({required String memberId,required String method}) =>
+    _publicRecoveryAction('start_member_password_recovery',{'member_id':memberId,'method':method});
+  Future<void> verifyPasswordRecoverySms({required String recoveryId,required String code}) async {
+    await _publicRecoveryAction('verify_member_password_recovery_sms',{'recovery_id':recoveryId,'code':code});
+  }
+  Future<void> completePasswordRecovery({required String recoveryId,required String method,required String code,required String password}) async {
+    await _publicRecoveryAction('complete_member_password_recovery',{'recovery_id':recoveryId,'method':method,'code':code,'password':password});
+  }
+
   Future<void> signOut() async {
     final token = await sessionToken;
     if (token != null && token.isNotEmpty && SupabaseConfig.isConfigured) {
