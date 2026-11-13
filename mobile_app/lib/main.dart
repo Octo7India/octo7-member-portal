@@ -1918,6 +1918,13 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
     }
   }
 
+  /// Lets the app-wide Android Back handler consume genealogy drill-down first.
+  bool handleSystemBack() {
+    if (_backStack.isEmpty) return false;
+    _goBackOneLevel();
+    return true;
+  }
+
   void _returnToOwnId() {
     _backStack.clear();
     _rootMemberId = null;
@@ -2031,7 +2038,7 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
             textAlign: TextAlign.center, maxLines: 1,
             style: TextStyle(
               color: canRegister ? const Color(0xFF7040B5) : Colors.black38,
-              fontSize: [8, 7, 6, 5][slot.level],
+              fontSize: [8.0, 7.0, 6.0, 5.0][slot.level],
               fontWeight: FontWeight.bold,
             ),
           )),
