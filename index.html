@@ -1627,6 +1627,7 @@ function setupGenealogyControls(){
   let mouseStart=null;
   let suppressClickUntil=0;
   let zoomFocusLevel=0;
+  let panX=0,panY=0;
   const label=document.getElementById("genealogyZoomLabel");
   const clamp=value=>Math.max(.4,Math.min(2.4,value));
   const connectorSvg=canvas.querySelector(".genealogy-connectors");
@@ -1655,7 +1656,7 @@ function setupGenealogyControls(){
     // Move the complete tree upward in screen space to expose the zoom-focus ID's downline.
     // This does not alter the root or any member's position in the genealogy hierarchy.
     const lift=Math.min(170,Math.max(0,(scale-1)*(44+zoomFocusLevel*36)));
-    canvas.style.transform="translateY("+(-lift)+"px)";
+    canvas.style.transform="translate("+panX+"px,"+(panY-lift)+"px)";
     // Recompute every parent-to-child edge independently from the live card rectangles.
     // The SVG is outside the transformed card layer, so only its path geometry stretches.
     if(connectorSvg){
@@ -1688,6 +1689,7 @@ function setupGenealogyControls(){
     const availableHeight=Math.max(150,view.clientHeight-24);
     scale=clamp(Math.min(1,availableWidth/370,availableHeight/340));
     zoomFocusLevel=0;
+    panX=0;panY=0;
     apply();
     view.scrollLeft=0;
     view.scrollTop=0;
@@ -1706,11 +1708,11 @@ function setupGenealogyControls(){
       const midpoint={x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2};
       // A two-finger gesture may start directly on a member button; that is intentional.
       zoomFocusLevel=focusLevelFromTarget(event.target,midpoint);
-      touchStart={mode:"pinch",distance:pointDistance({x:a.clientX,y:a.clientY},{x:b.clientX,y:b.clientY}),scale};
+      touchStart={mode:"pinch",distance:pointDistance({x:a.clientX,y:a.clientY},{x:b.clientX,y:b.clientY}),scale,midX:midpoint.x,midY:midpoint.y};
     }else if(event.touches.length===1){
       if(event.target.closest("button"))return;
       const t=event.touches[0];
-      touchStart={mode:"pan",x:t.clientX,y:t.clientY,left:view.scrollLeft,top:view.scrollTop,moved:false};
+      touchStart={mode:"pan",x:t.clientX,y:t.clientY,moved:false};
     }
   },{passive:true});
   view.addEventListener("touchmove",event=>{
@@ -1721,6 +1723,9 @@ function setupGenealogyControls(){
       const d=pointDistance({x:a.clientX,y:a.clientY},{x:b.clientX,y:b.clientY});
       if(touchStart.distance>0){
         scale=clamp(touchStart.scale*d/touchStart.distance);
+        const midpoint={x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2};
+        panX+=midpoint.x-touchStart.midX;panY+=midpoint.y-touchStart.midY;
+        touchStart.midX=midpoint.x;touchStart.midY=midpoint.y;
         apply();
       }
       suppressClickUntil=Date.now()+350;
@@ -1729,8 +1734,9 @@ function setupGenealogyControls(){
       if(Math.abs(dx)+Math.abs(dy)>5)touchStart.moved=true;
       if(touchStart.moved){
         event.preventDefault();
-        view.scrollLeft=touchStart.left-dx;
-        view.scrollTop=touchStart.top-dy;
+        panX+=dx;panY+=dy;
+        touchStart.x=t.clientX;touchStart.y=t.clientY;
+        apply();
         suppressClickUntil=Date.now()+250;
       }
     }
@@ -1742,13 +1748,15 @@ function setupGenealogyControls(){
   // Mouse drag and Ctrl+wheel zoom for desktop browsers.
   view.addEventListener("mousedown",event=>{
     if(event.button!==0||event.target.closest("button"))return;
-    mouseStart={x:event.clientX,y:event.clientY,left:view.scrollLeft,top:view.scrollTop};
+    mouseStart={x:event.clientX,y:event.clientY};
     view.classList.add("dragging");
   });
   view.addEventListener("mousemove",event=>{
     if(!mouseStart)return;
-    view.scrollLeft=mouseStart.left-(event.clientX-mouseStart.x);
-    view.scrollTop=mouseStart.top-(event.clientY-mouseStart.y);
+    panX+=event.clientX-mouseStart.x;
+    panY+=event.clientY-mouseStart.y;
+    mouseStart.x=event.clientX;mouseStart.y=event.clientY;
+    apply();
   });
   const endMouse=()=>{mouseStart=null;view.classList.remove("dragging");};
   view.addEventListener("mouseup",endMouse);
