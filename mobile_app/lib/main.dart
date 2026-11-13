@@ -1954,7 +1954,7 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
     final w=slot.width*nodeScale,h=slot.height*nodeScale;
     final left=anchorCenterX+slot.offsetX*nodeScale-w/2;
     // Root position and dimensions are invariant. Descendants stretch away from it.
-    final top=anchorTopY+(root?0:slot.offsetY*scale+_verticalPanOffset);
+    final top=root?anchorTopY:anchorTopY+_levelHeights[0]+(slot.offsetY-_levelHeights[0])*scale+_verticalPanOffset;
     final idSize=[11.5,9.5,8.0,6.5][slot.level]*nodeScale,statusSize=[8.5,7.2,6.2,5.2][slot.level]*nodeScale;
     return Positioned(left:left,top:top,width:w,height:h,child:GestureDetector(behavior:HitTestBehavior.opaque,onTap:()=>_onNodeTapped(slot.node),
       child:Container(decoration:BoxDecoration(color:root?const Color(0xFF0F2537):(available?const Color(0xFFE2E8F0):Colors.white),
@@ -1981,10 +1981,15 @@ class _AnchoredLinePainter extends CustomPainter {
       final parent=slots[i],l=slots[2*i+1],r=slots[2*i+2];
       final parentScale=i==0?1.0:scale;
       final childScale=scale;
+      final rootHeight=slots.first.height;
       final sx=anchorCenterX+parent.offsetX*parentScale;
-      final sy=anchorTopY+(parent.offsetY*parentScale+parent.height*parentScale)+(i==0?0:0);
-      final lx=anchorCenterX+l.offsetX*childScale,ly=anchorTopY+l.offsetY*childScale;
-      final rx=anchorCenterX+r.offsetX*childScale,ry=anchorTopY+r.offsetY*childScale;
+      final sy=i==0
+          ? anchorTopY+rootHeight
+          : anchorTopY+rootHeight+(parent.offsetY+parent.height-rootHeight)*scale+_verticalPanOffset;
+      final lx=anchorCenterX+l.offsetX*childScale;
+      final ly=anchorTopY+rootHeight+(l.offsetY-rootHeight)*scale+_verticalPanOffset;
+      final rx=anchorCenterX+r.offsetX*childScale;
+      final ry=anchorTopY+rootHeight+(r.offsetY-rootHeight)*scale+_verticalPanOffset;
       final mid=sy+(ly-sy)/2;
       final path=Path()..moveTo(sx,sy)..lineTo(sx,mid)..moveTo(lx,mid)..lineTo(rx,mid)..moveTo(lx,mid)..lineTo(lx,ly)..moveTo(rx,mid)..lineTo(rx,ry);
       canvas.drawPath(path,p);
