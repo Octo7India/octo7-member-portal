@@ -1723,9 +1723,13 @@ function setupGenealogyControls(){
     if(label)label.textContent=Math.round(scale*100)+"%";
     if(pinnedRoot){
       const viewRect=view.getBoundingClientRect();
-      const rootRect=pinnedRoot.getBoundingClientRect();
-      const sx=(rootRect.left+rootRect.width/2-viewRect.left-x)/scale;
-      const sy=(rootRect.bottom-viewRect.top-y)/scale;
+      // Keep the connector's root anchor independent of the card's temporary
+      // lift. The branches still stretch with canvas zoom/pan, but their
+      // screen anchor never follows the hidden card upward or downward.
+      const rootAnchorLeft=viewRect.left+viewRect.width/2;
+      const rootAnchorBottom=viewRect.top+120+62;
+      const sx=(rootAnchorLeft-viewRect.left-x)/scale;
+      const sy=(rootAnchorBottom-viewRect.top-y)/scale;
       canvas.querySelectorAll('.connector-path[data-root-branch="true"]').forEach(path=>{
         const ex=Number(path.dataset.endX),ey=Number(path.dataset.endY);
         const midY=(sy+ey)/2;
