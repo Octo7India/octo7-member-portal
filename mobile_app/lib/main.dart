@@ -1831,380 +1831,159 @@ class MemberMenuInfoScreen extends StatelessWidget {
   }
 }
 
-// --- FOUR-GENERATION STEPPED BINARY GENEALOGY ---
+// --- FOUR-GENERATION ANCHOR-LOCKED BINARY GENEALOGY ---
+class MemberNode {
+  final String id,status;
+  final MemberNode? left,right;
+  final int positionId,parentPositionId;
+  final String side;
+  const MemberNode({required this.id,this.status='ACTIVE',this.left,this.right,this.positionId=0,this.parentPositionId=0,this.side=''});
+  bool get isAvailable=>status.toUpperCase()=='AVAILABLE';
+}
+class _BaseSlot {
+  final MemberNode node;
+  final int level;
+  final double offsetX,offsetY,width,height;
+  const _BaseSlot({required this.node,required this.level,required this.offsetX,required this.offsetY,required this.width,required this.height});
+}
 class BinaryTreeViewScreen extends StatefulWidget {
-  const BinaryTreeViewScreen({super.key, this.onBack});
+  const BinaryTreeViewScreen({super.key,this.onBack});
   final VoidCallback? onBack;
   @override
-  State<BinaryTreeViewScreen> createState() => _BinaryTreeViewScreenState();
+  State<BinaryTreeViewScreen> createState()=>_BinaryTreeViewScreenState();
 }
-
 class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
-  late Future<Map<String, dynamic>> _genealogyFuture;
+  late Future<Map<String,dynamic>> _genealogyFuture;
   String? _rootMemberId;
-  final List<String> _backStack = [];
-  final TransformationController _transformController = TransformationController();
-
-  static const double _canvasWidth = 420;
-  static const double _canvasHeight = 760;
-  static const List<double> _widths = [112, 92, 72, 44];
-  static const List<double> _heights = [58, 50, 42, 36];
-  static const List<double> _tops = [28, 128, 218, 300];
-  static const double _minZoom = 0.65;
-  static const double _maxZoom = 2.6;
-
+  final List<String> _backStack=[];
+  double _zoomScale=1,_baseZoomScale=1,_verticalPanOffset=0;
+  static const double _minZoom=.85,_maxZoom=2.4,_baseTreeWidth=370,_permanentTopAnchorY=28;
+  static const List<double> _levelWidths=[108,88,68,41],_levelHeights=[54,46,38,34],_levelOffsetY=[0,96,180,256];
+  List<_BaseSlot> _slots=[];
   @override
-  void initState() {
-    super.initState();
-    _genealogyFuture = LiveDataService.instance.fetchGenealogy();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _resetCameraToAnchor();
-    });
+  void initState(){super.initState();_genealogyFuture=LiveDataService.instance.fetchGenealogy();}
+  void _reload({String? rootId}){setState((){_genealogyFuture=LiveDataService.instance.fetchGenealogy(rootMemberId:rootId);_zoomScale=1;_verticalPanOffset=0;});}
+  Future<void> _openMember(String id)async{
+    if(id.isEmpty||id==_rootMemberId)return;
+    final previous=_rootMemberId;
+    setState((){if(previous!=null&&previous.isNotEmpty)_backStack.add(previous);_rootMemberId=id;_zoomScale=1;_verticalPanOffset=0;_genealogyFuture=LiveDataService.instance.fetchGenealogy(rootMemberId:id);});
   }
-
+  void _goBackOneLevel(){
+    if(_backStack.isEmpty)return;
+    final previous=_backStack.removeLast();
+    setState(()=>_rootMemberId=previous);
+    _reload(rootId:previous);
+  }
+  void _handleBackPressed(){if(_backStack.isNotEmpty){_goBackOneLevel();}else if(widget.onBack!=null){widget.onBack!();}else{Navigator.of(context).maybePop();}}
+  bool handleSystemBack(){if(_backStack.isEmpty)return false;_goBackOneLevel();return true;}
+  void _returnToOwnId(){_backStack.clear();_rootMemberId=null;_reload();}
+  Future<void> _openVacantPosition(int parent,String side)async{
+    if(parent<=0)return;
+    await Navigator.of(context).push(MaterialPageRoute(builder:(_)=>MemberRegistrationScreen(initialParentPositionId:parent,initialSide:side)));
+    if(mounted)_reload(rootId:_rootMemberId);
+  }
+  int _positionId(Map<String,dynamic> n)=>int.tryParse((n['id']??'').toString())??int.tryParse((n['position_id']??'').toString())??int.tryParse((n['positionId']??'').toString())??0;
+  MemberNode _toMemberNode(Map<String,dynamic>? n,{required int depth,required int parentPositionId,required String side}){
+    if(n==null)return MemberNode(id:'AVAILABLE',status:'AVAILABLE',parentPositionId:parentPositionId,side:side);
+    final raw=(n['member_id']??n['memberId']??'').toString(),pos=_positionId(n);
+    final l=n['left'] is Map?Map<String,dynamic>.from(n['left'] as Map):null;
+    final r=n['right'] is Map?Map<String,dynamic>.from(n['right'] as Map):null;
+    return MemberNode(id:raw.startsWith('OCTO7 ')?raw:'OCTO7 $raw',status:(n['status']??'INACTIVE').toString().toUpperCase(),positionId:pos,parentPositionId:parentPositionId,side:side,
+      left:depth<3?_toMemberNode(l,depth:depth+1,parentPositionId:pos,side:'left'):null,
+      right:depth<3?_toMemberNode(r,depth:depth+1,parentPositionId:pos,side:'right'):null);
+  }
+  void _computeAnchorRelativeSlots(MemberNode root){
+    final computed=<_BaseSlot>[],levels=<List<MemberNode>>[[],[],[],[]];
+    void visit(MemberNode? n,int d){if(d>3)return;final cur=n??const MemberNode(id:'AVAILABLE',status:'AVAILABLE');levels[d].add(cur);if(d<3){visit(cur.left,d+1);visit(cur.right,d+1);}}
+    visit(root,0);
+    for(int level=0;level<4;level++){final count=levels[level].length,sector=_baseTreeWidth/count;for(int i=0;i<count;i++){computed.add(_BaseSlot(node:levels[level][i],level:level,offsetX:sector*i+sector/2-_baseTreeWidth/2,offsetY:_levelOffsetY[level],width:_levelWidths[level],height:_levelHeights[level]));}}
+    _slots=computed;
+  }
+  void _onNodeTapped(MemberNode n){
+    if(n.isAvailable){if(n.parentPositionId>0){_openVacantPosition(n.parentPositionId,n.side);}else{ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('This position is not available for registration.')));}return;}
+    final id=RegExp(r'\d+').firstMatch(n.id)?.group(0);if(id!=null&&id!=_rootMemberId)_openMember(id);
+  }
+  void _stepZoom(double factor){setState((){_zoomScale=(_zoomScale*factor).clamp(_minZoom,_maxZoom);if(_zoomScale<=1.05)_verticalPanOffset=0;});}
   @override
-  void dispose() {
-    _transformController.dispose();
-    super.dispose();
-  }
-
-  void _resetCameraToAnchor() {
-    if (!mounted) return;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final offsetX = ((screenWidth - _canvasWidth) / 2).clamp(-200.0, 200.0);
-    _transformController.value = Matrix4.identity()..translate(offsetX, 0.0);
-  }
-
-  void _zoom(double factor) {
-    final current = _transformController.value.getMaxScaleOnAxis();
-    final next = (current * factor).clamp(_minZoom, _maxZoom).toDouble();
-    final screenWidth = MediaQuery.of(context).size.width;
-    final offsetX = ((screenWidth - _canvasWidth * next) / 2).clamp(-200.0, 200.0);
-    _transformController.value = Matrix4.identity()
-      ..translate(offsetX, 0.0)
-      ..scale(next);
-  }
-
-  void _reload({String? rootId}) {
-    setState(() => _genealogyFuture = LiveDataService.instance.fetchGenealogy(rootMemberId: rootId));
-  }
-
-  Future<void> _openMember(String memberId) async {
-    if (memberId.isEmpty || memberId == _rootMemberId) return;
-    final previous = _rootMemberId;
-    setState(() {
-      if (previous != null && previous.isNotEmpty) _backStack.add(previous);
-      _rootMemberId = memberId;
-      _genealogyFuture = LiveDataService.instance.fetchGenealogy(rootMemberId: memberId);
-    });
-  }
-
-  void _goBackOneLevel() {
-    if (_backStack.isEmpty) return;
-    final previous = _backStack.removeLast();
-    setState(() {
-      _rootMemberId = previous;
-      _genealogyFuture = LiveDataService.instance.fetchGenealogy(rootMemberId: previous);
-    });
-  }
-
-  void _handleBackPressed() {
-    if (_backStack.isNotEmpty) {
-      _goBackOneLevel();
-    } else if (widget.onBack != null) {
-      widget.onBack!();
-    } else {
-      Navigator.of(context).maybePop();
-    }
-  }
-
-  /// Lets the app-wide Android Back handler consume genealogy drill-down first.
-  bool handleSystemBack() {
-    if (_backStack.isEmpty) return false;
-    _goBackOneLevel();
-    return true;
-  }
-
-  void _returnToOwnId() {
-    _backStack.clear();
-    _rootMemberId = null;
-    _reload();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _resetCameraToAnchor();
-    });
-  }
-
-  Future<void> _openVacantPosition(int parentPositionId, String side) async {
-    if (parentPositionId <= 0) return;
-    await Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => MemberRegistrationScreen(
-        initialParentPositionId: parentPositionId,
-        initialSide: side,
-      ),
-    ));
-    if (mounted) _reload(rootId: _rootMemberId);
-  }
-
-  int _positionId(Map<String, dynamic> node) =>
-      int.tryParse((node['id'] ?? '').toString()) ??
-      int.tryParse((node['position_id'] ?? '').toString()) ?? 0;
-
-  List<_PyramidSlot> _buildSlots(Map<String, dynamic> root) {
-    final levels = <List<_PyramidSlot>>[[], [], [], []];
-    void add(Map<String, dynamic>? node, int depth, int parentId, String side) {
-      if (depth > 3) return;
-      levels[depth].add(_PyramidSlot(
-        node: node, level: depth, parentPositionId: parentId, side: side,
-      ));
-      if (depth == 3) return;
-      if (node == null) {
-        add(null, depth + 1, 0, 'left');
-        add(null, depth + 1, 0, 'right');
-        return;
-      }
-      final positionId = _positionId(node);
-      final left = node['left'] is Map ? Map<String, dynamic>.from(node['left'] as Map) : null;
-      final right = node['right'] is Map ? Map<String, dynamic>.from(node['right'] as Map) : null;
-      add(left, depth + 1, positionId, 'left');
-      add(right, depth + 1, positionId, 'right');
-    }
-    add(root, 0, 0, '');
-    return levels.expand((level) => level).toList();
-  }
-
-  Widget _memberCard(_PyramidSlot slot) {
-    final node = slot.node!;
-    final memberId = (node['member_id'] ?? '').toString();
-    final active = (node['status'] ?? '').toString().toLowerCase() == 'active';
-    final isRoot = slot.level == 0;
-    final compact = slot.level == 3;
-    return Positioned(
-      left: slot.x, top: _tops[slot.level],
-      width: _widths[slot.level], height: _heights[slot.level],
-      child: GestureDetector(
-        onTap: memberId.isEmpty ? null : () => _openMember(memberId),
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: compact ? 2 : 4, vertical: 2),
-          decoration: BoxDecoration(
-            color: isRoot ? const Color(0xFF102238) : Colors.white,
-            borderRadius: BorderRadius.circular(compact ? 3 : 5),
-            border: Border.all(
-              color: isRoot ? const Color(0xFFD6A84B) : const Color(0xFF7040B5),
-              width: isRoot ? 1.8 : 1.2,
-            ),
-            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 3, offset: Offset(0, 1.5))],
-          ),
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Text('OCTO7 ' + (memberId.isEmpty ? '—' : memberId),
-              maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: isRoot ? Colors.white : const Color(0xFF102238),
-                fontSize: [10.5, 9.0, 7.5, 6.0][slot.level],
-                fontWeight: FontWeight.bold,
-              )),
-            if (!compact || memberId.isNotEmpty)
-              Text(active ? 'ACTIVE' : 'INACTIVE',
-                maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: isRoot
-                      ? (active ? const Color(0xFF65E99A) : Colors.orangeAccent)
-                      : (active ? const Color(0xFF168344) : Colors.redAccent),
-                  fontSize: [8.5, 7.5, 6.5, 5.5][slot.level],
-                  fontWeight: FontWeight.w700,
-                )),
-          ]),
-        ),
-      ),
-    );
-  }
-
-  Widget _availableCard(_PyramidSlot slot) {
-    final canRegister = slot.parentPositionId > 0;
-    return Positioned(
-      left: slot.x, top: _tops[slot.level],
-      width: _widths[slot.level], height: _heights[slot.level],
-      child: InkWell(
-        onTap: canRegister ? () => _openVacantPosition(slot.parentPositionId, slot.side) : null,
-        borderRadius: BorderRadius.circular(4),
-        child: Container(
-          padding: const EdgeInsets.all(2),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: canRegister ? Colors.blueGrey.shade300 : Colors.white24),
-          ),
-          child: Center(child: Text(
-            canRegister ? 'AVAILABLE' : '—',
-            textAlign: TextAlign.center, maxLines: 1,
-            style: TextStyle(
-              color: canRegister ? const Color(0xFF7040B5) : Colors.black38,
-              fontSize: [8.0, 7.0, 6.0, 5.0][slot.level],
-              fontWeight: FontWeight.bold,
-            ),
-          )),
-        ),
-      ),
-    );
-  }
-
-  Widget _pyramid(List<_PyramidSlot> slots) {
-    for (int level = 0; level < 4; level++) {
-      final row = slots.where((slot) => slot.level == level).toList();
-      final sectorWidth = _canvasWidth / row.length;
-      for (int i = 0; i < row.length; i++) {
-        row[i].x = sectorWidth * i + sectorWidth / 2 - _widths[level] / 2;
-      }
-    }
-    return SizedBox(
-      width: _canvasWidth, height: _canvasHeight,
-      child: CustomPaint(
-        painter: _PyramidConnectorPainter(slots: slots),
-        child: Stack(clipBehavior: Clip.none, children: [
-          for (final slot in slots)
-            if (slot.node != null) _memberCard(slot) else _availableCard(slot),
+  Widget build(BuildContext context){
+    return PopScope(canPop:_backStack.isEmpty,onPopInvokedWithResult:(didPop,result){if(!didPop&&_backStack.isNotEmpty)_goBackOneLevel();},
+      child:Scaffold(backgroundColor:const Color(0xFF0A1924),appBar:AppBar(backgroundColor:const Color(0xFF07121A),elevation:0,
+        title:Text(_rootMemberId==null?'My Genealogy':'OCTO7 $_rootMemberId',style:const TextStyle(color:Colors.white,fontSize:15,fontWeight:FontWeight.w600)),
+        leading:IconButton(tooltip:'Back to previous page',icon:const Icon(Icons.arrow_back,color:Colors.white),onPressed:_handleBackPressed),
+        actions:[
+          if(_backStack.isNotEmpty)IconButton(tooltip:'Back One Level',icon:const Icon(Icons.arrow_upward,color:Colors.amber),onPressed:_goBackOneLevel),
+          IconButton(tooltip:'Zoom Out',icon:const Icon(Icons.remove,color:Colors.white),onPressed:()=>_stepZoom(.85)),
+          IconButton(tooltip:'Reset Size',icon:const Icon(Icons.crop_free,color:Colors.white),onPressed:()=>setState((){_zoomScale=1;_verticalPanOffset=0;})),
+          IconButton(tooltip:'Zoom In',icon:const Icon(Icons.add,color:Colors.white),onPressed:()=>_stepZoom(1.2)),
+          IconButton(tooltip:'Return to my ID',icon:const Icon(Icons.home_outlined,color:Colors.white),onPressed:_returnToOwnId),
+          IconButton(tooltip:'Refresh genealogy',icon:const Icon(Icons.refresh,color:Colors.white),onPressed:()=>_reload(rootId:_rootMemberId)),
         ]),
-      ),
-    );
+        body:FutureBuilder<Map<String,dynamic>>(future:_genealogyFuture,builder:(context,snapshot){
+          if(snapshot.connectionState==ConnectionState.waiting)return const Center(child:CircularProgressIndicator(color:Colors.tealAccent));
+          if(snapshot.hasError)return Center(child:Padding(padding:const EdgeInsets.all(24),child:Column(mainAxisSize:MainAxisSize.min,children:[
+            Text('Unable to load genealogy: '+snapshot.error.toString(),textAlign:TextAlign.center,style:const TextStyle(color:Colors.orangeAccent)),
+            TextButton(onPressed:()=>_reload(rootId:_rootMemberId),child:const Text('Retry'))])));
+          final data=snapshot.data??{},raw=data['nodes'];
+          if(raw is! List||raw.isEmpty)return const Center(child:Text('No genealogy positions were returned for this account.',style:TextStyle(color:Colors.white70)));
+          final rootMap=LiveDataService.buildGenealogyTree(raw);
+          if(rootMap==null)return const Center(child:Text('Your genealogy root position could not be found.',style:TextStyle(color:Colors.white70)));
+          final returned=(data['root'] is Map?data['root']['member_id']:rootMap['member_id'])?.toString();
+          if(_rootMemberId==null&&returned!=null){WidgetsBinding.instance.addPostFrameCallback((_){if(mounted&&_rootMemberId==null)setState(()=>_rootMemberId=returned);});}
+          final root=_toMemberNode(rootMap,depth:0,parentPositionId:0,side:'');_computeAnchorRelativeSlots(root);
+          return Container(decoration:const BoxDecoration(gradient:LinearGradient(begin:Alignment.topCenter,end:Alignment.bottomCenter,colors:[Color(0xFF102A3B),Color(0xFF071426)])),
+            child:Column(children:[
+              Padding(padding:const EdgeInsets.only(top:10,bottom:4),child:Text(root.id+'  •  Tap any ID to view its downline',textAlign:TextAlign.center,style:TextStyle(color:Colors.white.withOpacity(.65),fontSize:11.5))),
+              Expanded(child:LayoutBuilder(builder:(context,c){
+                final cx=c.maxWidth/2,top=_permanentTopAnchorY+_verticalPanOffset;
+                return GestureDetector(behavior:HitTestBehavior.opaque,
+                  onScaleStart:(d){_baseZoomScale=_zoomScale;},
+                  onScaleUpdate:(d){setState((){
+                    if(d.scale!=1)_zoomScale=(_baseZoomScale*d.scale).clamp(_minZoom,_maxZoom);
+                    if(_zoomScale>1){final max=( _zoomScale-1)*320;_verticalPanOffset=(_verticalPanOffset+d.focalPointDelta.dy).clamp(-max,0.0);}else{_verticalPanOffset=0;}
+                  });},
+                  child:SizedBox.expand(child:CustomPaint(painter:_AnchoredLinePainter(slots:_slots,anchorCenterX:cx,anchorTopY:top,scale:_zoomScale),
+                    child:Stack(clipBehavior:Clip.none,children:_slots.map((s)=>_buildAnchoredNodeCard(slot:s,anchorCenterX:cx,anchorTopY:top,scale:_zoomScale)).toList()))));
+              })),
+              const Padding(padding:EdgeInsets.fromLTRB(12,8,12,14),child:Text('Pinch to enlarge boxes & lines • Tap AVAILABLE to register',textAlign:TextAlign.center,style:TextStyle(color:Colors.white54,fontSize:10))),
+            ]));
+        })));
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF071426),
-      appBar: AppBar(
-        title: Text(_rootMemberId == null ? 'My Genealogy' : 'OCTO7 ' + _rootMemberId!,
-          style: const TextStyle(color: Colors.white, fontSize: 18)),
-        leading: IconButton(
-          tooltip: 'Back to previous page',
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: _handleBackPressed,
-        ),
-        actions: [
-          if (_backStack.isNotEmpty)
-            IconButton(tooltip: 'Back one level', icon: const Icon(Icons.arrow_upward, color: Colors.amber), onPressed: _goBackOneLevel),
-          IconButton(tooltip: 'Zoom out', icon: const Icon(Icons.remove, color: Colors.white), onPressed: () => _zoom(0.85)),
-          IconButton(tooltip: 'Reset view', icon: const Icon(Icons.crop_free, color: Colors.white), onPressed: _resetCameraToAnchor),
-          IconButton(tooltip: 'Zoom in', icon: const Icon(Icons.add, color: Colors.white), onPressed: () => _zoom(1.2)),
-          IconButton(tooltip: 'Return to my ID', icon: const Icon(Icons.home_outlined, color: Colors.white), onPressed: _returnToOwnId),
-          IconButton(tooltip: 'Refresh genealogy', icon: const Icon(Icons.refresh, color: Colors.white), onPressed: () => _reload(rootId: _rootMemberId)),
-        ],
-      ),
-      body: FutureBuilder<Map<String, dynamic>>(
-        future: _genealogyFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Text('Unable to load genealogy: ' + snapshot.error.toString(),
-                  textAlign: TextAlign.center, style: const TextStyle(color: Colors.orangeAccent)),
-                TextButton(onPressed: () => _reload(rootId: _rootMemberId), child: const Text('Retry')),
-              ]),
-            ));
-          }
-          final data = snapshot.data ?? {};
-          final rawNodes = data['nodes'];
-          if (rawNodes is! List || rawNodes.isEmpty) {
-            return const Center(child: Text('No genealogy positions were returned for this account.',
-              style: TextStyle(color: Colors.white70)));
-          }
-          final root = LiveDataService.buildGenealogyTree(rawNodes);
-          if (root == null) {
-            return const Center(child: Text('Your genealogy root position could not be found.',
-              style: TextStyle(color: Colors.white70)));
-          }
-          final returnedRootId = (data['root'] is Map
-              ? data['root']['member_id'] : root['member_id'])?.toString();
-          if (_rootMemberId == null && returnedRootId != null) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted && _rootMemberId == null) setState(() => _rootMemberId = returnedRootId);
-            });
-          }
-          final slots = _buildSlots(root);
-          return Container(
-            decoration: const BoxDecoration(gradient: LinearGradient(
-              begin: Alignment.topCenter, end: Alignment.bottomCenter,
-              colors: [Color(0xFF102A3B), Color(0xFF071426)],
-            )),
-            child: Column(children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
-                child: Text('OCTO7 ' + (root['member_id'] ?? '').toString() +
-                    '  •  Tap an ID to view its downline',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white70, fontSize: 11.5)),
-              ),
-              Expanded(child: InteractiveViewer(
-                transformationController: _transformController,
-                constrained: false, minScale: _minZoom, maxScale: _maxZoom,
-                boundaryMargin: const EdgeInsets.all(180),
-                child: _pyramid(slots),
-              )),
-              const Padding(
-                padding: EdgeInsets.fromLTRB(12, 8, 12, 14),
-                child: Text('Pinch to zoom • Tap AVAILABLE to register • Arrow returns one level',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white54, fontSize: 10)),
-              ),
-            ]),
-          );
-        },
-      ),
-    );
+  Widget _buildAnchoredNodeCard({required _BaseSlot slot,required double anchorCenterX,required double anchorTopY,required double scale}){
+    final root=slot.level==0,compact=slot.level==3,available=slot.node.isAvailable;
+    final w=slot.width*scale,h=slot.height*scale,left=anchorCenterX+slot.offsetX*scale-w/2,top=anchorTopY+slot.offsetY*scale;
+    final idSize=[11.5,9.5,8.0,6.5][slot.level]*scale,statusSize=[8.5,7.2,6.2,5.2][slot.level]*scale;
+    return Positioned(left:left,top:top,width:w,height:h,child:GestureDetector(behavior:HitTestBehavior.opaque,onTap:()=>_onNodeTapped(slot.node),
+      child:Container(decoration:BoxDecoration(color:root?const Color(0xFF0F2537):(available?const Color(0xFFE2E8F0):Colors.white),
+        borderRadius:BorderRadius.circular((compact?3:5)*scale),
+        border:Border.all(color:root?const Color(0xFFD4AF37):(available?Colors.blueGrey.shade400:const Color(0xFF2B6CB0)),width:(root?1.8:1.2)*scale.clamp(1.0,1.6)),
+        boxShadow:[BoxShadow(color:Colors.black.withOpacity(.28),blurRadius:3*scale,offset:Offset(0,1.5*scale))]),
+        padding:EdgeInsets.symmetric(horizontal:2.5*scale,vertical:2*scale),
+        child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[
+          Text(slot.node.id,maxLines:1,overflow:TextOverflow.ellipsis,style:TextStyle(fontSize:idSize,fontWeight:FontWeight.bold,color:root?Colors.white:const Color(0xFF0A1924))),
+          if(!compact||!available)...[SizedBox(height:1.5*scale),Text(available?'Available':slot.node.status,maxLines:1,overflow:TextOverflow.ellipsis,
+            style:TextStyle(fontSize:statusSize,fontWeight:FontWeight.w600,color:root?Colors.tealAccent:(available?Colors.indigo:const Color(0xFF2F855A))))],
+        ]))));
   }
 }
-
-class _PyramidSlot {
-  _PyramidSlot({
-    required this.node, required this.level,
-    required this.parentPositionId, required this.side,
-  });
-  final Map<String, dynamic>? node;
-  final int level;
-  final int parentPositionId;
-  final String side;
-  double x = 0;
-}
-
-class _PyramidConnectorPainter extends CustomPainter {
-  const _PyramidConnectorPainter({required this.slots});
-  final List<_PyramidSlot> slots;
-
+class _AnchoredLinePainter extends CustomPainter {
+  final List<_BaseSlot> slots;
+  final double anchorCenterX,anchorTopY,scale;
+  _AnchoredLinePainter({required this.slots,required this.anchorCenterX,required this.anchorTopY,required this.scale});
   @override
-  void paint(Canvas canvas, Size size) {
-    if (slots.length < 15) return;
-    final paint = Paint()
-      ..color = const Color(0xFF2C7A7B)
-      ..strokeWidth = 1.4
-      ..style = PaintingStyle.stroke;
-    for (int i = 0; i < 7; i++) {
-      final parent = slots[i];
-      final left = slots[2 * i + 1];
-      final right = slots[2 * i + 2];
-      final startX = parent.x + _width(parent.level) / 2;
-      final startY = _top(parent.level) + _height(parent.level);
-      final leftX = left.x + _width(left.level) / 2;
-      final rightX = right.x + _width(right.level) / 2;
-      final childY = _top(parent.level + 1);
-      final middleY = startY + (childY - startY) / 2;
-      final path = Path()
-        ..moveTo(startX, startY)..lineTo(startX, middleY)
-        ..moveTo(leftX, middleY)..lineTo(rightX, middleY)
-        ..moveTo(leftX, middleY)..lineTo(leftX, childY)
-        ..moveTo(rightX, middleY)..lineTo(rightX, childY);
-      canvas.drawPath(path, paint);
+  void paint(Canvas canvas,Size size){
+    if(slots.length<15)return;
+    final p=Paint()..color=const Color(0xFF319795)..strokeWidth=1.4*scale.clamp(1.0,1.8)..style=PaintingStyle.stroke;
+    for(int i=0;i<7;i++){
+      final parent=slots[i],l=slots[2*i+1],r=slots[2*i+2];
+      final sx=anchorCenterX+parent.offsetX*scale,sy=anchorTopY+(parent.offsetY+parent.height)*scale;
+      final lx=anchorCenterX+l.offsetX*scale,ly=anchorTopY+l.offsetY*scale,rx=anchorCenterX+r.offsetX*scale,ry=anchorTopY+r.offsetY*scale;
+      final mid=sy+(ly-sy)/2;
+      final path=Path()..moveTo(sx,sy)..lineTo(sx,mid)..moveTo(lx,mid)..lineTo(rx,mid)..moveTo(lx,mid)..lineTo(lx,ly)..moveTo(rx,mid)..lineTo(rx,ry);
+      canvas.drawPath(path,p);
     }
   }
-
-  static double _width(int level) => [112.0, 92.0, 72.0, 44.0][level];
-  static double _height(int level) => [58.0, 50.0, 42.0, 36.0][level];
-  static double _top(int level) => [28.0, 128.0, 218.0, 300.0][level];
-
   @override
-  bool shouldRepaint(covariant _PyramidConnectorPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _AnchoredLinePainter old)=>old.scale!=scale||old.anchorTopY!=anchorTopY||old.anchorCenterX!=anchorCenterX||old.slots!=slots;
 }
 
 class _TidyPlacement {
