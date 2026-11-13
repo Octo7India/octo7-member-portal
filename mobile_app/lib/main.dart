@@ -2035,91 +2035,177 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
     );
   }
 
-  // Width is calculated from the full binary subtree so every generation
-  // remains aligned without changing the fixed 90x58 cards, 40px sibling
-  // gap, or 57px level gap.
-  // Match the website's recursive equal-width branch layout.
-  double _subtreeWidth(Map<String, dynamic> node) {
-    final left = node['left'] is Map ? Map<String, dynamic>.from(node['left']) : null;
-    final right = node['right'] is Map ? Map<String, dynamic>.from(node['right']) : null;
-    final leftWidth = left == null ? 90.0 : _subtreeWidth(left);
-    final rightWidth = right == null ? 90.0 : _subtreeWidth(right);
-    final branchWidth = leftWidth > rightWidth ? leftWidth : rightWidth;
-    return branchWidth * 2 + 40.0;
+  // Compact tidy-tree layout. Existing member boxes stay 90x58; sibling
+  // boxes at every depth keep a fixed 120px clear gap and generations 57px.
+  static const double _nodeWidth = 90.0;
+  static const double _nodeHeight = 58.0;
+  static const double _horizontalGap = 120.0;
+  static const double _verticalGap = 57.0;
+
+  _TidySubtree _layoutSubtree(Map<String, dynamic> node) {
+    final positionId = int.tryParse('${node['id']}') ??
+        int.tryParse('${node['position_id']}') ?? 0;
+    final leftNode = node['left'] is Map
+        ? Map<String, dynamic>.from(node['left']) : null;
+    final rightNode = node['right'] is Map
+        ? Map<String, dynamic>.from(node['right']) : null;
+
+    // Vacant slots are represented only at the next available level. They do
+    // not reserve hypothetical descendants, so populated branches stay tight.
+    final left = leftNode != null
+        ? _layoutSubtree(leftNode)
+        : _vacantSubtree(positionId, 'left');
+    final right = rightNode != null
+        ? _layoutSubtree(rightNode)
+        : _vacantSubtree(positionId, 'right');
+
+    double shift = 0;
+    for (final level in left.rightContour.keys) {
+      final rightEdge = right.leftContour[level];
+      if (rightEdge != null) {
+        final needed = left.rightContour[level]! + _nodeWidth +
+            _horizontalGap - rightEdge;
+        if (needed > shift) shift = needed;
+      }
+    }
+
+    final parentX = (left.rootX + right.rootX + shift) / 2;
+    final placements = <_TidyPlacement>[
+      _TidyPlacement(node: node, x: 0, depth: 0),
+      ...left.placements.map((p) => p.shifted(-parentX, 1)),
+      ...right.placements.map((p) => p.shifted(shift - parentX, 1)),
+    ];
+
+    final leftContour = <int, double>{0: 0};
+    final rightContour = <int, double>{0: 0};
+    void mergeContours(Map<int, double> source, double dx) {
+      for (final entry in source.entries) {
+        final level = entry.key + 1;
+        final value = entry.value + dx - parentX;
+        final oldLeft = leftContour[level];
+        final oldRight = rightContour[level];
+        leftContour[level] = oldLeft == null ? value : min(oldLeft, value);
+        rightContour[level] = oldRight == null ? value : max(oldRight, value);
+      }
+    }
+    mergeContours(left.leftContour, 0);
+    mergeContours(left.rightContour, 0);
+    mergeContours(right.leftContour, shift);
+    mergeContours(right.rightContour, shift);
+
+    return _TidySubtree(
+      rootX: 0,
+      placements: placements,
+      leftContour: leftContour,
+      rightContour: rightContour,
+    );
   }
 
-  // Estimate the full rendered tree height using the fixed 58px cards and
-  // 57px generation spacing. This is paired with _subtreeWidth for auto-fit.
-  double _subtreeHeight(Map<String, dynamic> node) {
-    final left = node['left'] is Map
-        ? Map<String, dynamic>.from(node['left'])
-        : null;
-    final right = node['right'] is Map
-        ? Map<String, dynamic>.from(node['right'])
-        : null;
-    final leftHeight = left == null ? 58.0 : _subtreeHeight(left);
-    final rightHeight = right == null ? 58.0 : _subtreeHeight(right);
-    return 58.0 + 57.0 + (leftHeight > rightHeight ? leftHeight : rightHeight);
+  _TidySubtree _vacantSubtree(int parentPositionId, String side) {
+    final vacancy = _TidyPlacement(
+      node: null,
+      x: 0,
+      depth: 0,
+      parentPositionId: parentPositionId,
+      side: side,
+    );
+    return _TidySubtree(
+      rootX: 0,
+      placements: [vacancy],
+      leftContour: const {0: 0},
+      rightContour: const {0: 0},
+    );
   }
 
-  Widget _tree(Map<String, dynamic> root, {bool isRoot = false}) {
-    final rootPositionId = int.tryParse('${root['id']}');
-    final left = root['left'] is Map ? Map<String, dynamic>.from(root['left']) : null;
-    final right = root['right'] is Map ? Map<String, dynamic>.from(root['right']) : null;
-    final leftWidth = left == null ? 90.0 : _subtreeWidth(left);
-    final rightWidth = right == null ? 90.0 : _subtreeWidth(right);
-    final branchWidth = leftWidth > rightWidth ? leftWidth : rightWidth;
-    final totalWidth = branchWidth * 2 + 40.0;
-    final leftCenter = branchWidth / 2;
-    final rightCenter = branchWidth + 40.0 + branchWidth / 2;
+  _TidyRenderData _prepareTree(Map<String, dynamic> root) {
+    final layout = _layoutSubtree(root);
+    var minX = double.infinity;
+    var maxX = double.negativeInfinity;
+    var maxDepth = 0;
+    for (final placement in layout.placements) {
+      minX = min(minX, placement.x);
+      maxX = max(maxX, placement.x);
+      maxDepth = max(maxDepth, placement.depth);
+    }
+    if (!minX.isFinite) minX = 0;
+    if (!maxX.isFinite) maxX = 0;
+    return _TidyRenderData(
+      placements: layout.placements,
+      minX: minX,
+      width: maxX - minX + _nodeWidth + 48,
+      height: maxDepth * (_nodeHeight + _verticalGap) + _nodeHeight + 48,
+    );
+  }
+
+  Widget _positionedTree(_TidyRenderData layout, Map<String, dynamic> root) {
+    final rootId = (root['member_id'] ?? '').toString();
+    final nodes = layout.placements;
+    final edgePoints = <_TidyEdge>[];
+    final byPosition = <String, _TidyPlacement>{};
+    for (final p in nodes) {
+      if (p.node != null) {
+        final id = (p.node!['id'] ?? p.node!['position_id'] ?? '').toString();
+        byPosition[id] = p;
+      }
+    }
+    // Connect each real member to its immediate left/right child (member or
+    // vacancy), retaining the binary genealogy's branch direction.
+    for (final p in nodes.where((item) => item.node != null)) {
+      final current = p.node!;
+      for (final side in const ['left', 'right']) {
+        final child = current[side];
+        final childPlacement = nodes.cast<_TidyPlacement?>().firstWhere(
+          (candidate) {
+            if (candidate == null || candidate.depth != p.depth + 1) return false;
+            if (candidate.node != null) {
+              final childId = (child['id'] ?? child['position_id'] ?? '').toString();
+              return child is Map && (candidate.node!['id'] ?? candidate.node!['position_id'] ?? '').toString() == childId;
+            }
+            return candidate.parentPositionId == (int.tryParse('${current['id']}') ?? 0) &&
+                candidate.side == side;
+          },
+          orElse: () => null,
+        );
+        if (childPlacement != null) {
+          edgePoints.add(_TidyEdge(
+            fromX: p.x - layout.minX + 24 + _nodeWidth / 2,
+            fromY: p.depth * (_nodeHeight + _verticalGap) + 24 + _nodeHeight,
+            toX: childPlacement.x - layout.minX + 24 + _nodeWidth / 2,
+            toY: childPlacement.depth * (_nodeHeight + _verticalGap) + 24,
+          ));
+        }
+      }
+    }
 
     return SizedBox(
-      width: totalWidth,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      width: layout.width,
+      height: layout.height,
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          Center(child: _memberCard(root, root: isRoot)),
-          SizedBox(
-            width: totalWidth,
-            height: 57,
-            child: CustomPaint(
-              painter: _BinaryBranchPainter(
-                parentCenter: totalWidth / 2,
-                leftCenter: leftCenter,
-                rightCenter: rightCenter,
-              ),
+          Positioned.fill(
+            child: CustomPaint(painter: _TidyConnectorPainter(edgePoints)),
+          ),
+          for (final placement in nodes)
+            Positioned(
+              left: placement.x - layout.minX + 24,
+              top: placement.depth * (_nodeHeight + _verticalGap) + 24,
+              width: _nodeWidth,
+              height: _nodeHeight,
+              child: placement.node != null
+                  ? _memberCard(
+                      placement.node!,
+                      root: (placement.node!['member_id'] ?? '').toString() == rootId,
+                    )
+                  : _vacantCard(placement.parentPositionId, placement.side!),
             ),
-          ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                width: branchWidth,
-                child: Center(
-                  child: left == null
-                      ? (rootPositionId == null ? _emptySlot('LEFT') : _vacantCard(rootPositionId, 'left'))
-                      : _tree(left),
-                ),
-              ),
-              const SizedBox(width: 40),
-              SizedBox(
-                width: branchWidth,
-                child: Center(
-                  child: right == null
-                      ? (rootPositionId == null ? _emptySlot('RIGHT') : _vacantCard(rootPositionId, 'right'))
-                      : _tree(right),
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );
   }
 
   Widget _emptySlot(String side) => Container(
-    width: 90, height: 58, alignment: Alignment.center,
+    width: _nodeWidth, height: _nodeHeight, alignment: Alignment.center,
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(8),
       border: Border.all(color: Colors.white24),
@@ -2235,8 +2321,9 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
                 Expanded(
                   child: LayoutBuilder(
                     builder: (context, constraints) {
-                      final treeWidth = _subtreeWidth(rootNode) + 48.0;
-                      final treeHeight = _subtreeHeight(rootNode) + 48.0;
+                      final treeLayout = _prepareTree(rootNode);
+                      final treeWidth = treeLayout.width;
+                      final treeHeight = treeLayout.height;
                       final widthScale = (constraints.maxWidth - 24.0) / treeWidth;
                       final heightScale = (constraints.maxHeight - 24.0) / treeHeight;
                       final fitScale = (widthScale < heightScale
@@ -2282,7 +2369,7 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
                         clipBehavior: Clip.hardEdge,
                         child: Padding(
                           padding: const EdgeInsets.all(24),
-                          child: _tree(rootNode, isRoot: true),
+                          child: _positionedTree(treeLayout, rootNode),
                         ),
                       );
                     },
@@ -2303,6 +2390,77 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
       ),
     );
   }
+}
+
+
+class _TidyPlacement {
+  const _TidyPlacement({
+    required this.node, required this.x, required this.depth,
+    this.parentPositionId = 0, this.side,
+  });
+  final Map<String, dynamic>? node;
+  final double x;
+  final int depth;
+  final int parentPositionId;
+  final String? side;
+  _TidyPlacement shifted(double dx, int depthOffset) => _TidyPlacement(
+    node: node, x: x + dx, depth: depth + depthOffset,
+    parentPositionId: parentPositionId, side: side,
+  );
+}
+
+class _TidySubtree {
+  const _TidySubtree({
+    required this.rootX, required this.placements,
+    required this.leftContour, required this.rightContour,
+  });
+  final double rootX;
+  final List<_TidyPlacement> placements;
+  final Map<int, double> leftContour;
+  final Map<int, double> rightContour;
+}
+
+class _TidyRenderData {
+  const _TidyRenderData({
+    required this.placements, required this.minX,
+    required this.width, required this.height,
+  });
+  final List<_TidyPlacement> placements;
+  final double minX;
+  final double width;
+  final double height;
+}
+
+class _TidyEdge {
+  const _TidyEdge({
+    required this.fromX, required this.fromY,
+    required this.toX, required this.toY,
+  });
+  final double fromX, fromY, toX, toY;
+}
+
+class _TidyConnectorPainter extends CustomPainter {
+  const _TidyConnectorPainter(this.edges);
+  final List<_TidyEdge> edges;
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFF18A77C)
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+    for (final edge in edges) {
+      final middleY = (edge.fromY + edge.toY) / 2;
+      final path = Path()
+        ..moveTo(edge.fromX, edge.fromY)
+        ..lineTo(edge.fromX, middleY)
+        ..lineTo(edge.toX, middleY)
+        ..lineTo(edge.toX, edge.toY);
+      canvas.drawPath(path, paint);
+    }
+  }
+  @override
+  bool shouldRepaint(covariant _TidyConnectorPainter oldDelegate) =>
+      !identical(oldDelegate.edges, edges);
 }
 
 class _BinaryBranchPainter extends CustomPainter {
