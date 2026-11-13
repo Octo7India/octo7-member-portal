@@ -518,7 +518,7 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
   bool _busy=false,_hidePassword=true;
   String? _error;
   String? _validateIdentifier(String? value){
-    final v=(value??'').trim().replaceFirst(RegExp(r'^OCTO7\\s*',caseSensitive:false),'');
+    final v=(value??'').trim().replaceFirst(RegExp(r'^OCTO7\s*',caseSensitive:false),'');
     if(v.isEmpty)return 'Enter your OCTO7 User ID number';
     if(!RegExp(r'^[0-9]+$').hasMatch(v))return 'Enter numbers only';
     return null;
