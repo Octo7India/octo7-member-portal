@@ -474,6 +474,34 @@ footer .logo {color:white}
 .genealogy-legend{color:#eee!important}
 @media(max-width:650px){.genealogy-controls-header{padding:12px 8px 15px!important}.genealogy-controls-header h2{font-size:21px!important}.genealogy-controls-header .toolbar{gap:7px!important;padding:5px 8px!important}.genealogy-controls-header .action-buttons button{padding:7px 10px!important;font-size:12px!important}}
 
+
+/* Genealogy layout matching the supplied full-screen design */
+.genealogy-tree{position:fixed!important;inset:0!important;z-index:40!important;width:100vw!important;height:100vh!important;margin:0!important;padding:0!important;overflow:hidden!important;background:#17151c!important;color:#fff!important;text-align:center!important}
+.genealogy-controls-header{position:fixed!important;top:0!important;left:0!important;width:100%!important;padding:15px!important;box-sizing:border-box!important;text-align:center!important;z-index:50!important;pointer-events:none!important;background:linear-gradient(to bottom,rgba(23,21,28,.95),rgba(23,21,28,0))!important}
+.genealogy-controls-header h2{margin:0 0 10px!important;color:#fff!important;font-size:22px!important}
+.genealogy-controls-header .toolbar{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:10px!important;margin:0 auto 8px!important;padding:6px 12px!important;border:1px solid #3d374a!important;border-radius:8px!important;background:#23202b!important;pointer-events:auto!important;color:#fff!important;flex-wrap:wrap!important}
+.genealogy-controls-header .action-buttons{display:flex!important;justify-content:center!important;gap:10px!important;margin:0!important;pointer-events:auto!important}
+.genealogy-controls-header button{min-width:28px!important;min-height:28px!important;width:auto!important;height:auto!important;padding:6px 10px!important;border:1px solid #524a61!important;border-radius:6px!important;background:#352f44!important;color:#fff!important;font-size:13px!important;font-weight:600!important}
+.genealogy-controls-header .toolbar button{width:28px!important;height:28px!important;padding:0!important;border-radius:4px!important;background:#2e2938!important}
+#genealogyViewport{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;min-height:0!important;max-height:none!important;overflow:hidden!important;display:block!important;z-index:1!important;background:#17151c!important;border:0!important;border-radius:0!important;padding:0!important;touch-action:none!important;user-select:none!important;-webkit-user-select:none!important;overscroll-behavior:none!important;cursor:grab!important}
+#genealogyViewport.dragging{cursor:grabbing!important}
+#genealogyCanvas{position:absolute!important;top:0!important;left:0!important;width:4000px!important;height:900px!important;min-width:4000px!important;flex:none!important;margin:0!important;transform-origin:0 0!important;will-change:transform!important;overflow:visible!important}
+#genealogyCanvas .genealogy-connectors{position:absolute!important;inset:0!important;width:4000px!important;height:900px!important;z-index:0!important;overflow:visible!important;pointer-events:none!important}
+#genealogyCanvas .genealogy-expand-layer{position:absolute!important;inset:0!important;width:4000px!important;height:900px!important;z-index:2!important;overflow:visible!important;pointer-events:none!important}
+#genealogyCanvas .genealogy-slot{position:absolute!important;z-index:2!important;display:flex!important;align-items:center!important;justify-content:center!important;transform:translateX(-50%)!important;pointer-events:auto!important}
+#genealogyCanvas .binary-card{box-sizing:border-box!important;width:90px!important;height:62px!important;padding:8px!important;border:1px solid #5fb3b3!important;border-radius:8px!important;background:#25212e!important;color:#fff!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;box-shadow:0 4px 10px rgba(0,0,0,.4)!important;line-height:1.1!important}
+#genealogyCanvas .binary-card.root{border:2px solid #f39c12!important;background:#25212e!important}
+#genealogyCanvas .binary-brand{font-size:10px!important;color:#b0a8c0!important;font-weight:500!important;letter-spacing:0!important}
+#genealogyCanvas .binary-id{font-size:15px!important;font-weight:700!important;margin:2px 0!important;color:#fff!important}
+#genealogyCanvas .binary-status{font-size:8px!important;color:#2ecc71!important;font-weight:700!important;margin:0!important}
+#genealogyCanvas .binary-status.inactive{color:#ff8888!important}
+#genealogyCanvas .binary-empty{box-sizing:border-box!important;width:90px!important;height:62px!important;padding:8px!important;border:1px dashed #4b4458!important;border-radius:8px!important;background:#201e26!important;color:#8c839c!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;font-size:10px!important;font-weight:700!important;line-height:1.2!important}
+#genealogyCanvas .binary-empty small{font-size:8px!important;font-weight:500!important}
+#genealogyCanvas .binary-empty:not(:disabled):hover,#genealogyCanvas .binary-empty:not(:disabled):focus{background:#2a2633!important;border-color:#5fb3b3!important;outline:2px solid #5fb3b355!important}
+#genealogyCanvas .binary-empty:disabled{opacity:.35!important}
+#genealogyVacancyResults{position:fixed!important;z-index:55!important;left:10px!important;right:10px!important;bottom:8px!important;max-height:30vh!important;overflow:auto!important;color:#fff!important;background:#17151cef!important;border-radius:8px!important;padding:6px!important}
+.genealogy-legend{position:fixed!important;bottom:4px!important;left:8px!important;right:8px!important;z-index:45!important;text-align:center!important;pointer-events:none!important;color:#eee!important;font-size:11px!important}
+@media(max-width:650px){.genealogy-controls-header{padding:15px 8px!important}.genealogy-controls-header h2{font-size:22px!important}#genealogyCanvas{width:4000px!important}}
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
 </head>
@@ -1595,27 +1623,29 @@ function buildGenealogyMap(nodes){
 function genealogySlots(root){
   const slots=[];
   const centerX=2000;
-  const levelY=[250,400,550,700];
-  const levelGap=[0,960,480,240];
-  const nodeWidth=115,nodeHeight=72;
-  function add(node,depth,index,parentPositionId,side){
+  const levelY=[220,370,520,670];
+  const childOffset=[0,150,100,50];
+  const nodeWidth=90,nodeHeight=62;
+  function add(node,depth,index,parentPositionId,side,x){
     if(depth>3)return;
-    const count=Math.pow(2,depth);
-    const local=index-(count-1)/2;
-    const x=centerX+local*levelGap[depth];
     const slot={node,level:depth,parentPositionId,side,x,y:levelY[depth],w:nodeWidth,h:nodeHeight,index};
     slots.push(slot);
     if(depth===3)return;
+    const nextOffset=childOffset[depth+1];
     const parentId=node?Number(node.id)||0:0;
-    add(node?.left||null,depth+1,index*2,parentId,"left");
-    add(node?.right||null,depth+1,index*2+1,parentId,"right");
+    add(node?.left||null,depth+1,index*2,parentId,"left",x-nextOffset);
+    add(node?.right||null,depth+1,index*2+1,parentId,"right",x+nextOffset);
   }
-  add(root,0,0,0,"");
+  add(root,0,0,0,"",centerX);
   return slots;
 }
 function layoutGenealogyTree(){
   const canvas=document.getElementById("genealogyCanvas");
-  if(canvas){canvas.style.width="4000px";canvas.style.height="1100px";canvas.style.transformOrigin="0 0";}
+  if(canvas){
+    canvas.style.width="4000px";
+    canvas.style.height="900px";
+    canvas.style.transformOrigin="0 0";
+  }
 }
 function renderGenealogyNode(root){
   const slots=genealogySlots(root);
@@ -1642,7 +1672,7 @@ function renderGenealogyNode(root){
     }
     return '<div class="genealogy-slot" style="left:'+slot.x+'px;top:'+slot.y+'px;width:'+slot.w+'px;height:'+slot.h+'px">'+inner+'</div>';
   });
-  return '<svg class="genealogy-connectors" viewBox="0 0 4000 1100" aria-hidden="true">'+paths.join("")+'</svg><div class="genealogy-expand-layer">'+cards.join("")+'</div>';
+  return '<svg class="genealogy-connectors" viewBox="0 0 4000 900" aria-hidden="true">'+paths.join("")+'</svg><div class="genealogy-expand-layer">'+cards.join("")+'</div>';
 }
 
 let genealogyCurrentMemberId=null;
@@ -1691,7 +1721,7 @@ function setupGenealogyControls(){
   const reset=()=>{
     scale=.81;
     x=window.innerWidth/2-(2000*scale);
-    y=120-(250*scale);
+    y=120-(220*scale);
     apply();
   };
   const zoomBy=delta=>focalZoom(clamp(scale+delta),window.innerWidth/2,window.innerHeight/2);
