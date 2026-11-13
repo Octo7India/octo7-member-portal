@@ -184,8 +184,8 @@ input {
 .genealogy-toolbar button{border:1px solid var(--purple);background:#fff;color:var(--purple);border-radius:7px;padding:8px 12px;font-weight:700;cursor:pointer}
 .genealogy-viewport{width:100%;height:min(68vh,680px);min-height:360px;overflow:auto;position:relative;border:1px solid #e7e1ee;border-radius:12px;background:#fbfaff;display:flex;justify-content:center;align-items:flex-start;cursor:grab;touch-action:none}
 .genealogy-viewport.dragging{cursor:grabbing;user-select:none}
-.genealogy-canvas{position:relative;display:block;flex:0 0 420px;width:420px;height:760px;min-width:420px;transform-origin:top left;margin:0 auto}
-.genealogy-connectors{position:absolute;inset:0;width:420px;height:760px;pointer-events:none;z-index:1;overflow:visible}
+.genealogy-canvas{position:relative;display:block;flex:0 0 370px;width:370px;height:340px;min-width:370px;transform-origin:185px 28px;margin:0 auto}
+.genealogy-connectors{position:absolute;inset:0;width:370px;height:340px;pointer-events:none;z-index:1;overflow:visible}
 .genealogy-slot{position:absolute;box-sizing:border-box;z-index:2;display:flex;align-items:center;justify-content:center}
 .binary-card{box-sizing:border-box;width:100%;height:100%;border:1.5px solid #7040b5;border-radius:4px;background:#fff;color:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 2px 7px #00000012;padding:2px;line-height:1.1;font-family:inherit}
 .binary-card.root{background:#102238;border:2px solid #d6a84b;color:#fff}
@@ -217,7 +217,7 @@ input {
 .registration-verification .message{padding:8px 0;text-align:left}
 .genealogy-legend{font-size:12px;color:#666;margin:10px 0}
 .genealogy-vacancy-list{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:10px 0}.genealogy-vacancy-list .binary-empty{width:145px;height:64px}
-@media(max-width:650px){.genealogy-viewport{height:62vh;min-height:330px}.genealogy-canvas{padding:25px 18px 45px}}
+@media(max-width:650px){.genealogy-viewport{height:62vh;min-height:330px}.genealogy-canvas{padding:0}}
 footer {
   background:var(--navy);
   color:white;
@@ -1542,29 +1542,24 @@ function genealogySlots(root){
   const levels=[[],[],[],[]];
   function add(node,depth,parentPositionId,side){
     if(depth>3)return;
-    const slot={node,level:depth,parentPositionId,side,x:0,y:[28,128,218,300][depth],w:[112,92,72,44][depth],h:[58,50,42,36][depth]};
+    const slot={node,level:depth,parentPositionId,side,x:0,y:[0,96,180,256][depth],w:[108,88,68,41][depth],h:[54,46,38,34][depth]};
     levels[depth].push(slot);
     if(depth===3)return;
-    if(!node){
-      add(null,depth+1,0,"left");
-      add(null,depth+1,0,"right");
-      return;
-    }
-    const parentId=Number(node.id)||0;
-    add(node.left||null,depth+1,parentId,"left");
-    add(node.right||null,depth+1,parentId,"right");
+    const parentId=node?Number(node.id)||0:0;
+    add(node?.left||null,depth+1,parentId,"left");
+    add(node?.right||null,depth+1,parentId,"right");
   }
   add(root,0,0,"");
   const slots=levels.flat();
   for(let level=0;level<4;level++){
-    const row=levels[level],sector=420/row.length;
+    const row=levels[level],sector=370/row.length;
     row.forEach((slot,index)=>slot.x=sector*index+sector/2-slot.w/2);
   }
   return slots;
 }
 function layoutGenealogyTree(){
   const canvas=document.getElementById("genealogyCanvas");
-  if(canvas)canvas.style.width="420px";
+  if(canvas){canvas.style.width="370px";canvas.style.height="340px";canvas.style.transformOrigin="185px 28px";}
 }
 function renderGenealogyNode(root){
   const slots=genealogySlots(root);
@@ -1587,7 +1582,7 @@ function renderGenealogyNode(root){
     }
     return '<div class="genealogy-slot" style="left:'+slot.x+'px;top:'+slot.y+'px;width:'+slot.w+'px;height:'+slot.h+'px">'+inner+'</div>';
   }).join("");
-  return '<svg class="genealogy-connectors" viewBox="0 0 420 760" aria-hidden="true">'+paths.join("")+'</svg>'+cards;
+  return '<svg class="genealogy-connectors" viewBox="0 0 370 340" aria-hidden="true">'+paths.join("")+'</svg>'+cards;
 }
 
 let genealogyCurrentMemberId=null;
@@ -1628,9 +1623,9 @@ function setupGenealogyControls(){
   let panStart=null;
   let pinchStart=null;
   const label=document.getElementById("genealogyZoomLabel");
-  const clamp=value=>Math.max(.35,Math.min(2.6,value));
+  const clamp=value=>Math.max(.85,Math.min(2.4,value));
   const apply=()=>{
-    canvas.style.transformOrigin="top left";
+    canvas.style.transformOrigin="185px 28px";
     canvas.style.transform="scale("+scale+")";
     if(label)label.textContent=Math.round(scale*100)+"%";
   };
