@@ -182,9 +182,9 @@ input {
 .genealogy-tree{max-width:100%;margin:18px auto;padding:12px 8px;text-align:center}
 .genealogy-toolbar{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;margin:0 auto 14px}
 .genealogy-toolbar button{border:1px solid var(--purple);background:#fff;color:var(--purple);border-radius:7px;padding:8px 12px;font-weight:700;cursor:pointer}
-.genealogy-viewport{width:100%;height:min(68vh,680px);min-height:360px;overflow:auto;position:relative;border:0;border-radius:0;background:transparent;display:flex;justify-content:center;align-items:center;cursor:grab;touch-action:none;overscroll-behavior:contain;-webkit-user-select:none;user-select:none}
+.genealogy-viewport{width:100%;height:min(68vh,680px);min-height:360px;overflow:auto;position:relative;border:0;border-radius:0;background:transparent;display:flex;justify-content:center;align-items:flex-start;cursor:grab;touch-action:none;overscroll-behavior:contain;-webkit-user-select:none;user-select:none;padding-top:8px;box-sizing:border-box}
 .genealogy-viewport.dragging{cursor:grabbing;user-select:none}
-.genealogy-canvas{position:relative;display:block;flex:0 0 370px;width:370px;height:340px;min-width:370px;transform-origin:185px 28px;margin:0 auto}
+.genealogy-canvas{position:relative;display:block;flex:0 0 370px;width:370px;height:340px;min-width:370px;transform-origin:185px 27px;margin:0 auto}
 .genealogy-connectors{position:absolute;inset:0;width:370px;height:340px;pointer-events:none;z-index:1;overflow:visible}
 .genealogy-slot{position:absolute;box-sizing:border-box;z-index:2;display:flex;align-items:center;justify-content:center}
 .binary-card{box-sizing:border-box;width:100%;height:100%;border:1.5px solid #7040b5;border-radius:4px;background:#fff;color:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 2px 7px #00000012;padding:2px;line-height:1.1;font-family:inherit}
@@ -202,7 +202,7 @@ input {
 .binary-empty:not(:disabled):hover,.binary-empty:not(:disabled):focus{background:#f1eaff;border-color:#7040b5;outline:2px solid #7040b544;outline-offset:2px}
 .genealogy-legend{font-size:12px;color:#666;margin:10px 0}
 .genealogy-vacancy-list{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:10px 0}.genealogy-vacancy-list .binary-empty{width:145px;height:64px}
-@media(max-width:650px){.genealogy-viewport{height:62vh;min-height:330px;justify-content:center;align-items:center}.genealogy-canvas{margin-left:auto;margin-right:auto}}
+@media(max-width:650px){.genealogy-viewport{height:62vh;min-height:330px;justify-content:center;align-items:flex-start}.genealogy-canvas{margin-left:auto;margin-right:auto}}
 .registration-card{max-width:650px;margin:20px auto;padding:24px;text-align:left}
 .registration-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
 .registration-grid label{display:block;font-size:13px;font-weight:700;color:#444}
@@ -217,7 +217,7 @@ input {
 .registration-verification .message{padding:8px 0;text-align:left}
 .genealogy-legend{font-size:12px;color:#666;margin:10px 0}
 .genealogy-vacancy-list{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:10px 0}.genealogy-vacancy-list .binary-empty{width:145px;height:64px}
-@media(max-width:650px){.genealogy-viewport{height:62vh;min-height:330px;justify-content:center;align-items:center}.genealogy-canvas{padding:0;margin-left:auto;margin-right:auto}}
+@media(max-width:650px){.genealogy-viewport{height:62vh;min-height:330px;justify-content:center;align-items:flex-start}.genealogy-canvas{padding:0;margin-left:auto;margin-right:auto}}
 footer {
   background:var(--navy);
   color:white;
@@ -1623,7 +1623,7 @@ function setupGenealogyControls(){
   const label=document.getElementById("genealogyZoomLabel");
   const clamp=value=>Math.max(.4,Math.min(2.4,value));
   const apply=()=>{
-    canvas.style.transformOrigin="center center";
+    canvas.style.transformOrigin="185px 27px";
     canvas.style.transform="scale("+scale+")";
     if(label)label.textContent=Math.round(scale*100)+"%";
   };
