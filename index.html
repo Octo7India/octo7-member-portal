@@ -184,7 +184,8 @@ input {
 .genealogy-toolbar button{border:1px solid var(--purple);background:#fff;color:var(--purple);border-radius:7px;padding:8px 12px;font-weight:700;cursor:pointer}
 .genealogy-viewport{width:100%;height:min(68vh,680px);min-height:360px;overflow:auto;position:relative;border:0;border-radius:0;background:transparent;display:flex;justify-content:center;align-items:flex-start;cursor:grab;touch-action:none;overscroll-behavior:contain;-webkit-user-select:none;user-select:none;padding-top:8px;box-sizing:border-box}
 .genealogy-viewport.dragging{cursor:grabbing;user-select:none}
-.genealogy-canvas{position:relative;display:block;flex:0 0 370px;width:370px;height:340px;min-width:370px;transform-origin:185px 27px;margin:0 auto}
+.genealogy-canvas{position:relative;display:block;flex:0 0 370px;width:370px;height:340px;min-width:370px;transform:none;transform-origin:185px 27px;margin:0 auto;overflow:visible}
+.genealogy-expand-layer{position:absolute;inset:0;width:370px;height:340px;transform-origin:185px 27px;will-change:transform;overflow:visible}
 .genealogy-connectors{position:absolute;inset:0;width:370px;height:340px;pointer-events:none;z-index:1;overflow:visible}
 .genealogy-slot{position:absolute;box-sizing:border-box;z-index:2;display:flex;align-items:center;justify-content:center}
 .binary-card{box-sizing:border-box;width:100%;height:100%;border:1.5px solid #7040b5;border-radius:4px;background:#fff;color:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 2px 7px #00000012;padding:2px;line-height:1.1;font-family:inherit}
@@ -1557,7 +1558,7 @@ function genealogySlots(root){
 }
 function layoutGenealogyTree(){
   const canvas=document.getElementById("genealogyCanvas");
-  if(canvas){canvas.style.width="370px";canvas.style.height="340px";canvas.style.transformOrigin="185px 28px";}
+  if(canvas){canvas.style.width="370px";canvas.style.height="340px";canvas.style.transform="none";}
 }
 function renderGenealogyNode(root){
   const slots=genealogySlots(root);
@@ -1578,9 +1579,12 @@ function renderGenealogyNode(root){
       const canRegister=slot.parentPositionId>0;
       inner='<button type="button" class="binary-empty" '+(canRegister?'onclick="openMemberRegistration('+slot.parentPositionId+', '+JSON.stringify(slot.side)+')"':'disabled')+' aria-label="'+(canRegister?'Create member in available '+slot.side+' position':'Unavailable position')+'">'+(canRegister?slot.side.toUpperCase():'—')+(canRegister?'<small>Available</small>':'')+'</button>';
     }
-    return '<div class="genealogy-slot" style="left:'+slot.x+'px;top:'+slot.y+'px;width:'+slot.w+'px;height:'+slot.h+'px">'+inner+'</div>';
-  }).join("");
-  return '<svg class="genealogy-connectors" viewBox="0 0 370 340" aria-hidden="true">'+paths.join("")+'</svg>'+cards;
+    const markup='<div class="genealogy-slot" style="left:'+slot.x+'px;top:'+slot.y+'px;width:'+slot.w+'px;height:'+slot.h+'px">'+inner+'</div>';
+    return slot.level===0?markup:'<!--EXPAND_NODE-->'+markup;
+  });
+  const rootCard=cards[0];
+  const expandingCards=cards.slice(1).join("").replace(/<!--EXPAND_NODE-->/g,"");
+  return rootCard+'<div class="genealogy-expand-layer"><svg class="genealogy-connectors" viewBox="0 0 370 340" aria-hidden="true">'+paths.join("")+'</svg>'+expandingCards+'</div>';
 }
 
 let genealogyCurrentMemberId=null;
@@ -1615,6 +1619,8 @@ function setupGenealogyControls(){
   const view=document.getElementById("genealogyViewport");
   const canvas=document.getElementById("genealogyCanvas");
   if(!view||!canvas)return;
+  const expandLayer=canvas.querySelector(".genealogy-expand-layer");
+  if(!expandLayer)return;
 
   let scale=1;
   let touchStart=null;
@@ -1623,8 +1629,10 @@ function setupGenealogyControls(){
   const label=document.getElementById("genealogyZoomLabel");
   const clamp=value=>Math.max(.4,Math.min(2.4,value));
   const apply=()=>{
-    canvas.style.transformOrigin="185px 27px";
-    canvas.style.transform="scale("+scale+")";
+    // The selected root card is outside this layer and never scales or moves.
+    // All descendant cards and connectors expand from the root's bottom-centre.
+    expandLayer.style.transformOrigin="185px 27px";
+    expandLayer.style.transform="scale("+scale+")";
     if(label)label.textContent=Math.round(scale*100)+"%";
   };
   const fit=()=>{
