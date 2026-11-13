@@ -1746,8 +1746,9 @@ function setupGenealogyControls(){
   if(rootCard && rootCard.dataset.genealogyMember==="1"){
     const rootSlot=rootCard.closest(".genealogy-slot");
     if(rootSlot)rootSlot.style.visibility="hidden";
-    pinnedRoot=rootCard.cloneNode(true);
-    pinnedRoot.removeAttribute("id");
+    // Move the real ID 1 card out of the transformed canvas. Do not clone it:
+    // the original member button itself stays fixed while the rest of the tree moves.
+    pinnedRoot=rootCard;
     pinnedRoot.style.cssText="position:fixed!important;top:120px!important;left:50%!important;transform:translateX(-50%)!important;width:90px!important;height:62px!important;box-sizing:border-box!important;padding:8px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;z-index:30!important;pointer-events:auto!important;background:#25212e!important;color:#fff!important;border:2px solid #f39c12!important;border-radius:8px!important;box-shadow:0 4px 10px rgba(0,0,0,.4)!important;cursor:pointer!important";
     view.appendChild(pinnedRoot);
   }
@@ -1997,10 +1998,10 @@ async function loadGenealogy(rootMemberId=null,navigationMode="reset"){
     setupGenealogyControls();
     document.getElementById("genealogyVacancies").addEventListener("click",loadAllGenealogyVacancies);
     document.getElementById("genealogyHome")?.addEventListener("click",()=>{genealogyNavigationStack=[];loadGenealogy(null,"reset");});
-    const canvas=document.getElementById("genealogyCanvas");
-    canvas.addEventListener("click",event=>{
+    const view=document.getElementById("genealogyViewport");
+    view.addEventListener("click",event=>{
       const card=event.target.closest("[data-genealogy-member]");
-      if(card)openGenealogyMember(card.getAttribute("data-genealogy-member"));
+      if(card && view.contains(card))openGenealogyMember(card.getAttribute("data-genealogy-member"));
     });
   }catch(error){
     box.innerHTML='<div class="card">Unable to load genealogy: '+escapeHTML(error.message)+'</div>';
