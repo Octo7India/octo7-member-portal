@@ -2157,11 +2157,14 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
         final childPlacement = nodes.cast<_TidyPlacement?>().firstWhere(
           (candidate) {
             if (candidate == null || candidate.depth != p.depth + 1) return false;
-            if (candidate.node != null) {
-              final childId = (child['id'] ?? child['position_id'] ?? '').toString();
-              return child is Map && (candidate.node!['id'] ?? candidate.node!['position_id'] ?? '').toString() == childId;
+            if (child is Map) {
+              if (candidate.node == null) return false;
+              final childMap = Map<String, dynamic>.from(child);
+              final childId = (childMap['id'] ?? childMap['position_id'] ?? '').toString();
+              return (candidate.node!['id'] ?? candidate.node!['position_id'] ?? '').toString() == childId;
             }
-            return candidate.parentPositionId == (int.tryParse('${current['id']}') ?? 0) &&
+            return candidate.node == null &&
+                candidate.parentPositionId == (int.tryParse('${current['id']}') ?? 0) &&
                 candidate.side == side;
           },
           orElse: () => null,
