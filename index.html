@@ -699,7 +699,7 @@ footer .logo {color:white}
   <div id="dashboardView" class="portal-view" hidden>
     <h2>Member Dashboard</h2>
     <div id="dashboardCards" class="cards">
-      <div class="card">Loading account...</div>
+      
     </div>
   </div>
 
@@ -1047,7 +1047,7 @@ function toggleWelcomeMenu(open) {
 
 
 
-/* Apply the same loading transition to every in-site page link. */
+/* Switch in-site pages directly; never show a separate loading screen. */
 document.addEventListener("click", (event) => {
   const link = event.target.closest("a[href^='#']");
   if (!link) return;
@@ -1063,7 +1063,6 @@ document.addEventListener("click", (event) => {
   const memberPage = pageId.endsWith("View") ? pageId.slice(0,-4) : "";
   if (memberPage && document.getElementById(pageId)?.closest("#memberPortal")) {
     event.preventDefault();
-    showPageLoader();
     showMemberPortal();
     showPortalPage(memberPage);
   }
@@ -1321,6 +1320,13 @@ async function restoreSession() {
 
 // SWITCH PORTAL SCREENS
 
+// Show the requested member page immediately. Data refreshes happen after
+// navigation and must not send the member through an intermediate loading view.
+function ensurePortalPage(page) {
+  const selected = document.getElementById(page + "View");
+  if (selected && !selected.classList.contains("active")) showPortalPage(page);
+}
+
 function showPortalPage(page, fromHistory = false) {
   if (!fromHistory) history.pushState({octo7Page:"member",page}, "", location.pathname + location.search + "#member-" + page);
   try { sessionStorage.setItem("octo7MemberPage", page); } catch (storageError) {}
@@ -1420,7 +1426,7 @@ async function loadProfile() {
     const el=document.getElementById("profile"+id.charAt(0).toUpperCase()+id.slice(1));
     if(el) el.textContent = value == null || value === "" ? "Not provided" : String(value);
   };
-  showMessage("profileMessage","Loading your profile...");
+  showMessage("profileMessage","");
   try {
     const data=await api("me");
     const m=data.member || {};
@@ -1533,7 +1539,7 @@ async function saveProfileDetails(event){
 }
 
 async function loadKyc() {
-  showMessage("kycMessage","Loading your KYC status...");
+  showMessage("kycMessage","");
   try {
     const data=await api("me");
     const m=data.member || {};
@@ -1551,10 +1557,9 @@ async function loadKyc() {
 
 
 async function loadDashboard() {
-  showPortalPage("dashboard");
+  ensurePortalPage("dashboard");
 
-  document.getElementById("dashboardCards").innerHTML =
-    '<div class="card">Loading dashboard...</div>';
+  // Keep the destination visible while fresh dashboard data loads.
 
   try {
     const data = await api("me");
@@ -1991,9 +1996,8 @@ function cancelMemberRegistration(){
 }
 
 async function loadGenealogy(rootMemberId=null,navigationMode="reset"){
-  showPortalPage("genealogy");
+  ensurePortalPage("genealogy");
   const box=document.getElementById("genealogyTree");
-  box.innerHTML='<div class="card">Loading OCTO7 genealogy...</div>';
   try{
     const profile=await api("me");
     const payload=rootMemberId?{root_member_id:String(rootMemberId)}:{};
@@ -2026,12 +2030,11 @@ async function loadGenealogy(rootMemberId=null,navigationMode="reset"){
 // // PRODUCTS
 
 async function loadProducts() {
-  showPortalPage("portalProducts");
+  ensurePortalPage("portalProducts");
 
   const box = document.getElementById("portalProducts");
 
-  box.innerHTML =
-    '<div class="card">Loading products...</div>';
+  // Do not replace the destination with an intermediate loading screen.
 
   try {
 
