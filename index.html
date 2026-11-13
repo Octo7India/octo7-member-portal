@@ -85,18 +85,27 @@ section h2 {text-align:center;color:var(--navy);font-size:32px}
 .contact {text-align:center;line-height:2}
 
 
-.login-art{position:relative;width:min(100%,540px);aspect-ratio:768/1365;margin:0 auto;background:url('mobile_app/1794527061741.jpg') center/100% 100% no-repeat}
-.login-art input{position:absolute;left:17%;width:66%;height:6.3%;margin:0;padding:10px 14px 10px 58px;border:0;border-radius:16px;background:#fff;color:#1c2942;font-size:clamp(12px,3.2vw,18px);box-shadow:none}
-.login-art input:focus{outline:2px solid #d6b46a}
-.login-art #memberNumberInput{top:56.9%}
-.login-art #password{top:64.8%;padding-right:52px}
-.login-art .eye-button{position:absolute;z-index:2;left:75%;top:65.3%;width:9%!important;height:5.3%;padding:0;margin:0;border:0;background:transparent;color:#34435d;font-size:clamp(16px,4vw,22px)}
-.login-art #loginButton{position:absolute;left:17%;top:73.8%;width:66%;height:5.7%;margin:0;padding:0;border:0;border-radius:16px;background:transparent;color:white;font-weight:800;font-size:clamp(13px,3.6vw,18px);cursor:pointer}
-.login-art .form-link{position:absolute;left:22%;top:83.9%;width:56%;margin:0;text-align:center}
-.login-art .form-link a{color:#111;text-decoration:none;font-weight:500;font-size:clamp(13px,3.6vw,18px)}
-.login-art #loginMessage{position:absolute;left:15%;top:79.4%;width:70%;font-size:12px;padding:0}
+.login-area{background:radial-gradient(circle at top,#fff 0%,#f5eedc 100%);padding:48px 20px}
+.login-art{position:relative;width:min(100%,390px);margin:0 auto;padding:0;background:transparent;display:flex;flex-direction:column;align-items:center}
+.login-logo{width:145px;height:145px;flex:0 0 145px;overflow:hidden;border-radius:50%;border:3px solid #c9a44c;background:#0b192c;box-shadow:0 8px 20px #0000002e;margin:0 auto 24px;display:flex;align-items:center;justify-content:center}
+.login-logo img{display:block;width:100%;height:100%;object-fit:contain;border-radius:50%}
+.login-card{width:100%;background:rgba(255,253,248,.96);border:1px solid #e2d5b5;border-radius:18px;padding:30px 24px 22px;box-shadow:0 12px 30px #0000001f;text-align:center}
+.login-card h2{font-size:24px;font-weight:800;color:#1e242b;letter-spacing:.5px;margin:0 0 6px}
+.login-card h3{font-size:14px;font-weight:700;color:#b8892d;letter-spacing:1px;margin:0 0 10px}
+.login-card .login-subtitle{font-size:13px;color:#4a4a4a;line-height:1.4;margin:0 0 22px}
+.login-input-group{position:relative;width:100%;display:flex;align-items:center;margin:0 0 15px}
+.login-input-group .login-leading{position:absolute;left:14px;color:#495057;font-size:18px;pointer-events:none}
+.login-art .login-input-group input{position:static;display:block;width:100%;height:48px;margin:0;padding:0 44px 0 44px;border:1px solid #dcd6c8;border-radius:10px;background:#f6f6f6;color:#222;font-size:15px;box-shadow:none;outline:none}
+.login-art .login-input-group input:focus{border:1.5px solid #b8892d;background:#fff;outline:none}
+.login-art .login-input-group .eye-button{position:absolute;right:8px;left:auto;top:50%;transform:translateY(-50%);z-index:2;width:38px!important;height:38px!important;padding:0;margin:0;border:0;border-radius:8px;background:transparent;color:#3d4856;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.login-art #loginButton{position:static;width:100%;height:48px;margin:7px 0 0;padding:0 12px;border:1.5px solid #c99b3b;border-radius:10px;background:linear-gradient(90deg,#e6be5a 0%,#f5d77f 18%,#073b8c 22%,#0a58ca 55%,#062f70 100%);color:#fff;font-weight:700;font-size:14px;letter-spacing:.8px;cursor:pointer;box-shadow:0 4px 12px #073b8c40}
+.login-art #loginButton:active{transform:scale(.985)}
+.login-art #loginMessage{position:static;width:100%;font-size:13px;min-height:18px;padding:0;margin:10px 0 0}
+.login-art .form-link{position:static;width:auto;margin:13px 0 0;text-align:center}
+.login-art .form-link a{color:#222;text-decoration:none;font-weight:500;font-size:14px}
+.login-art .form-link a:hover{color:#073b8c;text-decoration:underline}
 .recovery-method{width:100%;padding:12px;margin:8px 0 16px;border:1px solid #ccc;border-radius:5px;font-size:16px;background:#fff}
-@media(max-width:520px){.login-area{padding:24px 3%}.login-art{width:100%}}
+@media(max-width:520px){.login-area{padding:30px 16px}.login-art{width:100%;max-width:390px}.login-card{padding:26px 20px 20px}.login-logo{width:132px;height:132px;flex-basis:132px}}
 
 .login-box {
   max-width:440px;margin:auto;padding:30px;background:white;
@@ -489,13 +498,26 @@ footer .logo {color:white}
 
 <section class="login-area" id="member-login">
 <div class="login-art" id="loginBox">
+<div class="login-logo"><img src="OCTO7_emblem_transparent-2.png" alt="OCTO7 India logo"></div>
+<div class="login-card">
+<h2>OCTO7 INDIA</h2>
+<h3>MEMBER LOGIN</h3>
+<p class="login-subtitle">Log in with your OCTO7 User ID and your existing password.</p>
+<div class="login-input-group">
+<span class="login-leading" aria-hidden="true">♙</span>
 <input id="memberNumberInput" type="text" inputmode="numeric" autocomplete="username" placeholder="Enter Your User ID" aria-label="Enter Your User ID">
-<input id="email" type="hidden">
+</div>
+<div class="login-input-group">
+<span class="login-leading" aria-hidden="true">🔒</span>
 <input id="password" type="password" autocomplete="current-password" placeholder="Password" aria-label="Password">
 <button type="button" class="eye-button" onclick="togglePassword('password',this)" aria-label="Show password">👁</button>
+</div>
+<input id="email" type="hidden">
 <button class="btn" id="loginButton" onclick="login()">MEMBER LOGIN</button>
+<div id="loginMessage" class="message" aria-live="polite"></div>
 <p class="form-link"><a href="#" onclick="showForgotForm();return false;">Forgot Password?</a></p>
-<div id="loginMessage" class="message" aria-live="polite"></div><div id="userIdInput" hidden></div>
+<div id="userIdInput" hidden></div>
+</div>
 </div>
 <div class="login-box" id="forgotBox" hidden>
 <h3 style="text-align:center;color:#49306c">Reset Your Password</h3>
