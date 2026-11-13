@@ -1706,7 +1706,7 @@ function setupGenealogyControls(){
   const view=document.getElementById("genealogyViewport");
   const canvas=document.getElementById("genealogyCanvas");
   if(!view||!canvas)return;
-  let scale=.81,x=0,y=0,gesture=null,mouse=null,touchActive=false,suppressClickUntil=0;
+  let scale=.81,x=0,y=0,gesture=null,mouse=null,touchActive=false,lastTouchAt=0,suppressClickUntil=0;
   const label=document.getElementById("genealogyZoomLabel");
   const clamp=v=>Math.max(.25,Math.min(2.5,v));
   let pinnedRoot=null;
@@ -1768,7 +1768,7 @@ function setupGenealogyControls(){
   const distance=(a,b)=>Math.hypot(b.clientX-a.clientX,b.clientY-a.clientY);
   const midpoint=(a,b)=>({x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2});
   view.addEventListener("touchstart",e=>{
-    touchActive=true;
+    touchActive=true;lastTouchAt=Date.now();
     if(e.touches.length===2){
       e.preventDefault();const mid=midpoint(e.touches[0],e.touches[1]);
       gesture={mode:"pinch",distance:distance(e.touches[0],e.touches[1]),scale,midX:mid.x,midY:mid.y};
@@ -1802,7 +1802,7 @@ function setupGenealogyControls(){
   };
   view.addEventListener("touchend",endTouch,{passive:true});
   view.addEventListener("touchcancel",endTouch,{passive:true});
-  view.addEventListener("mousedown",e=>{if(e.button!==0||touchActive)return;mouse={x:e.clientX,y:e.clientY,moved:false};view.classList.add("dragging");});
+  view.addEventListener("mousedown",e=>{if(e.button!==0||touchActive||Date.now()-lastTouchAt<900)return;mouse={x:e.clientX,y:e.clientY,moved:false};view.classList.add("dragging");});
   window.addEventListener("mousemove",e=>{
     if(!mouse)return;const dx=e.clientX-mouse.x,dy=e.clientY-mouse.y;
     if(Math.hypot(dx,dy)>3)mouse.moved=true;
