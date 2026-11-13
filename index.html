@@ -1783,7 +1783,7 @@ function setupGenealogyControls(){
       pointerGesture={mode:"pinch",distance:pointerDistance(points[0],points[1]),scale,midX:mid.x,midY:mid.y};
       setPinnedRootLifted(true);
     }else if(points.length===1){
-      pointerGesture={mode:"pan",x:points[0].x,y:points[0].y,moved:activePointers.size>0};
+      pointerGesture={mode:"pan",x:points[0].x,y:points[0].y,moved:false};
     }else{
       pointerGesture=null;
       setPinnedRootLifted(false);
