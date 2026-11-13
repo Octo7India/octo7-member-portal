@@ -435,7 +435,12 @@ class MemberWelcomeScreen extends StatelessWidget {
         return Scaffold(
           backgroundColor: const Color(0xFF071426),
           appBar: AppBar(
-            title: _octo7Brand(20),
+            title: const Text('OCTO7 India'),
+            leading: Builder(builder: (context) => IconButton(
+              tooltip: 'Open member menu',
+              icon: const Icon(Icons.menu),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            )),
           ),
           drawer: Octo7AppDrawer(
             onDestinationSelected: (destination) async {
@@ -457,43 +462,52 @@ class MemberWelcomeScreen extends StatelessWidget {
           ),
           body: Container(
             width: double.infinity,
-            decoration: const BoxDecoration(gradient: LinearGradient(
-              begin: Alignment.topLeft, end: Alignment.bottomRight,
-              colors: [Color(0xFF123C56), Color(0xFF071426), Color(0xFF052411)],
-            )),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft, end: Alignment.bottomRight,
+                colors: [Color(0xFF17452F), Color(0xFF0C3828), Color(0xFF08291F)],
+              ),
+            ),
             child: SafeArea(child: Center(child: SingleChildScrollView(
-              padding: const EdgeInsets.all(26),
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 28),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 440),
                 child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Image.asset('assets/images/OCTO7_emblem_transparent-2.png',
-                    width: 176, height: 176, fit: BoxFit.contain),
-                  const SizedBox(height: 18),
-                  _octo7Brand(29),
-                  const SizedBox(height: 24),
+                    width: 190, height: 190, fit: BoxFit.contain),
+                  const SizedBox(height: 4),
+                  const Text('Together for a better tomorrow',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Color(0xFFE8C58D), fontSize: 12,
+                      fontWeight: FontWeight.w600, letterSpacing: .7)),
+                  const SizedBox(height: 22),
+                  const Text('Welcome',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Color(0xFFE8C58D), fontSize: 29,
+                      fontWeight: FontWeight.w400)),
+                  const SizedBox(height: 8),
                   if (snapshot.connectionState == ConnectionState.waiting)
                     const CircularProgressIndicator(color: Color(0xFFD6A84B))
                   else if (snapshot.hasError)
                     const Text('Unable to load member details. Open Dashboard from the menu.',
                       textAlign: TextAlign.center, style: TextStyle(color: Colors.orangeAccent))
                   else ...[
-                    Text(name.isEmpty ? 'Welcome!' : 'Welcome, $name!',
+                    Text(name.isEmpty ? 'OCTO7 Member' : name,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.white, fontSize: 25,
+                      style: const TextStyle(color: Colors.white, fontSize: 26,
                         fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 12),
-                    const Text('Together For a Better Tomorrow',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Color(0xFFE5D6B8), fontSize: 15,
-                        fontStyle: FontStyle.italic)),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     Text('Member ID: $memberId', textAlign: TextAlign.center,
-                      style: const TextStyle(color: Color(0xFFD6A84B),
-                        fontSize: 16, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 18),
-                    const Text('Open the menu to access your Dashboard.',
+                      style: const TextStyle(color: Color(0xFFF0D8AD),
+                        fontSize: 14, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 24),
+                    const Text('Plant the seed of effort, harvest a lifetime of success.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white70, fontSize: 14)),
+                      style: TextStyle(color: Color(0xFFF1D9B5), fontSize: 17, height: 1.5)),
+                    const SizedBox(height: 18),
+                    const Text('Discover a world of opportunities through quality products, entrepreneurship and a growing business network.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Color(0xFFF4E8D7), fontSize: 14, height: 1.6)),
                   ],
                 ]),
               ),
