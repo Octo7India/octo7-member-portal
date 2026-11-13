@@ -549,7 +549,7 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
 
   Future<void> _login() async {
     final id = _identifierController.text.trim().replaceFirst(
-      RegExp(r'^OCTO7\\s*', caseSensitive: false), '',
+      RegExp(r'^OCTO7\s*', caseSensitive: false), '',
     );
     if (id.isEmpty || !RegExp(r'^[0-9]+$').hasMatch(id)) {
       setState(() => _error = 'Enter your OCTO7 User ID number.');
@@ -594,6 +594,7 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
     hintStyle: const TextStyle(color: Color(0xFF737373), fontSize: 14),
     prefixIcon: Icon(leading, color: const Color(0xFF495057), size: 19),
     suffixIcon: trailing,
+    suffixIconConstraints: const BoxConstraints(minWidth: 48, minHeight: 48),
     filled: true,
     fillColor: const Color(0xFFF6F6F6),
     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
@@ -636,15 +637,15 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        width: 136,
-                        height: 136,
-                        margin: const EdgeInsets.only(bottom: 22),
-                        decoration: const BoxDecoration(shape: BoxShape.circle),
-                        clipBehavior: Clip.antiAlias,
-                        child: Image.asset(
-                          'assets/images/OCTO7_emblem_transparent-2.png',
-                          fit: BoxFit.contain,
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 22),
+                        child: SizedBox(
+                          width: 136,
+                          height: 136,
+                          child: Image.asset(
+                            'assets/images/OCTO7_emblem_transparent-2.png',
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
                       Container(
@@ -666,11 +667,11 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             const Text(
-                              'OCTO7 INDIA',
+                              'OCTO7 India',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 24, fontWeight: FontWeight.w800,
-                                color: Color(0xFF1E242B), letterSpacing: .5,
+                                color: Color(0xFF1E242B), letterSpacing: .2,
                               ),
                             ),
                             const SizedBox(height: 6),
