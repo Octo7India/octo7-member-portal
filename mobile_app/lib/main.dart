@@ -1960,8 +1960,8 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
                     _horizontalPanOffset+=d.focalPointDelta.dx;
                     _manualVerticalPanOffset+=d.focalPointDelta.dy;
                     if(d.scale!=1)_zoomScale=(_baseZoomScale*d.scale).clamp(_minZoom,_maxZoom);
-                    // Pinching zooms around the touched ID without changing the genealogy root.
-                    // Lift the complete tree in screen space so that ID's descendants remain visible.
+                    // Translate the whole tree, including the selected root, in both axes.
+                    // The root remains selected logically even when dragged off-screen.
                     _updateFocusLift();
                   });},
                   child:SizedBox.expand(child:CustomPaint(painter:_AnchoredLinePainter(slots:_slots,anchorCenterX:cx,anchorTopY:top,scale:_zoomScale),
