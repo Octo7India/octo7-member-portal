@@ -182,7 +182,7 @@ input {
 .genealogy-tree{max-width:100%;margin:18px auto;padding:12px 8px;text-align:center}
 .genealogy-toolbar{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;margin:0 auto 14px}
 .genealogy-toolbar button{border:1px solid var(--purple);background:#fff;color:var(--purple);border-radius:7px;padding:8px 12px;font-weight:700;cursor:pointer}
-.genealogy-viewport{width:100%;height:min(68vh,680px);min-height:360px;overflow:auto;position:relative;border:0;border-radius:0;background:transparent;display:flex;justify-content:center;align-items:flex-start;cursor:grab;touch-action:none}
+.genealogy-viewport{width:100%;height:min(68vh,680px);min-height:360px;overflow:auto;position:relative;border:0;border-radius:0;background:transparent;display:flex;justify-content:center;align-items:center;cursor:grab;touch-action:none;overscroll-behavior:contain;-webkit-user-select:none;user-select:none}
 .genealogy-viewport.dragging{cursor:grabbing;user-select:none}
 .genealogy-canvas{position:relative;display:block;flex:0 0 370px;width:370px;height:340px;min-width:370px;transform-origin:185px 28px;margin:0 auto}
 .genealogy-connectors{position:absolute;inset:0;width:370px;height:340px;pointer-events:none;z-index:1;overflow:visible}
@@ -202,7 +202,7 @@ input {
 .binary-empty:not(:disabled):hover,.binary-empty:not(:disabled):focus{background:#f1eaff;border-color:#7040b5;outline:2px solid #7040b544;outline-offset:2px}
 .genealogy-legend{font-size:12px;color:#666;margin:10px 0}
 .genealogy-vacancy-list{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:10px 0}.genealogy-vacancy-list .binary-empty{width:145px;height:64px}
-@media(max-width:650px){.genealogy-viewport{height:62vh;min-height:330px;justify-content:flex-start}.genealogy-canvas{margin-left:0;margin-right:0}}
+@media(max-width:650px){.genealogy-viewport{height:62vh;min-height:330px;justify-content:center;align-items:center}.genealogy-canvas{margin-left:auto;margin-right:auto}}
 .registration-card{max-width:650px;margin:20px auto;padding:24px;text-align:left}
 .registration-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
 .registration-grid label{display:block;font-size:13px;font-weight:700;color:#444}
@@ -217,7 +217,7 @@ input {
 .registration-verification .message{padding:8px 0;text-align:left}
 .genealogy-legend{font-size:12px;color:#666;margin:10px 0}
 .genealogy-vacancy-list{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:10px 0}.genealogy-vacancy-list .binary-empty{width:145px;height:64px}
-@media(max-width:650px){.genealogy-viewport{height:62vh;min-height:330px}.genealogy-canvas{padding:0}}
+@media(max-width:650px){.genealogy-viewport{height:62vh;min-height:330px;justify-content:center;align-items:center}.genealogy-canvas{padding:0;margin-left:auto;margin-right:auto}}
 footer {
   background:var(--navy);
   color:white;
@@ -1617,25 +1617,24 @@ function setupGenealogyControls(){
   if(!view||!canvas)return;
 
   let scale=1;
-  const pointers=new Map();
-  let panStart=null;
-  let pinchStart=null;
+  let touchStart=null;
+  let mouseStart=null;
+  let suppressClickUntil=0;
   const label=document.getElementById("genealogyZoomLabel");
-  const clamp=value=>Math.max(.85,Math.min(2.4,value));
+  const clamp=value=>Math.max(.4,Math.min(2.4,value));
   const apply=()=>{
-    canvas.style.transformOrigin="185px 28px";
+    canvas.style.transformOrigin="center center";
     canvas.style.transform="scale("+scale+")";
     if(label)label.textContent=Math.round(scale*100)+"%";
   };
   const fit=()=>{
-    const availableWidth=Math.max(180,view.clientWidth-24);
-    const availableHeight=Math.max(180,view.clientHeight-24);
+    const availableWidth=Math.max(150,view.clientWidth-24);
+    const availableHeight=Math.max(150,view.clientHeight-24);
     scale=clamp(Math.min(1,availableWidth/370,availableHeight/340));
     apply();
     view.scrollLeft=0;
     view.scrollTop=0;
   };
-
   const zoomIn=document.getElementById("genealogyZoomIn");
   const zoomOut=document.getElementById("genealogyZoomOut");
   const fitButton=document.getElementById("genealogyFit");
@@ -1643,56 +1642,57 @@ function setupGenealogyControls(){
   if(zoomOut)zoomOut.onclick=()=>{scale=clamp(scale/1.2);apply();};
   if(fitButton)fitButton.onclick=fit;
 
-  // Use Pointer Events for touch and mouse so Android Chrome handles two-finger
-  // gestures consistently. The viewport's touch-action:none keeps page zoom fixed.
-  const distance=values=>{
-    const pair=Array.from(values.values()).slice(0,2);
-    return pair.length===2?Math.hypot(pair[0].x-pair[1].x,pair[0].y-pair[1].y):0;
-  };
-  view.addEventListener("pointerdown",event=>{
+  const pointDistance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+  view.addEventListener("touchstart",event=>{
     if(event.target.closest("button"))return;
-    if(event.pointerType==="mouse"&&event.button!==0)return;
-    event.preventDefault();
-    pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
-    try{view.setPointerCapture(event.pointerId);}catch(_){}
-    if(pointers.size===2){
-      panStart=null;
-      pinchStart={distance:distance(pointers),scale};
-    }else if(pointers.size===1){
-      panStart={x:event.clientX,y:event.clientY,left:view.scrollLeft,top:view.scrollTop};
-      pinchStart=null;
-      if(event.pointerType==="mouse")view.classList.add("dragging");
+    if(event.touches.length===2){
+      const a=event.touches[0],b=event.touches[1];
+      touchStart={mode:"pinch",distance:pointDistance({x:a.clientX,y:a.clientY},{x:b.clientX,y:b.clientY}),scale};
+    }else if(event.touches.length===1){
+      const t=event.touches[0];
+      touchStart={mode:"pan",x:t.clientX,y:t.clientY,left:view.scrollLeft,top:view.scrollTop,moved:false};
     }
-  },{passive:false});
-
-  view.addEventListener("pointermove",event=>{
-    if(!pointers.has(event.pointerId))return;
-    event.preventDefault();
-    pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
-    if(pointers.size>=2){
-      const currentDistance=distance(pointers);
-      if(pinchStart&&pinchStart.distance>0){
-        scale=clamp(pinchStart.scale*currentDistance/pinchStart.distance);
+  },{passive:true});
+  view.addEventListener("touchmove",event=>{
+    if(!touchStart)return;
+    if(touchStart.mode==="pinch"&&event.touches.length>=2){
+      event.preventDefault();
+      const a=event.touches[0],b=event.touches[1];
+      const d=pointDistance({x:a.clientX,y:a.clientY},{x:b.clientX,y:b.clientY});
+      if(touchStart.distance>0){
+        scale=clamp(touchStart.scale*d/touchStart.distance);
         apply();
       }
-    }else if(pointers.size===1&&panStart){
-      view.scrollLeft=panStart.left-(event.clientX-panStart.x);
-      view.scrollTop=panStart.top-(event.clientY-panStart.y);
+      suppressClickUntil=Date.now()+350;
+    }else if(touchStart.mode==="pan"&&event.touches.length===1){
+      const t=event.touches[0],dx=t.clientX-touchStart.x,dy=t.clientY-touchStart.y;
+      if(Math.abs(dx)+Math.abs(dy)>5)touchStart.moved=true;
+      if(touchStart.moved){
+        event.preventDefault();
+        view.scrollLeft=touchStart.left-dx;
+        view.scrollTop=touchStart.top-dy;
+        suppressClickUntil=Date.now()+250;
+      }
     }
   },{passive:false});
+  const endTouch=()=>{touchStart=null;};
+  view.addEventListener("touchend",endTouch,{passive:true});
+  view.addEventListener("touchcancel",endTouch,{passive:true});
 
-  const endPointer=event=>{
-    pointers.delete(event.pointerId);
-    if(pointers.size<2)pinchStart=null;
-    if(pointers.size===1){
-      const remaining=Array.from(pointers.values())[0];
-      panStart={x:remaining.x,y:remaining.y,left:view.scrollLeft,top:view.scrollTop};
-    }else panStart=null;
-    if(!pointers.size)view.classList.remove("dragging");
-  };
-  view.addEventListener("pointerup",endPointer);
-  view.addEventListener("pointercancel",endPointer);
-  view.addEventListener("lostpointercapture",endPointer);
+  // Mouse drag and Ctrl+wheel zoom for desktop browsers.
+  view.addEventListener("mousedown",event=>{
+    if(event.button!==0||event.target.closest("button"))return;
+    mouseStart={x:event.clientX,y:event.clientY,left:view.scrollLeft,top:view.scrollTop};
+    view.classList.add("dragging");
+  });
+  view.addEventListener("mousemove",event=>{
+    if(!mouseStart)return;
+    view.scrollLeft=mouseStart.left-(event.clientX-mouseStart.x);
+    view.scrollTop=mouseStart.top-(event.clientY-mouseStart.y);
+  });
+  const endMouse=()=>{mouseStart=null;view.classList.remove("dragging");};
+  view.addEventListener("mouseup",endMouse);
+  view.addEventListener("mouseleave",endMouse);
   view.addEventListener("wheel",event=>{
     if(event.ctrlKey){
       event.preventDefault();
@@ -1700,9 +1700,13 @@ function setupGenealogyControls(){
       apply();
     }
   },{passive:false});
+  view.addEventListener("click",event=>{
+    if(Date.now()<suppressClickUntil){event.preventDefault();event.stopPropagation();}
+  },true);
 
   apply();
   requestAnimationFrame(fit);
+  window.addEventListener("resize",fit,{passive:true});
 }
 async function openMemberRegistration(parentId,side){
   const parent=Number(parentId);
