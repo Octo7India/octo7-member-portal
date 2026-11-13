@@ -1657,16 +1657,11 @@ function renderGenealogyNode(root){
     if(!parent)continue;
     const sx=parent.x,sy=parent.y+parent.h;
     const ex=child.x,ey=child.y;
-    const verticalGap=ey-sy;
-    const dx=ex-sx;
-    const handle=Math.max(42,verticalGap*0.82);
-    const sweep=Math.abs(dx)*0.22;
-    const direction=Math.sign(dx);
-    // A visibly curved, flowing branch from each parent directly to its child.
-    // The handles sweep outward first, then turn smoothly into the child card.
-    const c1x=sx+direction*sweep;
-    const c2x=ex-direction*sweep;
-    paths.push('<path class="connector-path" d="M '+sx+' '+sy+' C '+c1x+' '+(sy+handle)+', '+c2x+' '+(ey-handle)+', '+ex+' '+ey+'"/>');
+    // Match the supplied reference: cubic Bézier with vertical control handles.
+    // Each branch leaves the parent vertically, bends smoothly across, then
+    // enters the child vertically (the characteristic S-shaped connection).
+    const midY=(sy+ey)/2;
+    paths.push('<path class="connector-path" d="M '+sx+' '+sy+' C '+sx+' '+midY+', '+ex+' '+midY+', '+ex+' '+ey+'"/>');
   }
   const cards=slots.map(slot=>{
     let inner="";
