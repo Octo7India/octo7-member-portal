@@ -615,8 +615,15 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F4EA),
-      body: SafeArea(
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/octo7_login_background.jpg'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SafeArea(
         child: LayoutBuilder(builder: (context, constraints) {
           return SingleChildScrollView(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -633,20 +640,7 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
                         width: 136,
                         height: 136,
                         margin: const EdgeInsets.only(bottom: 22),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: const Color(0xFF0B192C),
-                          border: Border.all(
-                            color: const Color(0xFFC9A44C), width: 3,
-                          ),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x30000000),
-                              blurRadius: 18,
-                              offset: Offset(0, 7),
-                            ),
-                          ],
-                        ),
+                        decoration: const BoxDecoration(shape: BoxShape.circle),
                         clipBehavior: Clip.antiAlias,
                         child: Image.asset(
                           'assets/images/OCTO7_emblem_transparent-2.png',
@@ -839,6 +833,7 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
             ),
           );
         }),
+        ),
       ),
     );
   }
