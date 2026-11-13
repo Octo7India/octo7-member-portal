@@ -533,15 +533,14 @@ footer .logo {color:white}
 <div class="login-input-group">
 <span class="login-leading" aria-hidden="true">♙</span>
 <span class="login-id-prefix" aria-hidden="true">OCTO7</span>
-<input id="memberNumberInput" name="octo7_member_number" type="password" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" data-lpignore="true" placeholder="Enter number only" aria-label="Enter OCTO7 User ID number">
+<input id="memberNumberInput" name="octo7_member_number" type="password" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" data-lpignore="true" readonly onfocus="this.removeAttribute('readonly')" placeholder="Enter number only" aria-label="Enter OCTO7 User ID number">
 <button type="button" class="eye-button" onclick="togglePassword('memberNumberInput',this)" aria-label="Show User ID">👁</button>
 </div>
 <div class="login-input-group">
 <span class="login-leading" aria-hidden="true">🔒</span>
-<input id="password" name="octo7_member_password" type="password" autocomplete="new-password" autocapitalize="off" spellcheck="false" data-lpignore="true" placeholder="Password" aria-label="Password">
+<input id="password" name="octo7_member_password" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" data-lpignore="true" readonly onfocus="this.removeAttribute('readonly')" placeholder="Password" aria-label="Password">
 <button type="button" class="eye-button" onclick="togglePassword('password',this)" aria-label="Show password">👁</button>
 </div>
-<input id="email" type="hidden">
 <button class="btn" id="loginButton" onclick="login()">MEMBER LOGIN</button>
 <div id="loginMessage" class="message" aria-live="polite"></div>
 <p class="form-link"><a href="#" onclick="showForgotForm();return false;">Forgot Password?</a></p>
