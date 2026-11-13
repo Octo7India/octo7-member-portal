@@ -511,14 +511,18 @@ class MemberLoginScreen extends StatefulWidget {
   @override
   State<MemberLoginScreen> createState() => _MemberLoginScreenState();
 }
+
 class _MemberLoginScreenState extends State<MemberLoginScreen> {
   final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _busy = false, _hidePassword = true;
+  bool _busy = false;
+  bool _hidePassword = true;
   String? _error;
 
   Future<void> _login() async {
-    final id = _identifierController.text.trim();
+    final id = _identifierController.text.trim().replaceFirst(
+      RegExp(r'^OCTO7\\s*', caseSensitive: false), '',
+    );
     if (id.isEmpty || !RegExp(r'^[0-9]+$').hasMatch(id)) {
       setState(() => _error = 'Enter your OCTO7 User ID number.');
       return;
@@ -530,10 +534,14 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
     if (_busy) return;
     setState(() { _busy = true; _error = null; });
     try {
-      await AuthService.instance.signIn(identifier: id, password: _passwordController.text);
+      await AuthService.instance.signIn(
+        identifier: id, password: _passwordController.text,
+      );
       if (mounted) widget.onLogin();
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+      if (mounted) {
+        setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -546,68 +554,255 @@ class _MemberLoginScreenState extends State<MemberLoginScreen> {
     super.dispose();
   }
 
-  InputDecoration _imageFieldDecoration() => const InputDecoration(
-    filled: false, fillColor: Colors.transparent,
-    border: InputBorder.none, enabledBorder: InputBorder.none,
-    focusedBorder: InputBorder.none, disabledBorder: InputBorder.none,
-    isDense: true, isCollapsed: true, contentPadding: EdgeInsets.zero,
-    constraints: BoxConstraints.tightFor(height: 42),
+  InputDecoration _fieldDecoration({
+    required String hint,
+    required IconData leading,
+    Widget? trailing,
+  }) => InputDecoration(
+    hintText: hint,
+    hintStyle: const TextStyle(color: Color(0xFF737373), fontSize: 14),
+    prefixIcon: Icon(leading, color: const Color(0xFF495057), size: 19),
+    suffixIcon: trailing,
+    filled: true,
+    fillColor: const Color(0xFFF6F6F6),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+    constraints: const BoxConstraints(minHeight: 54),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(10),
+      borderSide: const BorderSide(color: Color(0xFFDDD6C8)),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(10),
+      borderSide: const BorderSide(color: Color(0xFFDDD6C8)),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(10),
+      borderSide: const BorderSide(color: Color(0xFFB8892D), width: 1.5),
+    ),
   );
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: const Color(0xFFFFFDF5),
-    body: SafeArea(child: LayoutBuilder(builder: (context, c) {
-      // Preserve the supplied 1:2 artwork ratio on all phone sizes.
-      final w = c.maxWidth < c.maxHeight / 2 ? c.maxWidth : c.maxHeight / 2;
-      final h = w * 2;
-      return Center(child: SizedBox(width: w, height: h,
-        child: Stack(fit: StackFit.expand, children: [
-          Image.asset('1794527061741.jpg', fit: BoxFit.fill),
-          // Transparent text-only overlays; no extra filled TextField boxes.
-          Positioned(left: w * .285, top: h * .520, width: w * .475, height: h * .052,
-            child: Center(child: TextField(
-              controller: _identifierController, keyboardType: TextInputType.number,
-              textAlignVertical: TextAlignVertical.center, maxLines: 1,
-              style: const TextStyle(color: Color(0xFF17233D), fontSize: 16, height: 1.1),
-              decoration: _imageFieldDecoration(),
-            ))),
-          Positioned(left: w * .285, top: h * .590, width: w * .455, height: h * .052,
-            child: Center(child: TextField(
-              controller: _passwordController, obscureText: _hidePassword,
-              textAlignVertical: TextAlignVertical.center, maxLines: 1,
-              style: const TextStyle(color: Color(0xFF17233D), fontSize: 16, height: 1.1),
-              decoration: _imageFieldDecoration(), onSubmitted: (_) => _login(),
-            ))),
-          // Centered over the eye printed in the password field artwork.
-          Positioned(left: w * .748, top: h * .582, width: w * .075, height: h * .068,
-            child: IconButton(
-              padding: EdgeInsets.zero, constraints: const BoxConstraints.expand(),
-              onPressed: () => setState(() => _hidePassword = !_hidePassword),
-              icon: Icon(_hidePassword ? Icons.visibility : Icons.visibility_off,
-                color: const Color(0xFF52617A), size: 23),
-            )),
-          Positioned(left: w * .17, top: h * .656, width: w * .66, height: h * .052,
-            child: Material(color: Colors.transparent, child: InkWell(
-              borderRadius: BorderRadius.circular(24), onTap: _busy ? null : _login,
-              child: Center(child: _busy
-                ? const CircularProgressIndicator(color: Colors.white)
-                : const SizedBox.expand()),
-            ))),
-          if (_error != null)
-            Positioned(left: w * .12, top: h * .715, width: w * .76,
-              child: Text(_error!, textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.red, fontSize: 12))),
-          Positioned(left: w * .30, top: h * .747, width: w * .40, height: h * .035,
-            child: TextButton(
-              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => const MemberPasswordRecoveryScreen())),
-              child: const SizedBox.expand(),
-            )),
-        ])));
-    })),
-  );
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F4EA),
+      body: SafeArea(
+        child: LayoutBuilder(builder: (context, constraints) {
+          return SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.fromLTRB(22, 24, 22, 28),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight - 52),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 390),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 136,
+                        height: 136,
+                        margin: const EdgeInsets.only(bottom: 22),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0xFF0B192C),
+                          border: Border.all(
+                            color: const Color(0xFFC9A44C), width: 3,
+                          ),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x30000000),
+                              blurRadius: 18,
+                              offset: Offset(0, 7),
+                            ),
+                          ],
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: Image.asset(
+                          'assets/images/OCTO7_emblem_transparent-2.png',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+                        decoration: BoxDecoration(
+                          color: const Color(0xEBFFFDF8),
+                          border: Border.all(color: const Color(0xFFE2D5B5)),
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x1F000000),
+                              blurRadius: 26,
+                              offset: Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const Text(
+                              'OCTO7 INDIA',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 24, fontWeight: FontWeight.w800,
+                                color: Color(0xFF1E242B), letterSpacing: .5,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            const Text(
+                              'MEMBER LOGIN',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.w700,
+                                color: Color(0xFFB8892D), letterSpacing: 1,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              'Log in with your OCTO7 User ID and your existing password.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 13, height: 1.4,
+                                color: Color(0xFF4A4A4A),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            TextField(
+                              controller: _identifierController,
+                              keyboardType: TextInputType.number,
+                              textInputAction: TextInputAction.next,
+                              maxLines: 1,
+                              style: const TextStyle(
+                                color: Color(0xFF17233D), fontSize: 15,
+                              ),
+                              decoration: _fieldDecoration(
+                                hint: 'Enter Your User ID',
+                                leading: Icons.badge_outlined,
+                              ),
+                              onChanged: (_) {
+                                if (_error != null) setState(() => _error = null);
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            TextField(
+                              controller: _passwordController,
+                              obscureText: _hidePassword,
+                              textInputAction: TextInputAction.done,
+                              maxLines: 1,
+                              style: const TextStyle(
+                                color: Color(0xFF17233D), fontSize: 15,
+                              ),
+                              decoration: _fieldDecoration(
+                                hint: 'Password',
+                                leading: Icons.lock_outline,
+                                trailing: IconButton(
+                                  tooltip: _hidePassword
+                                      ? 'Show password' : 'Hide password',
+                                  onPressed: () => setState(
+                                    () => _hidePassword = !_hidePassword,
+                                  ),
+                                  icon: Icon(
+                                    _hidePassword
+                                        ? Icons.visibility
+                                        : Icons.visibility_off,
+                                    color: const Color(0xFF3D4856),
+                                    size: 20,
+                                  ),
+                                ),
+                              ),
+                              onSubmitted: (_) => _login(),
+                              onChanged: (_) {
+                                if (_error != null) setState(() => _error = null);
+                              },
+                            ),
+                            if (_error != null) ...[
+                              const SizedBox(height: 10),
+                              Text(
+                                _error!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Color(0xFFC62828), fontSize: 12,
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: 18),
+                            SizedBox(
+                              height: 48,
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color(0xFFE6BE5A), Color(0xFFF5D77F),
+                                      Color(0xFF073B8C), Color(0xFF0A58CA),
+                                      Color(0xFF062F70),
+                                    ],
+                                    stops: [0, .18, .22, .55, 1],
+                                  ),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: const Color(0xFFC99B3B), width: 1.5,
+                                  ),
+                                ),
+                                child: ElevatedButton(
+                                  onPressed: _busy ? null : _login,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.transparent,
+                                    disabledBackgroundColor: Colors.transparent,
+                                    shadowColor: Colors.transparent,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  child: _busy
+                                      ? const SizedBox(
+                                          width: 20, height: 20,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white, strokeWidth: 2,
+                                          ),
+                                        )
+                                      : const Text(
+                                          'MEMBER LOGIN',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w700,
+                                            letterSpacing: .8,
+                                          ),
+                                        ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const MemberPasswordRecoveryScreen(),
+                                ),
+                              ),
+                              child: const Text(
+                                'Forgot Password?',
+                                style: TextStyle(
+                                  color: Color(0xFF222222), fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
 }
+
 class MemberPasswordRecoveryScreen extends StatefulWidget {
   const MemberPasswordRecoveryScreen({super.key});
   @override
