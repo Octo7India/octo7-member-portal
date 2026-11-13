@@ -615,7 +615,7 @@ class MemberPasswordRecoveryScreen extends StatefulWidget {
 }
 class _MemberPasswordRecoveryScreenState extends State<MemberPasswordRecoveryScreen>{
   final _id=TextEditingController(),_code=TextEditingController(),_password=TextEditingController(),_confirm=TextEditingController();
-  String _method='email';String? _recoveryId,_message;bool _sent=false,_verified=false,_busy=false;
+  String _method='email';String? _recoveryId,_message;bool _sent=false,_verified=false,_busy=false,_hideNewPassword=true,_hideConfirmPassword=true;
   @override
   void dispose(){_id.dispose();_code.dispose();_password.dispose();_confirm.dispose();super.dispose();}
   Future<void> _send()async{
@@ -658,8 +658,14 @@ class _MemberPasswordRecoveryScreenState extends State<MemberPasswordRecoveryScr
           TextField(controller:_code,keyboardType:TextInputType.number,maxLength:6,decoration:const InputDecoration(labelText:'6-digit OTP')),
           if(_method=='phone'&&!_verified)ElevatedButton(onPressed:_busy?null:_verify,child:const Text('VERIFY SMS OTP')),
           if(_method=='email'||_verified)...[
-            TextField(controller:_password,obscureText:true,decoration:const InputDecoration(labelText:'New Password')),
-            TextField(controller:_confirm,obscureText:true,decoration:const InputDecoration(labelText:'Confirm New Password')),
+            TextField(controller:_password,obscureText:_hideNewPassword,decoration:InputDecoration(labelText:'New Password',
+              suffixIcon:IconButton(tooltip:_hideNewPassword?'Show password':'Hide password',
+                onPressed:()=>setState(()=>_hideNewPassword=!_hideNewPassword),
+                icon:Icon(_hideNewPassword?Icons.visibility:Icons.visibility_off)))),
+            TextField(controller:_confirm,obscureText:_hideConfirmPassword,decoration:InputDecoration(labelText:'Confirm New Password',
+              suffixIcon:IconButton(tooltip:_hideConfirmPassword?'Show password':'Hide password',
+                onPressed:()=>setState(()=>_hideConfirmPassword=!_hideConfirmPassword),
+                icon:Icon(_hideConfirmPassword?Icons.visibility:Icons.visibility_off)))),
             ElevatedButton(onPressed:_busy?null:_update,child:Text(_busy?'PLEASE WAIT':'UPDATE PASSWORD')),
           ],
         ],
