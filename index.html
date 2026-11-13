@@ -263,6 +263,19 @@ footer .logo {color:white}
 .login-mode-switch{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:0 0 20px}.login-mode-switch button{padding:8px 4px;font-size:13px}
 .login-mode-switch button{min-height:44px;border:1px solid #7040b5;border-radius:7px;background:#fff;color:#7040b5;font-weight:700;cursor:pointer}
 .login-mode-switch button.active{background:#7040b5;color:#fff}
+.member-topbar{justify-content:flex-start;gap:18px;background:#071a2c;margin:-65px -7vw 24px;padding:18px 22px}
+.member-menu-link{width:48px;height:44px;justify-content:center;padding:8px;border:1px solid #ffffff70;border-radius:7px;background:#ffffff12;color:#fff}
+.member-brand{margin-left:auto;color:#fff;font-size:20px;font-weight:800;letter-spacing:1px}
+.member-welcome-screen{max-width:660px;min-height:calc(100vh - 150px);margin:0 auto;padding:28px 22px 34px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;background:radial-gradient(ellipse at 18% 34%,#b77c3c55 0 7%,transparent 22%),radial-gradient(ellipse at 85% 70%,#b77c3c44 0 8%,transparent 24%),linear-gradient(145deg,#17452f,#0c3828 55%,#08291f);border-radius:0 0 18px 18px;box-shadow:0 10px 28px #001b1433}
+.member-welcome-logo{display:block;width:clamp(150px,28vw,210px);height:auto;max-height:210px;object-fit:contain;margin:0 auto 10px}
+.member-welcome-tagline{font-size:clamp(11px,2vw,14px);font-weight:600;letter-spacing:.7px;text-transform:none;color:#e8c58d;margin:2px 0 20px}
+.member-welcome-greeting{font-size:clamp(26px,4vw,34px);font-weight:400;color:#e8c58d;margin:0 0 8px}
+.member-welcome-screen h1{font-size:clamp(27px,5vw,40px);line-height:1.15;margin:0;color:#fff;font-weight:800;overflow-wrap:anywhere}
+.member-welcome-id{margin:8px 0 0;font-size:14px;font-weight:700;letter-spacing:.4px;color:#f0d8ad}
+.member-welcome-copy{margin:24px 0 4px;color:#f1d9b5;font-size:clamp(15px,2.4vw,20px);line-height:1.5}
+.member-welcome-description{max-width:540px;margin:18px auto 0;color:#f4e8d7;font-size:clamp(13px,2vw,16px);line-height:1.6}
+.member-welcome-screen .welcome-status{margin-top:12px}
+@media(max-width:520px){.member-topbar{margin:-48px -6vw 18px;padding:14px 16px}.member-welcome-screen{min-height:calc(100vh - 110px);padding:22px 18px 28px}}
 .member-welcome-simple{text-align:center;max-width:760px;margin:42px auto;padding:0 16px;color:#302044}
 .member-welcome-simple h2{margin:0 0 10px;font-size:clamp(26px,4vw,36px);font-weight:500}
 .member-welcome-simple h1{margin:0;font-size:clamp(30px,5vw,46px);font-weight:800}
@@ -539,8 +552,8 @@ footer .logo {color:white}
 <!-- MEMBER PORTAL -->
 <section id="memberPortal" hidden>
   <div class="member-topbar">
-    <div class="member-brand"><span class="mini-brand" aria-label="OCTO7 India"><span class="mini-o"><span class="mini-universe"></span><span class="mini-globe">🌎</span><span class="mini-stars" aria-hidden="true"><span>✧</span><span>·</span><span>✦</span><span>·</span><span>✧</span></span></span><span class="mini-cto">CTO</span><span class="mini-seven">7</span><span class="mini-india">India</span></span></div>
     <button class="member-menu-link" type="button" aria-label="Open member menu" aria-expanded="false" onclick="toggleMemberMenu(true)"><span class="menu-emblem" aria-hidden="true"><i></i><i></i><i></i></span></button>
+    <div class="member-brand">OCTO7 India</div>
   </div>
   <div id="memberMenuShade" class="menu-shade" onclick="toggleMemberMenu(false)"></div>
   <aside id="memberMenuDrawer" class="member-drawer" aria-label="Member menu" aria-hidden="true">
@@ -571,11 +584,15 @@ footer .logo {color:white}
   <div id="portalMessage" class="message" aria-live="polite"></div>
 
   <div id="homeView" class="portal-view">
-    <div class="member-welcome-simple">
-      <h2>Welcome</h2>
+    <div class="member-welcome-screen">
+      <img class="member-welcome-logo" src="OCTO7_emblem_transparent-2.png" alt="Original OCTO7 logo">
+      <div class="member-welcome-tagline">Together for a better tomorrow</div>
+      <div class="member-welcome-greeting">Welcome</div>
       <h1 id="welcomeMemberName">Loading member...</h1>
-      <div id="welcomeMemberId" class="welcome-member-id"></div>
+      <div id="welcomeMemberId" class="member-welcome-id">Member ID loading...</div>
       <div id="welcomeAccountStatus" class="welcome-status pending" hidden></div>
+      <p class="member-welcome-copy">Plant the seed of effort, harvest a lifetime of success.</p>
+      <p class="member-welcome-description">Discover a world of opportunities through quality products, entrepreneurship and a growing business network.</p>
     </div>
     <div id="welcomeMessage" class="message" aria-live="polite"></div>
   </div>
@@ -1462,7 +1479,7 @@ async function loadMemberWelcome() {
     const name = String(member.full_name || member.name || "").trim();
     if (!name) throw new Error("Your member name is not available in your profile yet.");
     nameEl.textContent = name;
-    if (idEl) { const rawId = String(member.member_id || member.id || "Not assigned").trim(); const formattedId = /^OCTO7\s*/i.test(rawId) ? rawId.toUpperCase() : "OCTO7 " + rawId; idEl.textContent = "User ID: " + formattedId; }
+    if (idEl) { const rawId = String(member.member_id || member.id || "Not assigned").trim(); const formattedId = /^OCTO7\s*/i.test(rawId) ? rawId.toUpperCase() : "OCTO7 " + rawId; idEl.textContent = "Member ID: " + formattedId; }
     if (statusEl) {
       const status = String(member.status || "Pending");
       statusEl.textContent = status;
