@@ -524,7 +524,7 @@ footer .logo {color:white}
 <!-- LOGIN -->
 
 <section class="login-area" id="member-login">
-<div class="login-art" id="loginBox">
+<div class="login-art" id="loginBox" autocomplete="off">
 <div class="login-logo"><img src="OCTO7_emblem_transparent-2.png" alt="OCTO7 India logo"></div>
 <div class="login-card">
 <h2>OCTO7 INDIA</h2>
@@ -533,12 +533,12 @@ footer .logo {color:white}
 <div class="login-input-group">
 <span class="login-leading" aria-hidden="true">♙</span>
 <span class="login-id-prefix" aria-hidden="true">OCTO7</span>
-<input id="memberNumberInput" type="password" inputmode="numeric" autocomplete="username" placeholder="Enter number only" aria-label="Enter OCTO7 User ID number">
+<input id="memberNumberInput" name="octo7_member_number" type="password" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" data-lpignore="true" placeholder="Enter number only" aria-label="Enter OCTO7 User ID number">
 <button type="button" class="eye-button" onclick="togglePassword('memberNumberInput',this)" aria-label="Show User ID">👁</button>
 </div>
 <div class="login-input-group">
 <span class="login-leading" aria-hidden="true">🔒</span>
-<input id="password" type="password" autocomplete="current-password" placeholder="Password" aria-label="Password">
+<input id="password" name="octo7_member_password" type="password" autocomplete="new-password" autocapitalize="off" spellcheck="false" data-lpignore="true" placeholder="Password" aria-label="Password">
 <button type="button" class="eye-button" onclick="togglePassword('password',this)" aria-label="Show password">👁</button>
 </div>
 <input id="email" type="hidden">
