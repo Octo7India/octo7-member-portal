@@ -457,7 +457,7 @@ footer .logo {color:white}
 #genealogyViewport{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;overflow:hidden!important;display:block!important;z-index:1!important;background:#17151c!important;border:0!important;border-radius:0!important;padding:0!important;touch-action:none!important;user-select:none!important;-webkit-user-select:none!important;overscroll-behavior:none!important;cursor:grab!important}
 #genealogyViewport.dragging{cursor:grabbing!important}
 #genealogyCanvas{position:absolute!important;top:0!important;left:0!important;width:4000px!important;height:1100px!important;min-width:4000px!important;flex:none!important;margin:0!important;transform-origin:0 0!important;will-change:transform!important;overflow:visible!important}
-#genealogyCanvas .connector-path{fill:none!important;stroke:#5fb3b3!important;stroke-width:2px!important;stroke-linecap:round!important;stroke-linejoin:round!important;vector-effect:non-scaling-stroke!important}
+#genealogyCanvas .connector-path{fill:none!important;stroke:#5fb3b3!important;stroke-width:2.5px!important;stroke-linecap:round!important;stroke-linejoin:round!important;vector-effect:non-scaling-stroke!important}
 #genealogyCanvas .genealogy-connectors{position:absolute!important;top:0!important;left:0!important;width:4000px!important;height:1100px!important;z-index:0!important;overflow:visible!important;pointer-events:none!important}
 #genealogyCanvas .genealogy-expand-layer{position:absolute!important;inset:0!important;width:4000px!important;height:1100px!important;z-index:2!important;overflow:visible!important;pointer-events:none!important}
 #genealogyCanvas .genealogy-slot{position:absolute!important;box-sizing:border-box!important;z-index:2!important;display:flex!important;align-items:center!important;justify-content:center!important;transform:translateX(-50%)!important;pointer-events:auto!important}
@@ -1658,10 +1658,15 @@ function renderGenealogyNode(root){
     const sx=parent.x,sy=parent.y+parent.h;
     const ex=child.x,ey=child.y;
     const verticalGap=ey-sy;
-    const curve=Math.max(34,verticalGap*0.68);
-    // A smooth S-shaped cubic curve from the parent's bottom centre
-    // to the child's top centre; every occupied and vacant slot gets its own link.
-    paths.push('<path class="connector-path" d="M '+sx+' '+sy+' C '+sx+' '+(sy+curve)+', '+ex+' '+(ey-curve)+', '+ex+' '+ey+'"/>');
+    const dx=ex-sx;
+    const handle=Math.max(42,verticalGap*0.82);
+    const sweep=Math.abs(dx)*0.22;
+    const direction=Math.sign(dx);
+    // A visibly curved, flowing branch from each parent directly to its child.
+    // The handles sweep outward first, then turn smoothly into the child card.
+    const c1x=sx+direction*sweep;
+    const c2x=ex-direction*sweep;
+    paths.push('<path class="connector-path" d="M '+sx+' '+sy+' C '+c1x+' '+(sy+handle)+', '+c2x+' '+(ey-handle)+', '+ex+' '+ey+'"/>');
   }
   const cards=slots.map(slot=>{
     let inner="";
