@@ -1661,7 +1661,8 @@ function renderGenealogyNode(root){
     // Each branch leaves the parent vertically, bends smoothly across, then
     // enters the child vertically (the characteristic S-shaped connection).
     const midY=(sy+ey)/2;
-    paths.push('<path class="connector-path" d="M '+sx+' '+sy+' C '+sx+' '+midY+', '+ex+' '+midY+', '+ex+' '+ey+'"/>');
+    const rootBranch=parent.level===0;
+    paths.push('<path class="connector-path" '+(rootBranch?'data-root-branch="true" data-end-x="'+ex+'" data-end-y="'+ey+'"':'')+' d="M '+sx+' '+sy+' C '+sx+' '+midY+', '+ex+' '+midY+', '+ex+' '+ey+'"/>');
   }
   const cards=slots.map(slot=>{
     let inner="";
@@ -1673,7 +1674,7 @@ function renderGenealogyNode(root){
       const canRegister=slot.parentPositionId>0;
       inner='<button type="button" class="binary-empty" '+(canRegister?'onclick="openMemberRegistration('+slot.parentPositionId+', '+JSON.stringify(slot.side)+')"':'disabled')+' aria-label="'+(canRegister?'Create member in available '+slot.side+' position':'Unavailable position')+'">'+(canRegister?slot.side.toUpperCase():'—')+(canRegister?'<small>Available</small>':'')+'</button>';
     }
-    return '<div class="genealogy-slot" style="left:'+slot.x+'px;top:'+slot.y+'px;width:'+slot.w+'px;height:'+slot.h+'px">'+inner+'</div>';
+    return '<div class="genealogy-slot '+(slot.level===0?'genealogy-root-slot':'')+'" style="left:'+slot.x+'px;top:'+slot.y+'px;width:'+slot.w+'px;height:'+slot.h+'px">'+inner+'</div>';
   });
   return '<svg class="genealogy-connectors" viewBox="0 0 4000 900" aria-hidden="true">'+paths.join("")+'</svg><div class="genealogy-expand-layer">'+cards.join("")+'</div>';
 }
@@ -1713,9 +1714,21 @@ function setupGenealogyControls(){
   let scale=.81,x=0,y=0,gesture=null,mouse=null,suppressClickUntil=0;
   const label=document.getElementById("genealogyZoomLabel");
   const clamp=v=>Math.max(.25,Math.min(2.5,v));
+  let pinnedRoot=null;
   const apply=()=>{
     canvas.style.transform="translate("+x+"px,"+y+"px) scale("+scale+")";
     if(label)label.textContent=Math.round(scale*100)+"%";
+    if(pinnedRoot){
+      const viewRect=view.getBoundingClientRect();
+      const rootRect=pinnedRoot.getBoundingClientRect();
+      const sx=(rootRect.left+rootRect.width/2-viewRect.left-x)/scale;
+      const sy=(rootRect.bottom-viewRect.top-y)/scale;
+      canvas.querySelectorAll('.connector-path[data-root-branch="true"]').forEach(path=>{
+        const ex=Number(path.dataset.endX),ey=Number(path.dataset.endY);
+        const midY=(sy+ey)/2;
+        path.setAttribute("d","M "+sx+" "+sy+" C "+sx+" "+midY+", "+ex+" "+midY+", "+ex+" "+ey);
+      });
+    }
   };
   const focalZoom=(next,cx,cy)=>{
     const ratio=next/scale;
@@ -1727,6 +1740,17 @@ function setupGenealogyControls(){
     y=120-(220*scale);
     apply();
   };
+  // Keep Founder ID 1 anchored to the screen while every other node and
+  // every branch remains on the movable/zoomable genealogy canvas.
+  const rootCard=canvas.querySelector('.binary-card.root');
+  if(rootCard && rootCard.dataset.genealogyMember==="1"){
+    const rootSlot=rootCard.closest(".genealogy-slot");
+    if(rootSlot)rootSlot.style.visibility="hidden";
+    pinnedRoot=rootCard.cloneNode(true);
+    pinnedRoot.removeAttribute("id");
+    pinnedRoot.style.cssText="position:fixed!important;top:120px!important;left:50%!important;transform:translateX(-50%)!important;width:90px!important;height:62px!important;box-sizing:border-box!important;padding:8px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;z-index:30!important;pointer-events:auto!important;background:#25212e!important;color:#fff!important;border:2px solid #f39c12!important;border-radius:8px!important;box-shadow:0 4px 10px rgba(0,0,0,.4)!important;cursor:pointer!important";
+    view.appendChild(pinnedRoot);
+  }
   const zoomBy=delta=>focalZoom(clamp(scale+delta),window.innerWidth/2,window.innerHeight/2);
   document.getElementById("genealogyZoomIn")?.addEventListener("click",()=>zoomBy(.15));
   document.getElementById("genealogyZoomOut")?.addEventListener("click",()=>zoomBy(-.15));
