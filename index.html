@@ -416,13 +416,13 @@ footer .logo {color:white}
 <h3 style="text-align:center;color:#49306c">Reset Your Password</h3>
 <label for="recoveryMemberId">OCTO7 User ID</label><input id="recoveryMemberId" type="text" inputmode="numeric" placeholder="Enter your User ID number">
 <label for="recoveryMethod">Verification Method</label><select id="recoveryMethod" class="recovery-method" onchange="updateRecoveryContactLabel()"><option value="email">Email OTP</option><option value="phone">Mobile SMS OTP</option></select>
-<label for="recoveryDestination" id="recoveryDestinationLabel">Registered Email Address</label><input id="recoveryDestination" type="text" placeholder="Enter your registered email">
+
 <button class="btn" id="recoveryButton" onclick="sendRecoveryCode()">SEND OTP</button>
 <div id="recoveryCodeFields" hidden>
 <label for="recoveryCode">6-digit Verification Code</label><input id="recoveryCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Enter OTP">
-<label for="newPassword">New Password</label><div class="password-box"><input id="newPassword" type="password" autocomplete="new-password" placeholder="Enter your new password"><button type="button" class="eye-button" onclick="togglePassword('newPassword',this)" aria-label="Show password">👁</button></div>
+<button class="btn" id="verifyRecoveryButton" onclick="verifyMemberRecoverySms()" hidden>VERIFY SMS OTP</button><div id="recoveryPasswordFields"><label for="newPassword">New Password</label><div class="password-box"><input id="newPassword" type="password" autocomplete="new-password" placeholder="Enter your new password"><button type="button" class="eye-button" onclick="togglePassword('newPassword',this)" aria-label="Show password">👁</button></div>
 <label for="confirmPassword">Confirm New Password</label><div class="password-box"><input id="confirmPassword" type="password" autocomplete="new-password" placeholder="Confirm your new password"><button type="button" class="eye-button" onclick="togglePassword('confirmPassword',this)" aria-label="Show password">👁</button></div>
-<button class="btn" id="updatePasswordButton" onclick="updatePassword()">UPDATE PASSWORD</button></div>
+<button class="btn" id="updatePasswordButton" onclick="updatePassword()">UPDATE PASSWORD</button></div></div>
 <button class="btn" onclick="showLoginForm()">BACK TO LOGIN</button><div id="recoveryMessage" class="message" aria-live="polite"></div>
 </div></section>
 
@@ -887,13 +887,62 @@ function goMemberMenu(item) {
 
  // LOGIN / RECOVERY FORMS
  let passwordRecoveryId=null;
- function showLoginForm(){document.getElementById("loginBox").hidden=false;document.getElementById("forgotBox").hidden=true;document.getElementById("recoveryCodeFields").hidden=true;document.getElementById("recoveryButton").hidden=false;passwordRecoveryId=null;}
- function showForgotForm(){document.getElementById("loginBox").hidden=true;document.getElementById("forgotBox").hidden=false;document.getElementById("recoveryMemberId").value=document.getElementById("memberNumberInput").value.trim();document.getElementById("recoveryDestination").value="";document.getElementById("recoveryCode").value="";document.getElementById("newPassword").value="";document.getElementById("confirmPassword").value="";document.getElementById("recoveryCodeFields").hidden=true;document.getElementById("recoveryButton").hidden=false;passwordRecoveryId=null;updateRecoveryContactLabel();document.getElementById("member-login").scrollIntoView();}
- function updateRecoveryContactLabel(){const method=document.getElementById("recoveryMethod").value;document.getElementById("recoveryDestinationLabel").textContent=method==="email"?"Registered Email Address":"Registered Mobile Number (include country code)";document.getElementById("recoveryDestination").type=method==="email"?"email":"tel";document.getElementById("recoveryDestination").placeholder=method==="email"?"Enter your registered email":"Enter mobile number with country code";}
- async function publicRecoveryApi(action,payload){const response=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY},body:JSON.stringify({action,...payload})});const data=await response.json().catch(()=>({}));if(!response.ok||data.success!==true)throw new Error(data.error||data.message||"Password recovery request failed.");return data;}
- async function sendRecoveryCode(){const memberId=document.getElementById("recoveryMemberId").value.trim(),method=document.getElementById("recoveryMethod").value,destination=document.getElementById("recoveryDestination").value.trim(),button=document.getElementById("recoveryButton");if(!memberId||!destination){showMessage("recoveryMessage","Enter your OCTO7 User ID and registered contact.",true);return;}button.disabled=true;button.textContent="SENDING...";try{const result=await publicRecoveryApi("start_password_recovery",{member_id:memberId,method,destination});passwordRecoveryId=result.verification_id||null;if(passwordRecoveryId){document.getElementById("recoveryCodeFields").hidden=false;button.hidden=true;showMessage("recoveryMessage","Verification code sent to "+(result.destination||"your registered contact")+". It expires in 10 minutes.");}else showMessage("recoveryMessage",result.message||"If the details match, a code has been sent.");}catch(error){showMessage("recoveryMessage",error.message||"Could not send the OTP.",true);}finally{button.disabled=false;button.textContent="SEND OTP";}}
- async function updatePassword(){const code=document.getElementById("recoveryCode").value.trim(),password=document.getElementById("newPassword").value,confirm=document.getElementById("confirmPassword").value,button=document.getElementById("updatePasswordButton");if(!passwordRecoveryId){showMessage("recoveryMessage","Request a new OTP first.",true);return;}if(!/^\\d{6}$/.test(code)){showMessage("recoveryMessage","Enter the six-digit verification code.",true);return;}if(password.length<8||password.length>72){showMessage("recoveryMessage","Password must contain 8 to 72 characters.",true);return;}if(password!==confirm){showMessage("recoveryMessage","Passwords do not match.",true);return;}button.disabled=true;button.textContent="UPDATING...";try{const result=await publicRecoveryApi("complete_password_recovery",{verification_id:passwordRecoveryId,code,new_password:password});showMessage("recoveryMessage",result.message||"Password updated successfully.");document.getElementById("recoveryCode").value="";document.getElementById("newPassword").value="";document.getElementById("confirmPassword").value="";passwordRecoveryId=null;setTimeout(()=>{showLoginForm();showMessage("loginMessage","Your password has been updated. Please log in.");},1500);}catch(error){showMessage("recoveryMessage",error.message||"Password recovery failed.",true);}finally{button.disabled=false;button.textContent="UPDATE PASSWORD";}}
-// API CONNECTION
+ let passwordRecoveryMethod="email";
+ let passwordRecoverySmsVerified=false;
+ function showLoginForm(){
+   document.getElementById("loginBox").hidden=false;document.getElementById("forgotBox").hidden=true;
+   document.getElementById("recoveryCodeFields").hidden=true;document.getElementById("recoveryButton").hidden=false;passwordRecoveryId=null;
+ }
+ function showForgotForm(){
+   document.getElementById("loginBox").hidden=true;document.getElementById("forgotBox").hidden=false;
+   document.getElementById("recoveryMemberId").value=document.getElementById("memberNumberInput").value.trim();
+   document.getElementById("recoveryCode").value="";document.getElementById("newPassword").value="";document.getElementById("confirmPassword").value="";
+   document.getElementById("recoveryCodeFields").hidden=true;document.getElementById("recoveryButton").hidden=false;
+   document.getElementById("verifyRecoveryButton").hidden=true;document.getElementById("recoveryPasswordFields").hidden=true;
+   passwordRecoveryId=null;updateRecoveryContactLabel();document.getElementById("member-login").scrollIntoView();
+ }
+ function updateRecoveryContactLabel(){const method=document.getElementById("recoveryMethod").value;document.getElementById("recoveryMethod").setAttribute("aria-label",method==="email"?"Send OTP to registered email":"Send OTP to registered mobile");}
+ async function publicRecoveryApi(action,payload){
+   const response=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY},body:JSON.stringify({action,...payload})});
+   const data=await response.json().catch(()=>({}));if(!response.ok||data.success!==true)throw new Error(data.error||data.message||"Password recovery request failed.");return data;
+ }
+ async function sendRecoveryCode(){
+   const memberId=document.getElementById("recoveryMemberId").value.trim(),method=document.getElementById("recoveryMethod").value,button=document.getElementById("recoveryButton");
+   if(!/^[0-9]{1,20}$/.test(memberId)){showMessage("recoveryMessage","Enter your OCTO7 User ID number.",true);return;}
+   button.disabled=true;button.textContent="SENDING...";
+   try{const result=await publicRecoveryApi("start_member_password_recovery",{member_id:memberId,method});
+     passwordRecoveryId=result.recovery_id;passwordRecoveryMethod=method;passwordRecoverySmsVerified=false;
+     document.getElementById("recoveryCodeFields").hidden=false;document.getElementById("recoveryButton").hidden=true;
+     document.getElementById("verifyRecoveryButton").hidden=method!=="phone";
+     document.getElementById("recoveryPasswordFields").hidden=method==="phone";
+     showMessage("recoveryMessage","OTP sent to "+(result.destination||"your registered contact")+". It expires in 10 minutes.");
+   }catch(error){showMessage("recoveryMessage",error.message||"Could not send the OTP.",true);}
+   finally{button.disabled=false;button.textContent="SEND OTP";}
+ }
+ async function verifyMemberRecoverySms(){
+   if(!passwordRecoveryId)return;const button=document.getElementById("verifyRecoveryButton");button.disabled=true;button.textContent="VERIFYING...";
+   try{await publicRecoveryApi("verify_member_password_recovery_sms",{recovery_id:passwordRecoveryId,code:document.getElementById("recoveryCode").value.trim()});
+     passwordRecoverySmsVerified=true;document.getElementById("recoveryPasswordFields").hidden=false;showMessage("recoveryMessage","Mobile verified. Create your new password.");
+   }catch(error){showMessage("recoveryMessage",error.message||"SMS verification failed.",true);}
+   finally{button.disabled=false;button.textContent="VERIFY SMS OTP";}
+ }
+ async function updatePassword(){
+   const code=document.getElementById("recoveryCode").value.trim(),password=document.getElementById("newPassword").value,confirm=document.getElementById("confirmPassword").value,button=document.getElementById("updatePasswordButton");
+   if(!passwordRecoveryId){showMessage("recoveryMessage","Request a new OTP first.",true);return;}
+   if(passwordRecoveryMethod==="email"&&!/^\\d{6}$/.test(code)){showMessage("recoveryMessage","Enter the six-digit email code.",true);return;}
+   if(passwordRecoveryMethod==="phone"&&!passwordRecoverySmsVerified){showMessage("recoveryMessage","Verify your SMS code first.",true);return;}
+   if(password.length<8||password.length>72){showMessage("recoveryMessage","Password must contain 8 to 72 characters.",true);return;}
+   if(password!==confirm){showMessage("recoveryMessage","Passwords do not match.",true);return;}
+   button.disabled=true;button.textContent="UPDATING...";
+   try{const result=await publicRecoveryApi("complete_member_password_recovery",{recovery_id:passwordRecoveryId,method:passwordRecoveryMethod,code:passwordRecoveryMethod==="email"?code:"",password});
+     showMessage("recoveryMessage",result.message||"Password updated successfully. You can now log in.");
+     document.getElementById("recoveryCodeFields").hidden=true;document.getElementById("recoveryCode").value="";
+     document.getElementById("newPassword").value="";document.getElementById("confirmPassword").value="";passwordRecoveryId=null;
+     setTimeout(()=>showLoginForm(),1800);
+   }catch(error){showMessage("recoveryMessage",error.message||"Password recovery failed.",true);}
+   finally{button.disabled=false;button.textContent="UPDATE PASSWORD";}
+ }
+ API CONNECTION
 
 async function api(action, payload = {}) {
   // Member-ID sessions use their own seven-day token. Restore it if the page
