@@ -186,7 +186,7 @@ input {
 .genealogy-viewport.dragging{cursor:grabbing;user-select:none}
 .genealogy-canvas{position:relative;display:block;flex:0 0 370px;width:370px;height:340px;min-width:370px;transform:none;transform-origin:185px 54px;margin:0 auto;overflow:visible}
 .genealogy-expand-layer{position:absolute;inset:0;width:370px;height:340px;transform-origin:185px 54px;will-change:transform;overflow:visible}
-.genealogy-connectors{position:absolute;inset:0;width:370px;height:340px;pointer-events:none;z-index:1;overflow:visible}
+.genealogy-connectors{position:absolute;inset:0;width:370px;height:340px;pointer-events:none;z-index:1;overflow:visible;transform:none}
 .genealogy-slot{position:absolute;box-sizing:border-box;z-index:2;display:flex;align-items:center;justify-content:center}
 .binary-card{box-sizing:border-box;width:100%;height:100%;border:1.5px solid #7040b5;border-radius:4px;background:#fff;color:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 2px 7px #00000012;padding:2px;line-height:1.1;font-family:inherit}
 .binary-card.root{background:#102238;border:2px solid #d6a84b;color:#fff}
@@ -1584,7 +1584,7 @@ function renderGenealogyNode(root){
   });
   const rootCard=cards[0];
   const expandingCards=cards.slice(1).join("").replace(/<!--EXPAND_NODE-->/g,"");
-  return rootCard+'<div class="genealogy-expand-layer"><svg class="genealogy-connectors" viewBox="0 0 370 340" aria-hidden="true">'+paths.join("")+'</svg>'+expandingCards+'</div>';
+  return rootCard+'<svg class="genealogy-connectors" viewBox="0 0 370 340" aria-hidden="true">'+paths.join("")+'</svg><div class="genealogy-expand-layer">'+expandingCards+'</div>';
 }
 
 let genealogyCurrentMemberId=null;
@@ -1628,11 +1628,36 @@ function setupGenealogyControls(){
   let suppressClickUntil=0;
   const label=document.getElementById("genealogyZoomLabel");
   const clamp=value=>Math.max(.4,Math.min(2.4,value));
+  const connectorSvg=canvas.querySelector(".genealogy-connectors");
   const apply=()=>{
-    // The selected root card is outside this layer and never scales or moves.
-    // All descendant cards and connectors expand from the root's bottom-centre.
+    // Keep the selected root card fixed. Descendant cards expand from its bottom-centre.
     expandLayer.style.transformOrigin="185px 54px";
     expandLayer.style.transform="scale("+scale+")";
+    // Recompute every parent-to-child edge independently from the live card rectangles.
+    // The SVG is outside the transformed card layer, so only its path geometry stretches.
+    if(connectorSvg){
+      const slots=Array.from(canvas.querySelectorAll(".genealogy-slot"));
+      const rects=slots.map((slot,index)=>{
+        const left=parseFloat(slot.style.left)||0,top=parseFloat(slot.style.top)||0;
+        const width=parseFloat(slot.style.width)||0,height=parseFloat(slot.style.height)||0;
+        if(index===0)return {left,top,width,height};
+        return {left:185+(left-185)*scale,top:54+(top-54)*scale,width:width*scale,height:height*scale};
+      });
+      const paths=[];
+      for(let parentIndex=0;parentIndex<7;parentIndex++){
+        const parent=rects[parentIndex];
+        if(!parent)continue;
+        for(const childIndex of [parentIndex*2+1,parentIndex*2+2]){
+          const child=rects[childIndex];
+          if(!child)continue;
+          const sx=parent.left+parent.width/2,sy=parent.top+parent.height;
+          const ex=child.left+child.width/2,ey=child.top;
+          const bend=Math.max(8,Math.abs(ey-sy)*.48);
+          paths.push('<path d="M '+sx.toFixed(2)+' '+sy.toFixed(2)+' C '+sx.toFixed(2)+' '+(sy+bend).toFixed(2)+' '+ex.toFixed(2)+' '+(ey-bend).toFixed(2)+' '+ex.toFixed(2)+' '+ey.toFixed(2)+'" fill="none" stroke="#2c7a7b" stroke-width="1.6" stroke-linecap="round"/>');
+        }
+      }
+      connectorSvg.innerHTML=paths.join("");
+    }
     if(label)label.textContent=Math.round(scale*100)+"%";
   };
   const fit=()=>{
