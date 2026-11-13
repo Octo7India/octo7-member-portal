@@ -1718,7 +1718,7 @@ function setupGenealogyControls(){
     // it vertically out of the viewport. Do not alter its top coordinate:
     // changing top caused the card/connector anchor to jump during gestures.
     pinnedRoot.style.setProperty("top","120px","important");
-    pinnedRoot.style.setProperty("transform",lifted?"translateX(-50%) translateY(-220px)":"translateX(-50%)","important");
+    pinnedRoot.style.setProperty("transform",lifted?"translateX(-50%) translateY(-200vh)":"translateX(-50%)","important");
     apply();
   };
   const apply=()=>{
@@ -1759,7 +1759,7 @@ function setupGenealogyControls(){
     // Move the real ID 1 card out of the transformed canvas. Do not clone it:
     // the original member button itself stays fixed while the rest of the tree moves.
     pinnedRoot=rootCard;
-    pinnedRoot.style.cssText="visibility:visible!important;position:fixed!important;top:120px!important;left:50%!important;transform:translateX(-50%)!important;transition:transform 140ms linear!important;width:90px!important;height:62px!important;box-sizing:border-box!important;padding:8px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;z-index:30!important;pointer-events:auto!important;background:#25212e!important;color:#fff!important;border:2px solid #f39c12!important;border-radius:8px!important;box-shadow:0 4px 10px rgba(0,0,0,.4)!important;cursor:pointer!important;transition:none!important";
+    pinnedRoot.style.cssText="visibility:visible!important;position:fixed!important;top:120px!important;left:50%!important;transform:translateX(-50%)!important;transition:transform 180ms linear!important;width:90px!important;height:62px!important;box-sizing:border-box!important;padding:8px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;z-index:30!important;pointer-events:auto!important;background:#25212e!important;color:#fff!important;border:2px solid #f39c12!important;border-radius:8px!important;box-shadow:0 4px 10px rgba(0,0,0,.4)!important;cursor:pointer!important";
     view.appendChild(pinnedRoot);
     const brand=pinnedRoot.querySelector(".binary-brand");
     const number=pinnedRoot.querySelector(".binary-id");
