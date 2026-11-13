@@ -1934,7 +1934,7 @@ class _BinaryTreeViewScreenState extends State<BinaryTreeViewScreen> {
             child:Column(children:[
               Padding(padding:const EdgeInsets.only(top:10,bottom:4),child:Text(root.id+'  •  Tap any ID to view its downline',textAlign:TextAlign.center,style:TextStyle(color:Colors.white.withOpacity(.65),fontSize:11.5))),
               Expanded(child:LayoutBuilder(builder:(context,c){
-                final cx=c.maxWidth/2,top=_permanentTopAnchorY+_verticalPanOffset;
+                final cx=c.maxWidth/2,top=_permanentTopAnchorY; // Keep the selected root fixed; pan only descendant cards and their connector lines.
                 return GestureDetector(behavior:HitTestBehavior.opaque,
                   onScaleStart:(d){_baseZoomScale=_zoomScale;},
                   onScaleUpdate:(d){setState((){
