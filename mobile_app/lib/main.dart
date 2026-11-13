@@ -462,56 +462,69 @@ class MemberWelcomeScreen extends StatelessWidget {
           ),
           body: Container(
             width: double.infinity,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft, end: Alignment.bottomRight,
-                colors: [Color(0xFF17452F), Color(0xFF0C3828), Color(0xFF08291F)],
-              ),
-            ),
+            color: const Color(0xFF071426),
             child: SafeArea(child: Center(child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 28),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 440),
-                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Image.asset('assets/images/OCTO7_emblem_transparent-2.png',
-                    width: 190, height: 190, fit: BoxFit.contain),
-                  const SizedBox(height: 4),
-                  const Text('Together for a better tomorrow',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Color(0xFFE8C58D), fontSize: 12,
-                      fontWeight: FontWeight.w600, letterSpacing: .7)),
-                  const SizedBox(height: 22),
-                  const Text('Welcome',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Color(0xFFE8C58D), fontSize: 29,
-                      fontWeight: FontWeight.w400)),
-                  const SizedBox(height: 8),
-                  if (snapshot.connectionState == ConnectionState.waiting)
-                    const CircularProgressIndicator(color: Color(0xFFD6A84B))
-                  else if (snapshot.hasError)
-                    const Text('Unable to load member details. Open Dashboard from the menu.',
-                      textAlign: TextAlign.center, style: TextStyle(color: Colors.orangeAccent))
-                  else ...[
-                    Text(name.isEmpty ? 'OCTO7 Member' : name,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.white, fontSize: 26,
-                        fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    Text('Member ID: $memberId', textAlign: TextAlign.center,
-                      style: const TextStyle(color: Color(0xFFF0D8AD),
-                        fontSize: 14, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 24),
-                    const Text('Plant the seed of effort, harvest a lifetime of success.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Color(0xFFF1D9B5), fontSize: 17, height: 1.5)),
-                    const SizedBox(height: 18),
-                    const Text('Discover a world of opportunities through quality products, entrepreneurship and a growing business network.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Color(0xFFF4E8D7), fontSize: 14, height: 1.6)),
-                  ],
-                ]),
+                constraints: const BoxConstraints(maxWidth: 520),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD8D0C3),
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 24, offset: Offset(0, 10))],
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(22, 34, 22, 28),
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
+                          colors: [Color(0xFF173E2C), Color(0xFF17472F), Color(0xFF092B20)]),
+                      ),
+                      child: Column(mainAxisSize: MainAxisSize.min, children: [
+                        const Text('OCTO7', style: TextStyle(color: Color(0xFFF3EEE3), fontSize: 48,
+                          fontWeight: FontWeight.w800, letterSpacing: 3, shadows: [Shadow(color: Colors.black54, blurRadius: 5, offset: Offset(0, 3))])),
+                        const SizedBox(height: 12),
+                        Image.asset('assets/images/OCTO7_emblem_transparent-2.png',
+                          width: 230, height: 230, fit: BoxFit.contain),
+                        const SizedBox(height: 8),
+                        const Text('Together for a better tomorrow', textAlign: TextAlign.center,
+                          style: TextStyle(color: Color(0xFFD6A15F), fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: .5)),
+                        const SizedBox(height: 26),
+                        const Text('Welcome', style: TextStyle(color: Color(0xFFE9C39C), fontSize: 32)),
+                        const SizedBox(height: 8),
+                        if (snapshot.connectionState == ConnectionState.waiting)
+                          const CircularProgressIndicator(color: Color(0xFFD6A84B))
+                        else if (snapshot.hasError)
+                          const Text('Unable to load member details. Open Dashboard from the menu.',
+                            textAlign: TextAlign.center, style: TextStyle(color: Colors.orangeAccent))
+                        else ...[
+                          Text(name.isEmpty ? 'OCTO7 Member' : name, textAlign: TextAlign.center,
+                            style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 8),
+                          Text('Member ID: $memberId', textAlign: TextAlign.center,
+                            style: const TextStyle(color: Color(0xFFF0D7B7), fontSize: 15, fontWeight: FontWeight.w700)),
+                          const SizedBox(height: 22),
+                          const Text('Plant the Seed of Effort, Harvest a Lifetime of Success.',
+                            textAlign: TextAlign.center, style: TextStyle(color: Color(0xFFE7C59E), fontSize: 18, height: 1.45)),
+                          const SizedBox(height: 34),
+                          const Text('Discover a world of opportunities through quality products, entrepreneurship and growing business network.',
+                            textAlign: TextAlign.center, style: TextStyle(color: Color(0xFFEADCC9), fontSize: 15, height: 1.5)),
+                        ],
+                      ]),
+                    ),
+                    const Padding(padding: EdgeInsets.symmetric(vertical: 10),
+                      child: Column(children: [
+                        Text('OCTO7 India', style: TextStyle(color: Color(0xFF153C28), fontSize: 18, fontWeight: FontWeight.bold)),
+                        Text('Dream. Network. Grow.', style: TextStyle(color: Color(0xFF153C28), fontSize: 13)),
+                      ]),
+                    ),
+                  ]),
+                ),
               ),
             ))),
+
           ),
         );
       },
