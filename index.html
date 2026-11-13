@@ -1715,6 +1715,7 @@ function setupGenealogyControls(){
     if(!pinnedRoot||pinnedRootLifted===lifted)return;
     pinnedRootLifted=lifted;
     pinnedRoot.style.setProperty("top",lifted?"-90px":"120px","important");
+    pinnedRoot.style.setProperty("visibility",lifted?"hidden":"visible","important");
     apply();
   };
   const apply=()=>{
@@ -1791,7 +1792,7 @@ function setupGenealogyControls(){
       if(gesture.moved){e.preventDefault();x+=dx;y+=dy;gesture.x=t.clientX;gesture.y=t.clientY;apply();suppressClickUntil=Date.now()+350;}
     }
   },{passive:false});
-  const endTouch=()=>{gesture=null;setPinnedRootLifted(false);};
+  const endTouch=e=>{if(e.touches&&e.touches.length>0){gesture=null;return;}gesture=null;setPinnedRootLifted(false);};
   view.addEventListener("touchend",endTouch,{passive:true});
   view.addEventListener("touchcancel",endTouch,{passive:true});
   view.addEventListener("mousedown",e=>{if(e.button!==0)return;mouse={x:e.clientX,y:e.clientY,moved:false};view.classList.add("dragging");});
