@@ -1765,52 +1765,75 @@ function setupGenealogyControls(){
   document.getElementById("genealogyZoomIn")?.addEventListener("click",()=>zoomBy(.15));
   document.getElementById("genealogyZoomOut")?.addEventListener("click",()=>zoomBy(-.15));
   document.getElementById("genealogyFit")?.addEventListener("click",reset);
-  const distance=(a,b)=>Math.hypot(b.clientX-a.clientX,b.clientY-a.clientY);
-  const midpoint=(a,b)=>({x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2});
-  view.addEventListener("touchstart",e=>{
-    touchActive=true;lastTouchAt=Date.now();
-    if(e.touches.length===2){
-      e.preventDefault();const mid=midpoint(e.touches[0],e.touches[1]);
-      gesture={mode:"pinch",distance:distance(e.touches[0],e.touches[1]),scale,midX:mid.x,midY:mid.y};
+  const activePointers=new Map();
+  let pointerGesture=null,lastPointerAt=0;
+  const pointerDistance=(a,b)=>Math.hypot(b.x-a.x,b.y-a.y);
+  const pointerMidpoint=(a,b)=>({x:(a.x+b.x)/2,y:(a.y+b.y)/2});
+  const refreshPointerGesture=()=>{
+    const points=[...activePointers.values()];
+    if(points.length>=2){
+      const mid=pointerMidpoint(points[0],points[1]);
+      pointerGesture={mode:"pinch",distance:pointerDistance(points[0],points[1]),scale,midX:mid.x,midY:mid.y};
       setPinnedRootLifted(true);
-    }else if(e.touches.length===1){
-      gesture={mode:"pan",x:e.touches[0].clientX,y:e.touches[0].clientY,moved:false};
+    }else if(points.length===1){
+      pointerGesture={mode:"pan",x:points[0].x,y:points[0].y,moved:activePointers.size>0};
+    }else{
+      pointerGesture=null;
+      setPinnedRootLifted(false);
     }
-  },{passive:false});
-  view.addEventListener("touchmove",e=>{
-    if(!gesture)return;
-    if(gesture.mode==="pinch"&&e.touches.length>=2){
-      e.preventDefault();
-      const mid=midpoint(e.touches[0],e.touches[1]);
-      const next=clamp(gesture.scale*distance(e.touches[0],e.touches[1])/Math.max(1,gesture.distance));
-      const ratio=next/scale;
-      x=mid.x-(mid.x-x)*ratio;y=mid.y-(mid.y-y)*ratio;scale=next;
-      x+=mid.x-gesture.midX;y+=mid.y-gesture.midY;
-      gesture.midX=mid.x;gesture.midY=mid.y;apply();suppressClickUntil=Date.now()+450;
-    }else if(gesture.mode==="pan"&&e.touches.length===1){
-      const t=e.touches[0],dx=t.clientX-gesture.x,dy=t.clientY-gesture.y;
-      if(Math.hypot(dx,dy)>3&&!gesture.moved){gesture.moved=true;setPinnedRootLifted(true);}
-      if(gesture.moved){e.preventDefault();x+=dx;y+=dy;gesture.x=t.clientX;gesture.y=t.clientY;apply();suppressClickUntil=Date.now()+350;}
-    }
-  },{passive:false});
-  const endTouch=e=>{
-    if(e.touches&&e.touches.length>0){
-      if(e.touches.length===1)gesture={mode:"pan",x:e.touches[0].clientX,y:e.touches[0].clientY,moved:true};
-      return;
-    }
-    touchActive=false;gesture=null;setPinnedRootLifted(false);
   };
-  view.addEventListener("touchend",endTouch,{passive:true});
-  view.addEventListener("touchcancel",endTouch,{passive:true});
-  view.addEventListener("mousedown",e=>{if(e.button!==0||touchActive||Date.now()-lastTouchAt<900)return;mouse={x:e.clientX,y:e.clientY,moved:false};view.classList.add("dragging");});
-  window.addEventListener("mousemove",e=>{
-    if(!mouse)return;const dx=e.clientX-mouse.x,dy=e.clientY-mouse.y;
-    if(Math.hypot(dx,dy)>3)mouse.moved=true;
-    if(mouse.moved){setPinnedRootLifted(true);x+=dx;y+=dy;apply();suppressClickUntil=Date.now()+300;}
-    mouse.x=e.clientX;mouse.y=e.clientY;
-  });
-  const endMouse=()=>{if(!mouse)return;mouse=null;view.classList.remove("dragging");if(!touchActive)setPinnedRootLifted(false);};
-  window.addEventListener("mouseup",endMouse);
+  view.addEventListener("pointerdown",e=>{
+    if(e.pointerType==="mouse"&&e.button!==0)return;
+    e.preventDefault();
+    lastPointerAt=Date.now();
+    activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    try{view.setPointerCapture(e.pointerId);}catch(_){}
+    refreshPointerGesture();
+  },{passive:false});
+  view.addEventListener("pointermove",e=>{
+    if(!activePointers.has(e.pointerId))return;
+    e.preventDefault();
+    lastPointerAt=Date.now();
+    const previous=activePointers.get(e.pointerId);
+    const current={x:e.clientX,y:e.clientY};
+    activePointers.set(e.pointerId,current);
+    const points=[...activePointers.values()];
+    if(points.length>=2&&pointerGesture?.mode==="pinch"){
+      const mid=pointerMidpoint(points[0],points[1]);
+      const next=clamp(pointerGesture.scale*pointerDistance(points[0],points[1])/Math.max(1,pointerGesture.distance));
+      const ratio=next/scale;
+      x=mid.x-(mid.x-x)*ratio;
+      y=mid.y-(mid.y-y)*ratio;
+      scale=next;
+      x+=mid.x-pointerGesture.midX;
+      y+=mid.y-pointerGesture.midY;
+      pointerGesture.midX=mid.x;
+      pointerGesture.midY=mid.y;
+      apply();
+      suppressClickUntil=Date.now()+450;
+    }else if(points.length===1&&pointerGesture?.mode==="pan"){
+      const dx=current.x-previous.x,dy=current.y-previous.y;
+      if(Math.hypot(current.x-pointerGesture.x,current.y-pointerGesture.y)>3&&!pointerGesture.moved){
+        pointerGesture.moved=true;
+        setPinnedRootLifted(true);
+      }
+      if(pointerGesture.moved){
+        x+=dx;y+=dy;
+        pointerGesture.x=current.x;pointerGesture.y=current.y;
+        apply();
+        suppressClickUntil=Date.now()+350;
+      }
+    }
+  },{passive:false});
+  const finishPointer=e=>{
+    if(!activePointers.has(e.pointerId))return;
+    activePointers.delete(e.pointerId);
+    lastPointerAt=Date.now();
+    refreshPointerGesture();
+  };
+  view.addEventListener("pointerup",finishPointer,{passive:true});
+  view.addEventListener("pointercancel",finishPointer,{passive:true});
+  view.addEventListener("lostpointercapture",finishPointer,{passive:true});
   view.addEventListener("click",e=>{
     if(Date.now()<suppressClickUntil){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();}
   },true);
