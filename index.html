@@ -1650,11 +1650,12 @@ function setupGenealogyControls(){
     return y>=220?3:y>=130?2:y>=60?1:0;
   };
   const apply=()=>{
-    // Keep the selected root card fixed. Descendant cards expand from its bottom-centre.
+    // The root remains the selected genealogy ID, but it moves with the complete tree.
+    // Descendant cards expand from its bottom-centre.
     expandLayer.style.transformOrigin="185px 54px";
     expandLayer.style.transform="scale("+scale+")";
-    // Move the complete tree upward in screen space to expose the zoom-focus ID's downline.
-    // This does not alter the root or any member's position in the genealogy hierarchy.
+    // Translate the complete tree in both axes. The selected root is deliberately not
+    // screen-pinned: it may move off-screen while remaining the logical genealogy root.
     const lift=Math.min(170,Math.max(0,(scale-1)*(44+zoomFocusLevel*36)));
     canvas.style.transform="translate("+panX+"px,"+(panY-lift)+"px)";
     // Recompute every parent-to-child edge independently from the live card rectangles.
@@ -1710,7 +1711,8 @@ function setupGenealogyControls(){
       zoomFocusLevel=focusLevelFromTarget(event.target,midpoint);
       touchStart={mode:"pinch",distance:pointDistance({x:a.clientX,y:a.clientY},{x:b.clientX,y:b.clientY}),scale,midX:midpoint.x,midY:midpoint.y};
     }else if(event.touches.length===1){
-      if(event.target.closest("button"))return;
+      // Allow a drag to begin on a member/available card too. A short stationary touch
+      // still clicks the card; movement beyond the threshold pans the whole tree.
       const t=event.touches[0];
       touchStart={mode:"pan",x:t.clientX,y:t.clientY,moved:false};
     }
@@ -1747,7 +1749,8 @@ function setupGenealogyControls(){
 
   // Mouse drag and Ctrl+wheel zoom for desktop browsers.
   view.addEventListener("mousedown",event=>{
-    if(event.button!==0||event.target.closest("button"))return;
+    if(event.button!==0)return;
+    // Dragging may start on cards; clicks are suppressed only after actual movement.
     mouseStart={x:event.clientX,y:event.clientY};
     view.classList.add("dragging");
   });
