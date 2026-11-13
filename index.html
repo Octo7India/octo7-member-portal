@@ -195,7 +195,7 @@ input {
 .binary-status{font-size:7px;font-weight:800;margin-top:2px;line-height:1}
 .binary-status.active{color:#168344}.binary-status.inactive{color:#d22}
 .binary-card.root .binary-status.active{color:#65e99a}.binary-card.root .binary-status.inactive{color:#ff8888}
-.binary-card[data-genealogy-member]{cursor:pointer;touch-action:manipulation}
+.binary-card[data-genealogy-member]{cursor:pointer;touch-action:none;-webkit-user-select:none;user-select:none}.genealogy-canvas,.genealogy-canvas *{touch-action:none}
 .binary-card[data-genealogy-member]:focus{outline:3px solid #7040b555;outline-offset:3px}
 .binary-empty{box-sizing:border-box;width:100%;height:100%;border:1.5px dashed #9ca3af;border-radius:4px;background:#fff;color:#7040b5;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:7px;font-weight:800;line-height:1.2;cursor:pointer;font-family:inherit;padding:1px}
 .binary-empty small{font-size:6px;font-weight:500}
@@ -1676,6 +1676,11 @@ function setupGenealogyControls(){
 
   const pointDistance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
   view.addEventListener("touchstart",event=>{
+    if(event.touches.length>=2){
+      // Take ownership of the two-finger gesture so the browser does not
+      // intercept it as page zoom; the genealogy canvas handles the scaling.
+      event.preventDefault();
+    }
     if(event.touches.length===2){
       const a=event.touches[0],b=event.touches[1];
       const midpoint={x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2};
@@ -1688,11 +1693,12 @@ function setupGenealogyControls(){
       const t=event.touches[0];
       touchStart={mode:"pan",x:t.clientX,y:t.clientY,moved:false};
     }
-  },{passive:true});
+  },{passive:false});
   view.addEventListener("touchmove",event=>{
     if(!touchStart)return;
     if(touchStart.mode==="pinch"&&event.touches.length>=2){
       event.preventDefault();
+      if(event.cancelable)event.stopPropagation();
       const a=event.touches[0],b=event.touches[1];
       const d=pointDistance({x:a.clientX,y:a.clientY},{x:b.clientX,y:b.clientY});
       if(touchStart.distance>0){
