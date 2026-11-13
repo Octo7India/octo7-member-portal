@@ -331,13 +331,7 @@ footer .logo {color:white}
 .welcome-status.active{background:#e5f7eb;color:#16743b}
 .welcome-status.pending{background:#fff3d9;color:#946200}
 @media(max-width:520px){.member-welcome-card{align-items:flex-start;gap:15px;padding:20px 16px}.member-welcome-photo{width:76px;height:76px;flex-basis:76px;font-size:34px}.member-welcome-details h2{font-size:21px}}
-/* OCTO7 page transition loader */
-#octo7PageLoader{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;background:rgba(255,255,255,.94);backdrop-filter:blur(3px)}
-#octo7PageLoader.show{display:flex}
-#octo7PageLoader .loader-box{text-align:center;color:#33205f;font-weight:700;letter-spacing:1px;font-size:13px}
-#octo7PageLoader .spinner{width:46px;height:46px;margin:0 auto 14px;border:4px solid #e5def2;border-top-color:#6c35a5;border-radius:50%;animation:octo7spin .8s linear infinite}
-@keyframes octo7spin{to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){#octo7PageLoader .spinner{animation-duration:2s}}
+/* Page navigation is direct; no full-screen loading interstitial. */
 
 .profile-top-row{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin:0 0 18px;padding:16px;background:var(--card,#fff);border:1px solid #e8e8e8;border-radius:12px}.profile-top-row .profile-photo-control{max-width:220px}.profile-top-row .profile-member-badge{min-width:150px;margin-top:2px}
 .profile-photo-control{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0}.profile-photo-control label{font-weight:600}.profile-photo-control input{max-width:100%;font-size:14px}.profile-photo-preview{width:104px;height:104px;border-radius:50%;object-fit:cover;border:2px solid #ddd}.profile-member-badge{display:flex;flex-direction:column;gap:8px;align-items:flex-start}.profile-member-badge strong{font-size:20px;letter-spacing:.5px}.member-status-indicator{display:inline-flex;align-items:center;gap:7px;font-size:13px}.member-status-indicator i{width:10px;height:10px;border-radius:50%;background:#999;display:inline-block}.member-status-indicator.active i{background:#16a34a;box-shadow:0 0 0 3px #16a34a22}.member-status-indicator.inactive i{background:#dc2626}
@@ -507,7 +501,6 @@ footer .logo {color:white}
 </head>
 
 <body>
-<div id="octo7PageLoader" role="status" aria-live="polite" aria-label="Loading page"><div class="loader-box"><div class="spinner"></div>LOADING OCTO7...</div></div>
 
 <header>
   <nav>
@@ -854,7 +847,7 @@ footer .logo {color:white}
       </form>
     </div>
   </div>
-  <div id="portalProductsView" class="portal-view"><h2>Products</h2><div id="portalProducts" class="cards"><div class="card">Loading products...</div></div></div>
+  <div id="portalProductsView" class="portal-view"><h2>Products</h2><div id="portalProducts" class="cards"></div></div>
   <div id="ordersView" class="portal-view"><h2>My Orders</h2><div class="card"><p>Your order history will appear here once the orders page is connected.</p></div></div>
   <div id="walletView" class="portal-view"><h2>My Wallet</h2><div class="card"><p>Your wallet balance and transaction history will appear here.</p></div></div>
   <div id="bankView" class="portal-view"><h2>Bank Details</h2><div class="card"><p>Your bank details page will be connected in the bank-details stage.</p></div></div>
@@ -965,10 +958,7 @@ function showMessage(id,message,error=false) {
 // Page navigation is immediate. Do not block the screen with a global loader.
 // Login progress is shown locally on the login button and message.
 function showPageLoader(){}
-function hidePageLoaderSoon(){
-  const loader=document.getElementById("octo7PageLoader");
-  if(loader) loader.classList.remove("show");
-}
+function hidePageLoaderSoon(){}
 
 // PUBLIC WELCOME-PAGE MENU DRAWER
 function showPublicPage(pageId, fromHistory = false) {
