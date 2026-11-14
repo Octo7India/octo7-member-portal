@@ -1726,11 +1726,10 @@ function setupGenealogyControls(){
     if(label)label.textContent=Math.round(scale*100)+"%";
     if(pinnedRoot){
       const viewRect=view.getBoundingClientRect();
-      // Keep the connector's root anchor independent of the card's temporary
-      // lift. The branches still stretch with canvas zoom/pan, but their
-      // screen anchor never follows the hidden card upward or downward.
+      // Move the root connector anchor by the exact same vertical offset
+      // as the pinned Founder card, so the line stays attached while lifted.
       const rootAnchorLeft=viewRect.left+viewRect.width/2;
-      const rootAnchorBottom=viewRect.top+120+62;
+      const rootAnchorBottom=viewRect.top+120+62-(pinnedRootLifted?window.innerHeight*2:0);
       const sx=(rootAnchorLeft-viewRect.left-x)/scale;
       const sy=(rootAnchorBottom-viewRect.top-y)/scale;
       canvas.querySelectorAll('.connector-path[data-root-branch="true"]').forEach(path=>{
