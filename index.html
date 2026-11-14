@@ -192,7 +192,7 @@ input {
 #genealogyViewport{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;min-height:0!important;max-height:none!important;overflow:hidden!important;display:block!important;z-index:1;background:#17151c;border:0!important;border-radius:0!important;padding:0!important;touch-action:none!important;user-select:none;-webkit-user-select:none;overscroll-behavior:none;cursor:grab}
 #genealogyViewport.dragging{cursor:grabbing}
 #genealogyCanvas{position:absolute!important;top:0!important;left:0!important;width:4000px!important;height:900px!important;min-width:4000px!important;flex:none!important;margin:0!important;transform-origin:0 0!important;will-change:transform;overflow:visible!important}
-#genealogyCanvas .genealogy-connectors{position:absolute;inset:0;width:4000px;height:900px;z-index:0;overflow:visible;pointer-events:none}
+#genealogyCanvas .genealogy-connectors{position:absolute;inset:0;width:4000px;height:1100px;z-index:0;overflow:visible;pointer-events:none}
 #genealogyCanvas .genealogy-expand-layer{position:absolute;inset:0;width:4000px;height:900px;z-index:2;overflow:visible;pointer-events:none}
 #genealogyCanvas .genealogy-slot{z-index:2;pointer-events:auto}
 #genealogyCanvas .binary-card{background:#2a2633;color:#fff;border:1px solid #5fb3b3;border-radius:8px;box-shadow:0 4px 6px #0005}
@@ -1618,17 +1618,18 @@ function buildGenealogyMap(nodes){
 function genealogySlots(root){
   const slots=[];
   const centerX=2000;
-  const levelY=[220,370,520,670];
-  // Smaller cards at deeper levels. Sibling centers remain far enough apart
-  // to prevent card overlap while keeping the complete tree compact.
-  const childOffset=[0,192,96,48];
-  const levelWidth=[90,76,64,54];
-  const levelHeight=[62,54,46,40];
+  const levelY=[220,370,520,670,820];
+  // Five levels support a complete 31-position binary tree (1+2+4+8+16).
+  // At the deepest level, card centers are 56px apart and cards are 42px wide,
+  // preserving a 14px gap so no sibling cards touch or overlap.
+  const childOffset=[0,448,224,112,56];
+  const levelWidth=[90,76,64,52,42];
+  const levelHeight=[62,54,46,40,34];
   function add(node,depth,index,parentPositionId,side,x,parentIndex){
-    if(depth>3)return;
+    if(depth>4)return;
     const slot={node,level:depth,parentPositionId,side,x,y:levelY[depth],w:levelWidth[depth],h:levelHeight[depth],index,parentIndex};
     slots.push(slot);
-    if(depth===3)return;
+    if(depth===4)return;
     const nextOffset=childOffset[depth+1];
     const parentId=node?Number(node.id)||0:0;
     add(node?.left||null,depth+1,index*2,parentId,"left",x-nextOffset,index);
@@ -1641,7 +1642,7 @@ function layoutGenealogyTree(){
   const canvas=document.getElementById("genealogyCanvas");
   if(canvas){
     canvas.style.width="4000px";
-    canvas.style.height="900px";
+    canvas.style.height="1100px";
     canvas.style.transformOrigin="0 0";
   }
 }
@@ -1676,7 +1677,7 @@ function renderGenealogyNode(root){
     }
     return '<div class="genealogy-slot '+(slot.level===0?'genealogy-root-slot':'')+'" style="left:'+slot.x+'px;top:'+slot.y+'px;width:'+slot.w+'px;height:'+slot.h+'px">'+inner+'</div>';
   });
-  return '<svg class="genealogy-connectors" viewBox="0 0 4000 900" aria-hidden="true">'+paths.join("")+'</svg><div class="genealogy-expand-layer">'+cards.join("")+'</div>';
+  return '<svg class="genealogy-connectors" viewBox="0 0 4000 1100" aria-hidden="true">'+paths.join("")+'</svg><div class="genealogy-expand-layer">'+cards.join("")+'</div>';
 }
 
 let genealogyCurrentMemberId=null;
