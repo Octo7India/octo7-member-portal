@@ -191,9 +191,9 @@ input {
 .genealogy-current{font-weight:700;letter-spacing:.2px}
 #genealogyViewport{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;min-height:0!important;max-height:none!important;overflow:hidden!important;display:block!important;z-index:1;background:#17151c;border:0!important;border-radius:0!important;padding:0!important;touch-action:none!important;user-select:none;-webkit-user-select:none;overscroll-behavior:none;cursor:grab}
 #genealogyViewport.dragging{cursor:grabbing}
-#genealogyCanvas{position:absolute!important;top:0!important;left:0!important;width:370px!important;height:340px!important;min-width:370px!important;flex:none!important;margin:0!important;transform-origin:0 0!important;will-change:transform;overflow:visible!important}
-#genealogyCanvas .genealogy-connectors{position:absolute;inset:0;width:370px;height:340px;z-index:0;overflow:visible;pointer-events:none}
-#genealogyCanvas .genealogy-expand-layer{position:absolute;inset:0;width:370px;height:340px;z-index:2;overflow:visible;pointer-events:none}
+#genealogyCanvas{position:absolute!important;top:0!important;left:0!important;width:4000px!important;height:900px!important;min-width:4000px!important;flex:none!important;margin:0!important;transform-origin:0 0!important;will-change:transform;overflow:visible!important}
+#genealogyCanvas .genealogy-connectors{position:absolute;inset:0;width:4000px;height:900px;z-index:0;overflow:visible;pointer-events:none}
+#genealogyCanvas .genealogy-expand-layer{position:absolute;inset:0;width:4000px;height:900px;z-index:2;overflow:visible;pointer-events:none}
 #genealogyCanvas .genealogy-slot{z-index:2;pointer-events:auto}
 #genealogyCanvas .binary-card{background:#2a2633;color:#fff;border:1px solid #5fb3b3;border-radius:8px;box-shadow:0 4px 6px #0005}
 #genealogyCanvas .binary-card.root{background:#102238;border:2px solid #d6a84b;color:#fff}
@@ -204,7 +204,7 @@ input {
 #genealogyCanvas .binary-status.inactive{color:#ff8888}
 #genealogyVacancyResults{position:fixed;z-index:55;left:10px;right:10px;bottom:8px;max-height:30vh;overflow:auto;color:#fff;background:#17151ceF;border-radius:8px;padding:6px}
 .genealogy-legend{color:#eee!important}
-@media(max-width:650px){.genealogy-controls-header{padding:10px 8px 16px}.genealogy-controls-header h2{font-size:19px}#genealogyCanvas{width:370px!important}}
+@media(max-width:650px){.genealogy-controls-header{padding:10px 8px 16px}.genealogy-controls-header h2{font-size:19px}#genealogyCanvas{width:4000px!important;height:900px!important;min-width:4000px!important}}
 
 .genealogy-tree{max-width:100%;margin:18px auto;padding:12px 8px;text-align:center}
 .genealogy-toolbar{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;margin:0 auto 14px}
