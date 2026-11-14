@@ -1675,7 +1675,7 @@ function renderGenealogyNode(root){
       const canRegister=slot.parentPositionId>0;
       inner='<button type="button" class="binary-empty" '+(canRegister?'onclick="openMemberRegistration('+slot.parentPositionId+', '+JSON.stringify(slot.side)+')"':'disabled')+' aria-label="'+(canRegister?'Create member in available '+slot.side+' position':'Unavailable position')+'">'+(canRegister?slot.side.toUpperCase():'—')+(canRegister?'<small>Available</small>':'')+'</button>';
     }
-    return '<div class="genealogy-slot '+(slot.level===0?'genealogy-root-slot':'')+'" style="left:'+slot.x+'px;top:'+slot.y+'px;width:'+slot.w+'px;height:'+slot.h+'px">'+inner+'</div>';
+    return '<div class="genealogy-slot '+(slot.level===0?'genealogy-root-slot':'')+'" style="left:'+(slot.x-slot.w/2)+'px;top:'+slot.y+'px;width:'+slot.w+'px;height:'+slot.h+'px">'+inner+'</div>';
   });
   return '<svg class="genealogy-connectors" viewBox="0 0 4000 1100" aria-hidden="true">'+paths.join("")+'</svg><div class="genealogy-expand-layer">'+cards.join("")+'</div>';
 }
