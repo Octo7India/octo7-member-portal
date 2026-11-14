@@ -1615,21 +1615,29 @@ function buildGenealogyMap(nodes){
   }
   return {root};
 }
+function genealogyLayoutConfig(width=window.innerWidth){
+  // Limit the initial mobile view to levels whose cards remain readable.
+  // A normal 360–430px phone shows 7 positions; wider screens show more.
+  const maxDepth=width<=430?2:width<=520?3:4;
+  const levelY=[220,370,520,670,820];
+  const childOffset=[0,120,60,36,24];
+  const levelWidth=[90,76,64,54,44];
+  const levelHeight=[62,54,46,40,34];
+  const halfSpan=childOffset.slice(1,maxDepth+1).reduce((sum,n)=>sum+n,0);
+  const treeWidth=halfSpan*2+levelWidth[maxDepth];
+  const treeHeight=levelY[maxDepth]-levelY[0]+levelHeight[maxDepth];
+  return {maxDepth,levelY,childOffset,levelWidth,levelHeight,treeWidth,treeHeight};
+}
 function genealogySlots(root){
   const slots=[];
   const centerX=2000;
-  const levelY=[220,370,520,670,820];
-  // Five levels support a complete 31-position binary tree (1+2+4+8+16).
-  // At the deepest level, card centers are 56px apart and cards are 42px wide,
-  // preserving a 14px gap so no sibling cards touch or overlap.
-  const childOffset=[0,224,112,56,28];
-  const levelWidth=[90,76,64,52,42];
-  const levelHeight=[62,54,46,40,34];
+  const layout=genealogyLayoutConfig();
+  const {maxDepth,levelY,childOffset,levelWidth,levelHeight}=layout;
   function add(node,depth,index,parentPositionId,side,x,parentIndex){
-    if(depth>4)return;
+    if(depth>maxDepth)return;
     const slot={node,level:depth,parentPositionId,side,x,y:levelY[depth],w:levelWidth[depth],h:levelHeight[depth],index,parentIndex};
     slots.push(slot);
-    if(depth===4)return;
+    if(depth===maxDepth)return;
     const nextOffset=childOffset[depth+1];
     const parentId=node?Number(node.id)||0:0;
     add(node?.left||null,depth+1,index*2,parentId,"left",x-nextOffset,index);
@@ -1728,16 +1736,14 @@ function setupGenealogyControls(){
     apply();
   };
   const reset=()=>{
-    // Fit the complete 31-slot layout (all five levels) inside the visible
-    // viewport, rather than starting at a zoom that hides the outer branches.
-    const treeWidth=882;
-    const treeTop=220;
-    const treeHeight=634;
+    // Fit only the number of levels that remain legible at this screen width.
+    const layout=genealogyLayoutConfig(view.clientWidth);
+    const treeTop=layout.levelY[0];
     const availableWidth=Math.max(120,view.clientWidth-24);
     const availableHeight=Math.max(120,view.clientHeight-24);
-    scale=Math.max(.15,Math.min(2.5,availableWidth/treeWidth,availableHeight/treeHeight));
+    scale=Math.max(.15,Math.min(2.5,availableWidth/layout.treeWidth,availableHeight/layout.treeHeight));
     x=view.clientWidth/2-(2000*scale);
-    y=view.clientHeight/2-((treeTop+treeHeight/2)*scale);
+    y=view.clientHeight/2-((treeTop+layout.treeHeight/2)*scale);
     apply();
   };
 
