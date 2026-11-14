@@ -1619,21 +1619,22 @@ function genealogySlots(root){
   const slots=[];
   const centerX=2000;
   const levelY=[220,370,520,670];
-  // Keep all eight fourth-level positions separated by at least one card width + 120px.
-  // Each generation's offset is half the full span of its descendant subtree.
-  const childOffset=[0,840,420,210];
-  const nodeWidth=90,nodeHeight=62;
-  function add(node,depth,index,parentPositionId,side,x){
+  // Smaller cards at deeper levels. Sibling centers remain far enough apart
+  // to prevent card overlap while keeping the complete tree compact.
+  const childOffset=[0,192,96,48];
+  const levelWidth=[90,76,64,54];
+  const levelHeight=[62,54,46,40];
+  function add(node,depth,index,parentPositionId,side,x,parentIndex){
     if(depth>3)return;
-    const slot={node,level:depth,parentPositionId,side,x,y:levelY[depth],w:nodeWidth,h:nodeHeight,index};
+    const slot={node,level:depth,parentPositionId,side,x,y:levelY[depth],w:levelWidth[depth],h:levelHeight[depth],index,parentIndex};
     slots.push(slot);
     if(depth===3)return;
     const nextOffset=childOffset[depth+1];
     const parentId=node?Number(node.id)||0:0;
-    add(node?.left||null,depth+1,index*2,parentId,"left",x-nextOffset);
-    add(node?.right||null,depth+1,index*2+1,parentId,"right",x+nextOffset);
+    add(node?.left||null,depth+1,index*2,parentId,"left",x-nextOffset,index);
+    add(node?.right||null,depth+1,index*2+1,parentId,"right",x+nextOffset,index);
   }
-  add(root,0,0,0,"",centerX);
+  add(root,0,0,0,"",centerX,null);
   return slots;
 }
 function layoutGenealogyTree(){
@@ -1650,7 +1651,9 @@ function renderGenealogyNode(root){
   const paths=[];
   for(const child of slots){
     if(child.level===0)continue;
-    const parent=byPosition.get((child.level-1)+":"+Math.floor(child.index/2));
+    // Use the exact parent slot recorded during tree traversal, never infer a
+    // connection from a displayed member number or a neighboring card.
+    const parent=byPosition.get((child.level-1)+":"+child.parentIndex);
     if(!parent)continue;
     const sx=parent.x,sy=parent.y+parent.h;
     const ex=child.x,ey=child.y;
