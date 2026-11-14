@@ -546,6 +546,20 @@ header.public-app-header nav.public-app-tabs a[aria-current="page"]:after{
   background:transparent;cursor:pointer;
 }
 .public-welcome-login:focus-visible{outline:3px solid #D6B46A;outline-offset:3px}
+.public-welcome-tagline{
+  position:absolute;left:5%;right:5%;top:80.5%;height:18%;
+  z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  gap:5px;padding:0 8px;text-align:center;color:#fff;
+  text-shadow:0 2px 5px #00143a,0 0 10px #00143a;
+  pointer-events:none;
+}
+.public-welcome-tagline strong{
+  display:block;font-size:clamp(16px,4.5vw,22px);font-weight:900;line-height:1.2;
+}
+.public-welcome-tagline span{
+  display:block;max-width:620px;font-size:clamp(12px,3.2vw,15px);
+  font-weight:700;line-height:1.35;
+}
 body{padding-bottom:0!important}
 .public-app-bottom-nav{display:none!important}
 #about,#products,#opportunity,#contact,#member-login{
@@ -586,6 +600,10 @@ body{padding-bottom:0!important}
   <div class="public-welcome-title">WELCOME</div>
   <button class="public-welcome-login" type="button" aria-label="Member Login"
     onclick="showPublicPage('member-login');showLoginForm()"></button>
+  <div class="public-welcome-tagline" aria-label="Discover a world of opportunity through quality products, entrepreneurship, and a growing business network">
+    <strong>Discover a world of opportunity</strong>
+    <span>through quality products, entrepreneurship, and a growing business network.</span>
+  </div>
 </section>
 
 <section class="about" id="about" hidden>
