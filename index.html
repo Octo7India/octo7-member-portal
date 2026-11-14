@@ -496,71 +496,6 @@ footer .logo {color:white}
 #genealogyVacancyResults{position:fixed!important;z-index:55!important;left:10px!important;right:10px!important;bottom:8px!important;max-height:30vh!important;overflow:auto!important;color:#fff!important;background:#17151cef!important;border-radius:8px!important;padding:6px!important}
 .genealogy-legend{position:fixed!important;bottom:4px!important;left:8px!important;right:8px!important;z-index:45!important;text-align:center!important;pointer-events:none!important;color:#eee!important;font-size:11px!important}
 @media(max-width:650px){.genealogy-controls-header{padding:15px 8px!important}.genealogy-controls-header h2{font-size:22px!important}#genealogyCanvas{width:4000px!important}}
-
-
-/* Highrich-style genealogy presentation supplied by the user.
-   Existing live member data, navigation, vacancy actions and binary placement remain intact. */
-.genealogy-tree.genealogy-reference{
-  background:#0f172a!important;color:#fff!important;margin:0!important;padding:0!important;
-  width:100vw!important;height:100vh!important;max-width:none!important;overflow:hidden!important;
-}
-.genealogy-reference .genealogy-controls-header{
-  background:#1e293b!important;padding:12px 20px!important;box-shadow:0 4px 6px #0005!important;
-  pointer-events:auto!important;text-align:left!important;z-index:50!important;
-}
-.genealogy-reference .genealogy-controls-header h2{
-  color:#fff!important;font-size:16px!important;margin:0 0 9px!important;text-align:left!important;
-}
-.genealogy-reference .genealogy-controls-header .toolbar{
-  justify-content:flex-end!important;gap:6px!important;color:#fff!important;
-}
-.genealogy-reference .genealogy-controls-header button{
-  background:#3b82f6!important;color:#fff!important;border:0!important;border-radius:6px!important;
-  min-height:36px!important;padding:8px 14px!important;font-weight:700!important;
-}
-.genealogy-reference .genealogy-controls-header button:hover{background:#2563eb!important}
-.genealogy-reference .genealogy-controls-header .genealogy-my-id{background:#10b981!important}
-.genealogy-reference .genealogy-controls-header .genealogy-my-id:hover{background:#059669!important}
-.genealogy-reference .genealogy-controls-header .action-buttons{margin-top:7px!important;justify-content:flex-end!important}
-.genealogy-reference #genealogyViewport{
-  position:fixed!important;inset:110px 0 0!important;width:100vw!important;height:calc(100vh - 110px)!important;
-  min-height:0!important;max-height:none!important;border:0!important;border-radius:0!important;
-  background:#0f172a!important;display:block!important;overflow:hidden!important;cursor:grab!important;
-  touch-action:none!important;padding:0!important;z-index:1!important;
-}
-.genealogy-reference #genealogyViewport.dragging{cursor:grabbing!important}
-.genealogy-reference #genealogyCanvas{
-  position:absolute!important;top:0!important;left:0!important;width:4000px!important;height:1100px!important;
-  min-width:4000px!important;flex:none!important;margin:0!important;transform-origin:0 0!important;
-}
-.genealogy-reference .genealogy-connectors{position:absolute!important;inset:0!important;width:4000px!important;height:1100px!important}
-.genealogy-reference .connector-path{fill:none!important;stroke:#475569!important;stroke-width:2.5px!important}
-.genealogy-reference .binary-card{
-  background:#1e293b!important;color:#f8fafc!important;border:2px solid #38bdf8!important;
-  border-radius:10px!important;box-shadow:none!important;padding:3px!important;
-}
-.genealogy-reference .binary-card.root{
-  background:#0284c7!important;border:3px solid #38bdf8!important;color:#fff!important;
-}
-.genealogy-reference .binary-id{color:#f8fafc!important;font-size:13px!important;font-weight:800!important}
-.genealogy-reference .binary-status{color:#94a3b8!important;font-size:9px!important;line-height:1.15!important}
-.genealogy-reference .binary-status.active{color:#65e99a!important}
-.genealogy-reference .binary-status.inactive{color:#ff8888!important}
-.genealogy-reference .binary-card.root .binary-status{color:#bae6fd!important}
-.genealogy-reference .binary-empty{
-  background:#1e293b!important;color:#cbd5e1!important;border:1.5px dashed #38bdf8!important;
-  border-radius:10px!important;
-}
-.genealogy-reference .binary-empty:not(:disabled):hover{background:#334155!important;border-color:#38bdf8!important}
-.genealogy-reference .genealogy-legend{color:#cbd5e1!important}
-@media(max-width:650px){
-  .genealogy-reference .genealogy-controls-header{padding:10px 10px 12px!important}
-  .genealogy-reference .genealogy-controls-header h2{font-size:14px!important}
-  .genealogy-reference .genealogy-controls-header .toolbar{justify-content:center!important;flex-wrap:wrap!important}
-  .genealogy-reference .genealogy-controls-header button{padding:7px 10px!important;min-height:34px!important;font-size:12px!important}
-  .genealogy-reference #genealogyViewport{inset:112px 0 0!important;height:calc(100vh - 112px)!important}
-}
-
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
 </head>
@@ -1735,7 +1670,7 @@ function renderGenealogyNode(root){
     if(slot.node){
       const id=String(slot.node.member_id??"");
       const active=String(slot.node.status||"").toLowerCase()==="active";
-      inner='<button type="button" class="binary-card '+(slot.level===0?"root":"")+'" data-genealogy-member="'+escapeHTML(id)+'" aria-label="Open genealogy for OCTO7 '+escapeHTML(id)+'"><span class="binary-id">ID: '+escapeHTML(id)+'</span><span class="binary-status '+(active?"active":"inactive")+'">'+(slot.level===0?"Parent Node":(slot.side==="left"?"Left Leg":"Right Leg"))+' · '+(active?"ACTIVE":"INACTIVE")+'</span></button>';
+      inner='<button type="button" class="binary-card '+(slot.level===0?"root":"")+'" data-genealogy-member="'+escapeHTML(id)+'" aria-label="Open genealogy for OCTO7 '+escapeHTML(id)+'"><span class="binary-brand">OCTO7</span><span class="binary-id">'+escapeHTML(id)+'</span><span class="binary-status '+(active?"active":"inactive")+'">'+(active?"ACTIVE":"INACTIVE")+'</span></button>';
     }else{
       const canRegister=slot.parentPositionId>0;
       inner='<button type="button" class="binary-empty" '+(canRegister?'onclick="openMemberRegistration('+slot.parentPositionId+', '+JSON.stringify(slot.side)+')"':'disabled')+' aria-label="'+(canRegister?'Create member in available '+slot.side+' position':'Unavailable position')+'">'+(canRegister?slot.side.toUpperCase():'—')+(canRegister?'<small>Available</small>':'')+'</button>';
@@ -1810,7 +1745,7 @@ function setupGenealogyControls(){
   // canvas. Zooming around the pinch midpoint naturally moves ancestors
   // upward and expands all descendant branches together—no separately pinned
   // Founder card, artificial lift, or rubber-band connector adjustment.
-  const zoomBy=delta=>{const rect=view.getBoundingClientRect();focalZoom(clamp(scale+delta),rect.left+rect.width/2,rect.top+rect.height/2);};
+  const zoomBy=delta=>focalZoom(clamp(scale+delta),window.innerWidth/2,window.innerHeight/2);
   document.getElementById("genealogyZoomIn")?.addEventListener("click",()=>zoomBy(.15));
   document.getElementById("genealogyZoomOut")?.addEventListener("click",()=>zoomBy(-.15));
   document.getElementById("genealogyFit")?.addEventListener("click",reset);
@@ -1889,13 +1824,6 @@ function setupGenealogyControls(){
   view.addEventListener("pointerup",finishPointer,{passive:true});
   view.addEventListener("pointercancel",finishPointer,{passive:true});
   view.addEventListener("lostpointercapture",finishPointer,{passive:true});
-  view.addEventListener("wheel",e=>{
-    e.preventDefault();
-    const rect=view.getBoundingClientRect();
-    const next=clamp(scale*(e.deltaY<0?1.1:.9));
-    focalZoom(next,e.clientX-rect.left,e.clientY-rect.top);
-  },{passive:false});
-
   view.addEventListener("click",e=>{
     if(Date.now()<suppressClickUntil){
       e.preventDefault();
@@ -2099,7 +2027,7 @@ async function loadGenealogy(rootMemberId=null,navigationMode="reset"){
     const binary=profile.binary||genealogy.binary||{};
     const backButton=genealogyNavigationStack.length?'<button type="button" id="genealogyBack" onclick="genealogyGoBack()">‹ Back one level</button>':'';
     const homeButton=rootMemberId?'<button type="button" id="genealogyHome">⌂ My ID</button>':'';
-    box.innerHTML='<div class="genealogy-tree genealogy-reference"><div class="genealogy-controls-header"><h2>🌎 OCTO7 Network Tree (ID: '+escapeHTML(genealogyCurrentMemberId)+')</h2><div class="toolbar">'+backButton+'<button type="button" id="genealogyHome" class="genealogy-my-id">My ID ('+escapeHTML(String(profile.member_id||genealogyCurrentMemberId))+')</button><button type="button" id="genealogyZoomOut" aria-label="Zoom out">Zoom −</button><span id="genealogyZoomLabel">100%</span><button type="button" id="genealogyZoomIn" aria-label="Zoom in">Zoom +</button></div><div class="action-buttons"><button type="button" id="genealogyVacancies">Show all vacant positions</button></div></div><div class="genealogy-viewport" id="genealogyViewport"><div class="genealogy-canvas" id="genealogyCanvas">'+renderGenealogyNode(tree.root)+'</div></div><div id="genealogyVacancyResults" aria-live="polite"></div><div class="genealogy-legend" style="position:fixed;bottom:4px;left:8px;right:8px;z-index:45;text-align:center;pointer-events:none">Tap a Member ID to view its downline · Tap an available position to register · LBV: '+escapeHTML(String(binary.left_available_bv??0))+' · RBV: '+escapeHTML(String(binary.right_available_bv??0))+'</div></div>';
+    box.innerHTML='<div class="genealogy-tree"><div class="genealogy-controls-header"><h2>My Genealogy</h2><div class="toolbar">'+backButton+homeButton+'<span id="viewing-label" class="genealogy-current">Viewing OCTO7 / '+escapeHTML(genealogyCurrentMemberId)+'</span><button type="button" id="genealogyZoomOut" aria-label="Zoom out">−</button><span id="genealogyZoomLabel">81%</span><button type="button" id="genealogyZoomIn" aria-label="Zoom in">+</button></div><div class="action-buttons"><button type="button" id="genealogyFit">Reset view</button><button type="button" id="genealogyVacancies">Show all vacant positions</button></div></div><div class="genealogy-viewport" id="genealogyViewport"><div class="genealogy-canvas" id="genealogyCanvas">'+renderGenealogyNode(tree.root)+'</div></div><div id="genealogyVacancyResults" aria-live="polite"></div><div class="genealogy-legend" style="position:fixed;bottom:4px;left:8px;right:8px;z-index:45;text-align:center;pointer-events:none">Tap a Member ID to view its downline · Tap an available position to register · LBV: '+escapeHTML(String(binary.left_available_bv??0))+' · RBV: '+escapeHTML(String(binary.right_available_bv??0))+'</div></div>';
     layoutGenealogyTree();
     setupGenealogyControls();
     document.getElementById("genealogyVacancies").addEventListener("click",loadAllGenealogyVacancies);
