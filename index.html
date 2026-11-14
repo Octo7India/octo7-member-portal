@@ -1171,8 +1171,10 @@ async function login() {
   loginRequestInProgress = true;
 
   try {
-    await client.auth.signOut();
+    // Member-ID login uses its own API session token; signing out of the
+    // unrelated Supabase Auth session here adds a network round-trip.
     memberIdSession = false;
+    accessToken = null;
     sessionStorage.removeItem("octo7MemberSessionToken");
 
     const response = await fetch(API_URL, {
@@ -1197,7 +1199,9 @@ async function login() {
     const destination = pendingMemberPageAfterLogin || "home";
     pendingMemberPageAfterLogin = "home";
     goMemberMenu(destination);
-    loadMemberWelcome();
+    // The destination loader already fetches its data. Only the welcome page
+    // needs this additional member summary request.
+    if (destination === "home") loadMemberWelcome();
   } catch(error) {
     showMessage("loginMessage", error.message || "Login failed.", true);
   } finally {
