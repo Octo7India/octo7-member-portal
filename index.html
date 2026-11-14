@@ -565,7 +565,7 @@ header.public-app-header nav a{
 /* Match the Flutter app's persistent four-item bottom navigation. */
 .public-app-bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:120;background:#060D1A;display:grid;grid-template-columns:repeat(4,1fr);padding:7px 0 max(7px,env(safe-area-inset-bottom));box-shadow:0 -3px 12px #0003}
 .public-app-bottom-nav button{border:0;background:transparent;color:#9ca3af;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font:500 11px Arial,sans-serif;min-height:43px;cursor:pointer}
-.public-app-bottom-nav button .nav-icon{font-size:20px;line-height:1.1}
+.public-app-bottom-nav button .nav-icon{width:22px;height:22px;display:grid;place-items:center}.public-app-bottom-nav button .nav-icon svg{width:22px;height:22px;display:block}
 .public-app-bottom-nav button[aria-current="page"]{color:#10B981}
 body{padding-bottom:62px}
 .octo7-welcome-hero{padding-bottom:40px}
@@ -2410,13 +2410,22 @@ function setPublicBottomActive(button){
   if(button) button.setAttribute("aria-current","page");
 }
 
+function publicAppNavAction(item,button){
+  setPublicBottomActive(button);
+  if(item==="products" && accessToken){
+    showMemberPortal();
+    goMemberMenu("products");
+  }else if(item==="products"){
+    showPublicPage("products");
+  }
+}
 </script>
 
 <nav class="public-app-bottom-nav" id="publicAppBottomNav" aria-label="App navigation">
-  <button type="button" aria-current="page" onclick="showPublicPage('home');setPublicBottomActive(this)"><span class="nav-icon">⌂</span><span>Home</span></button>
-  <button type="button" onclick="welcomeMenuAction('genealogy');setPublicBottomActive(this)"><span class="nav-icon">♧</span><span>Tree</span></button>
-  <button type="button" onclick="showPublicPage('products');setPublicBottomActive(this)"><span class="nav-icon">▦</span><span>Products</span></button>
-  <button type="button" onclick="welcomeMenuAction('dashboard');setPublicBottomActive(this)"><span class="nav-icon">♙</span><span>Dashboard</span></button>
+  <button type="button" aria-current="page" onclick="showPublicPage('home');setPublicBottomActive(this)"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></span><span>Home</span></button>
+  <button type="button" onclick="welcomeMenuAction('genealogy');setPublicBottomActive(this)"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4M5 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4m14 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4M12 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4M12 6v4M5 14v2h7m7-2v2h-7v2"/></svg></span><span>Tree</span></button>
+  <button type="button" onclick="publicAppNavAction('products',this)"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/></svg></span><span>Products</span></button>
+  <button type="button" onclick="welcomeMenuAction('dashboard');setPublicBottomActive(this)"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8m0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5"/></svg></span><span>Dashboard</span></button>
 </nav>
 
 </body>
