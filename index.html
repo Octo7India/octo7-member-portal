@@ -1619,7 +1619,9 @@ function genealogySlots(root){
   const slots=[];
   const centerX=2000;
   const levelY=[220,370,520,670];
-  const childOffset=[0,150,100,50];
+  // Keep all eight fourth-level positions separated by at least one card width + 120px.
+  // Each generation's offset is half the full span of its descendant subtree.
+  const childOffset=[0,840,420,210];
   const nodeWidth=90,nodeHeight=62;
   function add(node,depth,index,parentPositionId,side,x){
     if(depth>3)return;
