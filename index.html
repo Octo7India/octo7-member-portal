@@ -503,13 +503,75 @@ footer .logo {color:white}
   transform:none!important;
   translate:none!important;
 }
+
+/* Public website welcome page matches the OCTO7 Android app home screen. */
+header.public-app-header{
+  min-height:110px;height:auto;padding:10px 12px 12px;background:#060D1A;color:#fff;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px;
+  position:sticky;top:0;z-index:100;flex-wrap:nowrap;
+}
+.public-app-brand{display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;line-height:1}
+.public-app-globe{font-size:18px}
+.public-app-octo{color:#fff;font-size:20px;font-weight:700;letter-spacing:1.5px}
+.public-app-seven{color:#D97706;font-size:22px;font-weight:700}
+.public-app-india{color:#fff;font-size:16px;font-weight:500}
+header.public-app-header nav{
+  width:100%;display:flex;flex-wrap:nowrap;justify-content:flex-start;gap:0;
+  overflow-x:auto;white-space:nowrap;padding:0 4px;scrollbar-width:none;
+}
+header.public-app-header nav::-webkit-scrollbar{display:none}
+header.public-app-header nav a{
+  flex:0 0 auto;padding:0 8px;color:rgba(255,255,255,.7);font-size:12px;
+  text-decoration:none;white-space:nowrap;
+}
+.octo7-welcome-hero{
+  min-height:0;height:auto;padding:20px 24px 40px;display:block;
+  background:#0F5127!important;color:#fff;overflow:visible;
+}
+.octo7-welcome-hero:before{display:none}
+.octo7-welcome-hero .hero-content{
+  width:100%;max-width:none;margin:0 auto;text-align:center;
+  display:flex;flex-direction:column;align-items:center;
+}
+.public-app-welcome{
+  margin:10px 0 16px;color:#fff;text-align:center;font-size:26px;
+  line-height:1.2;font-weight:700;letter-spacing:1.1px;
+}
+.public-app-home-brand{
+  display:flex;align-items:center;justify-content:center;white-space:nowrap;
+  margin:0 auto 30px;color:#fff;font-size:40px;font-weight:700;letter-spacing:2px;line-height:1.1;
+}
+.public-app-home-globe{font-size:36px;letter-spacing:0;margin-right:0}
+.public-app-home-seven{font-size:44px;color:#D97706;letter-spacing:0}
+.octo7-welcome-hero .home-emblem{
+  display:block;width:260px;height:260px;max-width:78vw;max-height:none;
+  object-fit:contain;margin:0 auto 35px;filter:none;
+}
+.public-app-home-description{
+  margin:0 auto 35px;color:#fff;text-align:center;font-size:16px;
+  font-weight:400;line-height:1.5;
+}
+.public-app-home-tagline{
+  margin:0 auto 0;color:rgba(255,255,255,.7);text-align:center;
+  font-size:15px;font-style:italic;font-weight:500;line-height:1.5;
+}
+@media(max-width:650px){
+  header.public-app-header{min-height:110px;padding:10px 12px 12px;gap:10px}
+  .octo7-welcome-hero{padding:20px 24px 40px}
+  .octo7-welcome-hero .home-emblem{width:260px;max-width:78vw}
+}
+
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
 </head>
 
 <body>
 
-<header>
+<header class="public-app-header">
+  <div class="public-app-brand" aria-label="OCTO7 India">
+    <span class="public-app-globe">🌎</span>
+    <span class="public-app-octo">OCTO</span><span class="public-app-seven">7</span><span class="public-app-india"> India</span>
+  </div>
   <nav>
     <a href="#home">Home</a>
     <a href="#about">About Us</a>
@@ -517,18 +579,19 @@ footer .logo {color:white}
     <a href="#opportunity">Opportunity</a>
     <a href="#join">Join Us</a>
     <a href="#contact">Contact</a>
+    <a href="#member-login">Member Login</a>
   </nav>
 </header>
 
 <section class="hero octo7-welcome-hero" id="home">
-  <div class="hero-content">
-    <h1 class="welcome-heading">WELCOME</h1>
-    <div class="home-brand-title" aria-label="OCTO7">OCTO<span class="home-brand-seven">7</span></div>
-    <img src="OCTO7_emblem_transparent-2.png" alt="Original OCTO7 globe emblem with silver circular ring, starry black space and golden 7" class="home-emblem">
-    <p class="home-tagline">Together For a Better Tomorrow</p>
-    <a class="btn home-login-button" href="#member-login"><span aria-hidden="true">♟</span> Member Login</a>
-    <p class="home-description">Discover a world of opportunities through quality products, entrepreneurship and growing business network</p>
-    <div class="home-footer"><strong>OCTO7 India</strong><span>Dream. Network. Grow</span></div>
+  <div class="hero-content public-app-home-content">
+    <div class="public-app-welcome">WELCOME<br>TO</div>
+    <div class="public-app-home-brand" aria-label="OCTO7">
+      <span class="public-app-home-globe">🌎</span><span>OCTO</span><span class="public-app-home-seven">7</span>
+    </div>
+    <img src="OCTO7_emblem_transparent-2.png" alt="OCTO7 emblem" class="home-emblem">
+    <p class="public-app-home-description">Discover a world of opportunities<br>through quality products,<br>entrepreneurship and a growing<br>business network.</p>
+    <p class="public-app-home-tagline">Together For a Better Tomorrow.</p>
   </div>
 </section>
 
