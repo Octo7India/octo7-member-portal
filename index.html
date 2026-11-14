@@ -191,9 +191,9 @@ input {
 .genealogy-current{font-weight:700;letter-spacing:.2px}
 #genealogyViewport{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;min-height:0!important;max-height:none!important;overflow:hidden!important;display:block!important;z-index:1;background:#17151c;border:0!important;border-radius:0!important;padding:0!important;touch-action:none!important;user-select:none;-webkit-user-select:none;overscroll-behavior:none;cursor:grab}
 #genealogyViewport.dragging{cursor:grabbing}
-#genealogyCanvas{position:absolute!important;top:0!important;left:0!important;width:4000px!important;height:900px!important;min-width:4000px!important;flex:none!important;margin:0!important;transform-origin:0 0!important;will-change:transform;overflow:visible!important}
+#genealogyCanvas{position:absolute!important;top:0!important;left:0!important;width:4000px!important;height:1100px!important;min-width:4000px!important;flex:none!important;margin:0!important;transform-origin:0 0!important;will-change:transform;overflow:visible!important}
 #genealogyCanvas .genealogy-connectors{position:absolute;inset:0;width:4000px;height:1100px;z-index:0;overflow:visible;pointer-events:none}
-#genealogyCanvas .genealogy-expand-layer{position:absolute;inset:0;width:4000px;height:900px;z-index:2;overflow:visible;pointer-events:none}
+#genealogyCanvas .genealogy-expand-layer{position:absolute;inset:0;width:4000px;height:1100px;z-index:2;overflow:visible;pointer-events:none}
 #genealogyCanvas .genealogy-slot{z-index:2;pointer-events:auto}
 #genealogyCanvas .binary-card{background:#2a2633;color:#fff;border:1px solid #5fb3b3;border-radius:8px;box-shadow:0 4px 6px #0005}
 #genealogyCanvas .binary-card.root{background:#102238;border:2px solid #d6a84b;color:#fff}
@@ -1622,7 +1622,7 @@ function genealogySlots(root){
   // Five levels support a complete 31-position binary tree (1+2+4+8+16).
   // At the deepest level, card centers are 56px apart and cards are 42px wide,
   // preserving a 14px gap so no sibling cards touch or overlap.
-  const childOffset=[0,448,224,112,56];
+  const childOffset=[0,224,112,56,28];
   const levelWidth=[90,76,64,52,42];
   const levelHeight=[62,54,46,40,34];
   function add(node,depth,index,parentPositionId,side,x,parentIndex){
@@ -1728,9 +1728,16 @@ function setupGenealogyControls(){
     apply();
   };
   const reset=()=>{
-    scale=.81;
-    x=window.innerWidth/2-(2000*scale);
-    y=120-(220*scale);
+    // Fit the complete 31-slot layout (all five levels) inside the visible
+    // viewport, rather than starting at a zoom that hides the outer branches.
+    const treeWidth=840;
+    const treeTop=220;
+    const treeHeight=634;
+    const availableWidth=Math.max(120,view.clientWidth-24);
+    const availableHeight=Math.max(120,view.clientHeight-24);
+    scale=Math.max(.15,Math.min(2.5,availableWidth/treeWidth,availableHeight/treeHeight));
+    x=view.clientWidth/2-(2000*scale);
+    y=view.clientHeight/2-((treeTop+treeHeight/2)*scale);
     apply();
   };
 
