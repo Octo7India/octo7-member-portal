@@ -561,6 +561,16 @@ header.public-app-header nav a{
   .octo7-welcome-hero .home-emblem{width:260px;max-width:78vw}
 }
 
+
+/* Match the Flutter app's persistent four-item bottom navigation. */
+.public-app-bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:120;background:#060D1A;display:grid;grid-template-columns:repeat(4,1fr);padding:7px 0 max(7px,env(safe-area-inset-bottom));box-shadow:0 -3px 12px #0003}
+.public-app-bottom-nav button{border:0;background:transparent;color:#9ca3af;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font:500 11px Arial,sans-serif;min-height:43px;cursor:pointer}
+.public-app-bottom-nav button .nav-icon{font-size:20px;line-height:1.1}
+.public-app-bottom-nav button[aria-current="page"]{color:#10B981}
+body{padding-bottom:62px}
+.octo7-welcome-hero{padding-bottom:40px}
+@media(max-width:650px){body{padding-bottom:62px}}
+
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
 </head>
@@ -2394,6 +2404,20 @@ async function uploadCroppedProfilePhoto(file){
     showMessage("profileMessage",message,true);
   }finally{photoInput.disabled=false;}
 }
+
+function setPublicBottomActive(button){
+  document.querySelectorAll("#publicAppBottomNav button").forEach(b=>b.removeAttribute("aria-current"));
+  if(button) button.setAttribute("aria-current","page");
+}
+
 </script>
+
+<nav class="public-app-bottom-nav" id="publicAppBottomNav" aria-label="App navigation">
+  <button type="button" aria-current="page" onclick="showPublicPage('home');setPublicBottomActive(this)"><span class="nav-icon">⌂</span><span>Home</span></button>
+  <button type="button" onclick="welcomeMenuAction('genealogy');setPublicBottomActive(this)"><span class="nav-icon">♧</span><span>Tree</span></button>
+  <button type="button" onclick="showPublicPage('products');setPublicBottomActive(this)"><span class="nav-icon">▦</span><span>Products</span></button>
+  <button type="button" onclick="welcomeMenuAction('dashboard');setPublicBottomActive(this)"><span class="nav-icon">♙</span><span>Dashboard</span></button>
+</nav>
+
 </body>
 </html>
