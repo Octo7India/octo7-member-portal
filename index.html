@@ -31,25 +31,6 @@ nav {display:flex;flex-wrap:wrap;gap:15px}
 nav a {color:white;text-decoration:none;font-size:14px}
 nav a:hover {color:var(--gold)}
 
-.hero {
-  min-height:500px;padding:90px 8%;display:flex;align-items:center;
-  color:white;background:#25D366
-}
-.hero-content {max-width:750px;margin:0 auto;text-align:center}
-.hero h1 {font-size:48px}
-.hero h1 span {color:var(--gold)}
-.hero h1.hero-welcome .welcome-small{display:block;font-size:clamp(30px,4vw,46px);line-height:1.15;color:white}
-.hero h1.hero-welcome .brand-line{display:flex;flex-wrap:nowrap;align-items:center;justify-content:center;white-space:nowrap;font-size:clamp(68px,12vw,120px);font-weight:900;line-height:1.05;letter-spacing:2px;color:#FFFFFF!important}.hero h1.hero-welcome .brand-letters{display:inline-block;white-space:nowrap;line-height:1;flex:0 0 auto;color:#FFFFFF!important}.hero h1.hero-welcome .brand-seven{display:inline-block;flex:0 0 auto;color:var(--gold)!important}
-.hero h1.hero-welcome .brand-o{position:relative;display:inline-flex;width:.78em;height:.78em;align-items:center;justify-content:center;vertical-align:middle;line-height:1;color:#FFFFFF!important;opacity:1;filter:none;background:transparent;border:12px solid rgb(255,255,255)!important;border-radius:50%;box-sizing:border-box;overflow:hidden}.hero h1.hero-welcome .brand-universe{position:absolute;inset:3px;border-radius:50%;background:#000000;z-index:0}.hero h1.hero-welcome .brand-stars{display:none!important}.hero h1.hero-welcome .brand-stars span{position:absolute;z-index:2;font-size:.075em;line-height:1;font-weight:700;text-shadow:0 0 2px #fff8}.hero h1.hero-welcome .brand-stars span:nth-child(1){color:#f6d77a}.hero h1.hero-welcome .brand-stars span:nth-child(2){color:#d9eaff}.hero h1.hero-welcome .brand-stars span:nth-child(3){color:#fff1c7}.hero h1.hero-welcome .brand-stars span:nth-child(4){color:#c9b8ff}.hero h1.hero-welcome .brand-stars span:nth-child(5){color:#e7f4ff}.hero h1.hero-welcome .brand-stars span:nth-child(1){top:17%;left:19%}.hero h1.hero-welcome .brand-stars span:nth-child(2){top:20%;right:17%}.hero h1.hero-welcome .brand-stars span:nth-child(3){bottom:19%;left:16%}.hero h1.hero-welcome .brand-stars span:nth-child(4){bottom:16%;right:18%}.hero h1.hero-welcome .brand-stars span:nth-child(5){top:48%;right:9%}
-.hero h1.hero-welcome .globe-mark{position:relative;z-index:1;display:flex;width:100%;height:100%;align-items:center;justify-content:center;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;font-size:.68em;line-height:1;pointer-events:none}
-.home-emblem{display:block;width:clamp(190px,28vw,270px);height:auto;max-height:235px;object-fit:contain;margin:20px auto 24px;filter:drop-shadow(0 5px 12px #0005)}
-.hero p {font-size:19px;line-height:1.7}
-.home-tagline{margin:0 0 20px;font-weight:700;letter-spacing:.3px;color:#fff}
-.home-description{margin:22px auto 0;max-width:760px}
-.home-footer{display:flex;flex-direction:column;gap:6px;margin:38px auto 0;text-align:center;letter-spacing:1px}
-.home-footer strong{font-size:22px;font-weight:900}
-.home-footer span{font-size:14px;font-weight:700;letter-spacing:2px}
-
 .btn {
   display:inline-block;padding:13px 23px;border:0;border-radius:5px;
   background:var(--gold);color:#171323;font-weight:bold;
@@ -258,8 +239,6 @@ footer .logo {color:white}
 @media(max-width:650px) {
   header {justify-content:center;gap:15px}
   nav {justify-content:center}
-  .hero {padding:65px 7%}
-  .hero h1 {font-size:36px}
   section {padding:48px 6%}
   .tree-children {gap:10px}
   .tree-child {width:47%;padding:14px 5px}
@@ -362,84 +341,6 @@ footer .logo {color:white}
 .photo-adjust-tools button{border:1px solid #ddd;border-radius:7px;padding:10px 13px;background:#f7f4fb;color:#34205d;font-weight:700;cursor:pointer}
 .photo-adjust-tools button:active{background:#e9def8}
 
-/* OCTO7 original blue welcome home screen */
-.octo7-welcome-hero{
-  min-height:calc(100vh - 70px);
-  padding:34px 7% 42px;
-  display:flex;align-items:center;justify-content:center;
-  color:#fff;
-  background-color:#03143c;
-  background-image:
-    radial-gradient(ellipse at 50% 38%,rgba(0,146,255,.38) 0,rgba(0,67,158,.16) 35%,transparent 65%),
-    radial-gradient(ellipse at 50% 100%,rgba(0,170,255,.28) 0,transparent 48%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 650'%3E%3Cg fill='%231c78c8' fill-opacity='.42' stroke='%2345a7ec' stroke-opacity='.28' stroke-width='2'%3E%3Cpath d='M70 155l48-39 60 8 24 31 55 5 24 35-28 26-12 44-43 12-21 49-44-6-21-37-38-16-8-46-31-24zM220 340l45 12 31 45-5 53-25 53-23 70-31-24-12-70-24-59zM470 130l52-24 50 20 17 34 42 4 25 35-20 35-45 5-17 41-46-7-19-37-39-11-17-44zM535 290l50-16 47 22 27 52-13 61-31 63-37 69-32-23-17-64-24-61 5-54zM650 130l66-29 69 10 42 37 78-5 69 35 54 44-19 40-70 5-30 35-69-13-38 24-53-19-43-37-56-7-28-44-47-18zM850 355l55-18 54 20 25 43-27 40-54 12-37-30z'/%3E%3C/g%3E%3C/svg%3E"),
-    linear-gradient(180deg,#03143c 0%,#052c70 52%,#03143c 100%);
-  background-size:auto,auto,cover,auto;
-  background-position:center,center,center,center;
-  background-repeat:no-repeat;
-  overflow:hidden;position:relative;
-}
-.octo7-welcome-hero:before{
-  content:"";position:absolute;inset:0;pointer-events:none;opacity:.22;
-  background-image:radial-gradient(circle,#36aaff 1px,transparent 1.8px);
-  background-size:14px 14px;
-  mask-image:radial-gradient(ellipse at center,black 0%,transparent 75%);
-}
-.octo7-welcome-hero .hero-content{position:relative;z-index:1;width:min(780px,100%);max-width:780px}
-.welcome-heading{
-  margin:0 0 4px!important;text-align:center;
-  font-size:clamp(38px,7vw,66px)!important;line-height:1.05;
-  font-weight:900;letter-spacing:1px;
-  color:#ffd34d!important;
-  text-shadow:0 3px 0 #8b5600,0 8px 18px #0009;
-}
-.home-brand-title{
-  margin:0 auto 8px;text-align:center;white-space:nowrap;
-  font-size:clamp(58px,12vw,112px);line-height:1.05;
-  font-family:Georgia,"Times New Roman",serif;font-weight:900;letter-spacing:2px;
-  background:linear-gradient(180deg,#fff 0%,#dce5f2 36%,#8796ad 54%,#fff 72%,#9ca9ba 100%);
-  -webkit-background-clip:text;background-clip:text;color:transparent;
-  -webkit-text-stroke:1px #f5f7fc;
-  filter:drop-shadow(0 5px 5px #000b);
-}
-.home-brand-title .home-brand-seven{color:#ffd12e;-webkit-text-fill-color:#ffd12e;-webkit-text-stroke:1px #fff0a8;background:none;}
-.octo7-welcome-hero .home-emblem{
-  width:clamp(245px,43vw,390px);height:auto;max-height:none;
-  margin:8px auto 10px;filter:drop-shadow(0 0 20px #159eff88);
-}
-.octo7-welcome-hero .home-tagline{
-  margin:8px auto 20px;color:#f3c84b;
-  font-family:Georgia,"Times New Roman",serif;font-style:italic;
-  font-size:clamp(20px,3.3vw,31px);font-weight:700;
-  text-shadow:0 2px 7px #000b;
-}
-.home-login-button{
-  display:flex;align-items:center;justify-content:center;gap:14px;
-  width:min(570px,94%);min-height:70px;margin:20px auto 22px;
-  border-radius:48px;border:2px solid #ffe78b;
-  background:linear-gradient(180deg,#ffe66c 0%,#ffc400 52%,#e69b00 100%);
-  color:#06245c;font-size:clamp(21px,3.4vw,30px);font-weight:900;
-  box-shadow:0 7px 0 #8d5b00,0 12px 22px #0007;
-}
-.home-login-button span{font-size:1.2em}
-.home-login-button:hover{filter:brightness(1.06);transform:translateY(-1px)}
-.octo7-welcome-hero .home-description{
-  max-width:720px;margin:22px auto 0;color:#ffe58a;
-  font-size:clamp(17px,2.7vw,24px);font-weight:700;line-height:1.5;
-  text-shadow:0 2px 6px #000b;
-}
-.octo7-welcome-hero .home-footer{margin:36px auto 0;gap:8px}
-.octo7-welcome-hero .home-footer strong{font-size:clamp(22px,3.6vw,30px);color:#fff}
-.octo7-welcome-hero .home-footer span{
-  font-family:Georgia,"Times New Roman",serif;font-style:italic;
-  font-size:clamp(20px,3.4vw,29px);font-weight:800;letter-spacing:1px;color:#ffd12e;
-}
-@media(max-width:650px){
-  .octo7-welcome-hero{min-height:calc(100vh - 60px);padding:28px 6% 34px}
-  .octo7-welcome-hero .home-emblem{width:min(78vw,330px)}
-  .home-login-button{min-height:62px}
-  .octo7-welcome-hero .home-footer{margin-top:28px}
-}
 /* Exact full-screen genealogy presentation from the supplied design */
 .genealogy-tree{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;max-width:none!important;margin:0!important;padding:0!important;overflow:hidden!important;background:#17151c!important;color:#fff!important;z-index:40!important;text-align:center!important}
 .genealogy-controls-header{position:fixed!important;top:0!important;left:0!important;width:100%!important;padding:15px!important;box-sizing:border-box!important;text-align:center!important;z-index:100!important;pointer-events:none!important;background:linear-gradient(to bottom,rgba(23,21,28,.95) 0%,rgba(23,21,28,0) 100%)!important}
@@ -587,7 +488,7 @@ body{padding-bottom:0!important}
   </nav>
 </header>
 
-<section class="hero octo7-welcome-hero" id="home" aria-label="OCTO7 India public welcome">
+<section class="octo7-welcome-hero" id="home" aria-label="OCTO7 India public welcome">
   <div class="public-welcome-title">WELCOME</div>
   <button class="public-welcome-login" type="button" aria-label="Member Login"
     onclick="showPublicPage('member-login');showLoginForm()"></button>
