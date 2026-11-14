@@ -1720,16 +1720,18 @@ function setupGenealogyControls(){
     pinnedRoot.style.setProperty("top","120px","important");
     pinnedRoot.style.setProperty("transform",lifted?"translateX(-50%) translateY(-200vh)":"translateX(-50%)","important");
     apply();
+    trackRootConnector();
   };
   const apply=()=>{
     canvas.style.transform="translate("+x+"px,"+y+"px) scale("+scale+")";
     if(label)label.textContent=Math.round(scale*100)+"%";
     if(pinnedRoot){
       const viewRect=view.getBoundingClientRect();
-      // Move the root connector anchor by the exact same vertical offset
-      // as the pinned Founder card, so the line stays attached while lifted.
-      const rootAnchorLeft=viewRect.left+viewRect.width/2;
-      const rootAnchorBottom=viewRect.top+120+62-(pinnedRootLifted?window.innerHeight*2:0);
+      // Read the fixed ID's real rendered position. This keeps the connector
+      // attached to the card throughout its upward CSS transition and afterward.
+      const rootRect=pinnedRoot.getBoundingClientRect();
+      const rootAnchorLeft=rootRect.left+rootRect.width/2;
+      const rootAnchorBottom=rootRect.bottom;
       const sx=(rootAnchorLeft-viewRect.left-x)/scale;
       const sy=(rootAnchorBottom-viewRect.top-y)/scale;
       canvas.querySelectorAll('.connector-path[data-root-branch="true"]').forEach(path=>{
@@ -1738,6 +1740,16 @@ function setupGenealogyControls(){
         path.setAttribute("d","M "+sx+" "+sy+" C "+sx+" "+midY+", "+ex+" "+midY+", "+ex+" "+ey);
       });
     }
+  };
+  // The fixed card animates independently of the canvas. Recalculate its
+  // connector anchor on each animation frame so the line follows it smoothly.
+  const trackRootConnector=()=>{
+    const started=performance.now();
+    const tick=()=>{
+      apply();
+      if(performance.now()-started<240)requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
   };
   const focalZoom=(next,cx,cy)=>{
     const ratio=next/scale;
