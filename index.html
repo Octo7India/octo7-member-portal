@@ -496,6 +496,13 @@ footer .logo {color:white}
 #genealogyVacancyResults{position:fixed!important;z-index:55!important;left:10px!important;right:10px!important;bottom:8px!important;max-height:30vh!important;overflow:auto!important;color:#fff!important;background:#17151cef!important;border-radius:8px!important;padding:6px!important}
 .genealogy-legend{position:fixed!important;bottom:4px!important;left:8px!important;right:8px!important;z-index:45!important;text-align:center!important;pointer-events:none!important;color:#eee!important;font-size:11px!important}
 @media(max-width:650px){.genealogy-controls-header{padding:15px 8px!important}.genealogy-controls-header h2{font-size:22px!important}#genealogyCanvas{width:4000px!important}}
+
+/* Genealogy alignment fix: slot left is already the card's left edge.
+   Do not apply a second -50% translation or cards drift away from SVG lines. */
+#genealogyCanvas .genealogy-slot{
+  transform:none!important;
+  translate:none!important;
+}
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
 </head>
