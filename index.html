@@ -213,7 +213,7 @@ input {
 .genealogy-viewport.dragging{cursor:grabbing;user-select:none}
 .genealogy-canvas{position:relative;display:block;flex:0 0 370px;width:370px;height:340px;min-width:370px;transform:none;transform-origin:185px 54px;margin:0 auto;overflow:visible}
 .genealogy-expand-layer{position:absolute;inset:0;width:370px;height:340px;transform-origin:185px 54px;will-change:transform;overflow:visible}
-.genealogy-connectors{position:absolute;inset:0;width:370px;height:340px;pointer-events:none;z-index:1;overflow:visible;transform:none}
+.genealogy-connectors{position:absolute;inset:0;width:4000px;height:1100px;pointer-events:none;z-index:1;overflow:visible;transform:none}
 .genealogy-slot{position:absolute;box-sizing:border-box;z-index:2;display:flex;align-items:center;justify-content:center}
 .binary-card{box-sizing:border-box;width:100%;height:100%;border:1.5px solid #7040b5;border-radius:4px;background:#fff;color:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 2px 7px #00000012;padding:2px;line-height:1.1;font-family:inherit}
 .binary-card.root{background:#102238;border:2px solid #d6a84b;color:#fff}
@@ -1170,6 +1170,15 @@ async function login() {
   if (loginRequestInProgress) return;
   loginRequestInProgress = true;
 
+  const destination = pendingMemberPageAfterLogin || "home";
+  pendingMemberPageAfterLogin = "home";
+
+  // Show the requested member page immediately while credentials are checked.
+  // Protected data is not requested until the server issues a valid session.
+  showMemberPortal();
+  showPortalPage(destination);
+  showMessage("portalMessage", "Checking your login...");
+
   try {
     // Member-ID login uses its own API session token; signing out of the
     // unrelated Supabase Auth session here adds a network round-trip.
@@ -1195,14 +1204,15 @@ async function login() {
     memberIdSession = true;
     sessionStorage.setItem("octo7MemberSessionToken", accessToken);
     document.getElementById("loginBox").hidden = true;
-    showMemberPortal();
-    const destination = pendingMemberPageAfterLogin || "home";
-    pendingMemberPageAfterLogin = "home";
     goMemberMenu(destination);
     // The destination loader already fetches its data. Only the welcome page
     // needs this additional member summary request.
     if (destination === "home") loadMemberWelcome();
   } catch(error) {
+    const portal = document.getElementById("memberPortal");
+    if (portal) { portal.hidden = true; portal.style.display = "none"; }
+    showPublicPage("member-login");
+    showLoginForm();
     showMessage("loginMessage", error.message || "Login failed.", true);
   } finally {
     loginRequestInProgress = false;
@@ -2028,7 +2038,9 @@ async function loadGenealogy(rootMemberId=null,navigationMode="reset"){
   // The previous sequential profile + genealogy requests delayed the tree.
   box.innerHTML='<div class="card" role="status" aria-live="polite">Loading genealogy…</div>';
   try{
-    const payload=rootMemberId?{root_member_id:String(rootMemberId)}:{};
+    // Request only the levels that this screen can actually display.
+    // Mobile shows the root plus two generations; larger screens show more.
+    const payload={max_depth:genealogyLayoutConfig(window.innerWidth).maxDepth,...(rootMemberId?{root_member_id:String(rootMemberId)}:{})};
     const genealogy=await api("my_genealogy",payload);
     const nodes=Array.isArray(genealogy.nodes)?genealogy.nodes:[];
     if(!nodes.length)throw new Error("No genealogy positions were returned for this member.");
