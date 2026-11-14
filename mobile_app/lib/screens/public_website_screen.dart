@@ -155,26 +155,6 @@ class _PublicWebsiteScreenState extends State<PublicWebsiteScreen>
               ),
             ),
           ),
-          // Hide the Create Account button printed into the supplied artwork.
-          Positioned(
-            left: 0,
-            right: 0,
-            top: height * 0.785,
-            height: height * 0.095,
-            child: const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Color(0xFF003C98),
-                    Color(0xFF0056C9),
-                    Color(0xFF003B96),
-                  ],
-                ),
-              ),
-            ),
-          ),
         ],
       );
     },
