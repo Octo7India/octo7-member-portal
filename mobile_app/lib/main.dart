@@ -137,6 +137,100 @@ class _AuthGateState extends State<AuthGate> {
   }
 }
 
+/// Shared corporate member drawer used throughout the authenticated app.
+class Octo7AppDrawer extends StatelessWidget {
+  const Octo7AppDrawer({super.key, required this.onDestinationSelected});
+  final ValueChanged<int> onDestinationSelected;
+
+  Widget _sectionHeader(String title) => Padding(
+    padding: const EdgeInsets.only(left: 16, top: 12, bottom: 5),
+    child: Text(title, style: const TextStyle(color: Color(0xFF94A3B8),
+      fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+  );
+
+  Widget _drawerItem(BuildContext context, IconData icon, String title, int destination) {
+    return ListTile(
+      dense: true,
+      horizontalTitleGap: 12,
+      leading: Icon(icon, color: const Color(0xFF10B981), size: 22),
+      title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 14)),
+      onTap: () {
+        Navigator.pop(context);
+        onDestinationSelected(destination);
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      backgroundColor: const Color(0xFF060D1A),
+      child: SafeArea(child: ListView(padding: EdgeInsets.zero, children: [
+        FutureBuilder<Map<String, dynamic>>(
+          future: LiveDataService.instance.fetchMemberProfile(),
+          builder: (context, snapshot) {
+            final response = snapshot.data ?? <String, dynamic>{};
+            final member = response['member'] is Map
+                ? Map<String, dynamic>.from(response['member']) : <String, dynamic>{};
+            final rawId = (member['member_id'] ?? '').toString().trim();
+            final memberId = rawId.isEmpty ? 'Member ID unavailable'
+                : (rawId.toUpperCase().startsWith('OCTO7') ? 'ID: $rawId' : 'ID: OCTO7 $rawId');
+            final name = (member['full_name'] ?? '').toString().trim();
+            final photoPath = (member['profile_photo_path'] ?? '').toString().trim();
+            final photoUrl = photoPath.isNotEmpty
+                ? Supabase.instance.client.storage.from('member-profile-photos').getPublicUrl(photoPath)
+                : (member['profile_photo_url'] ?? member['avatar_url'] ?? '').toString().trim();
+            return UserAccountsDrawerHeader(
+              margin: EdgeInsets.zero,
+              decoration: const BoxDecoration(color: Color(0xFF0B192C)),
+              accountName: Text(name.isEmpty ? 'OCTO7 Member' : name,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+              accountEmail: Text(memberId, style: const TextStyle(
+                color: Color(0xFF10B981), fontWeight: FontWeight.w600)),
+              currentAccountPicture: CircleAvatar(
+                backgroundColor: const Color(0xFF10B981),
+                backgroundImage: photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
+                child: photoUrl.isEmpty
+                    ? const Icon(Icons.person, color: Colors.white, size: 36)
+                    : null,
+              ),
+            );
+          },
+        ),
+        _sectionHeader('OVERVIEW'),
+        _drawerItem(context, Icons.home_rounded, 'Home', 0),
+        _drawerItem(context, Icons.dashboard_rounded, 'Dashboard', 3),
+        const Divider(color: Colors.white12, height: 20),
+        _sectionHeader('MY ACCOUNT'),
+        _drawerItem(context, Icons.person_outline, 'My Profile', 15),
+        _drawerItem(context, Icons.account_balance_outlined, 'Bank Details', 7),
+        _drawerItem(context, Icons.verified_user_outlined, 'KYC Verification', 8),
+        _drawerItem(context, Icons.lock_outline, 'Change Password', 11),
+        const Divider(color: Colors.white12, height: 20),
+        _sectionHeader('NETWORK'),
+        _drawerItem(context, Icons.account_tree_outlined, 'My Genealogy', 1),
+        _drawerItem(context, Icons.person_add_alt_1_outlined, 'New Member Registration', 4),
+        const Divider(color: Colors.white12, height: 20),
+        _sectionHeader('SHOPPING'),
+        _drawerItem(context, Icons.grid_view_rounded, 'Products', 2),
+        _drawerItem(context, Icons.shopping_bag_outlined, 'My Orders', 5),
+        _drawerItem(context, Icons.confirmation_number_outlined, 'My Coupons', 10),
+        const Divider(color: Colors.white12, height: 20),
+        _sectionHeader('FINANCIALS'),
+        _drawerItem(context, Icons.account_balance_wallet_outlined, 'My Wallet', 6),
+        _drawerItem(context, Icons.payments_outlined, 'Withdrawals', 9),
+        const Divider(color: Colors.white12, height: 20),
+        _drawerItem(context, Icons.support_agent, 'Help Line', 12),
+        _drawerItem(context, Icons.report_outlined, 'Report', 13),
+        const Divider(color: Colors.white12, height: 20),
+        _drawerItem(context, Icons.logout, 'Logout', 14),
+        const SizedBox(height: 16),
+      ])),
+    );
+  }
+}
+
+
 /// Personalised welcome page shown after successful member authentication.
 class MemberWelcomeScreen extends StatelessWidget {
   const MemberWelcomeScreen({super.key});
