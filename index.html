@@ -575,6 +575,73 @@ body{padding-bottom:62px}
 .octo7-welcome-hero{padding-bottom:60px}
 @media(max-width:650px){body{padding-bottom:62px}}
 
+/* Public landing screen translated from the current Flutter PublicWebsiteScreen.
+   Source: mobile_app/lib/screens/public_website_screen.dart on
+   feature/supabase-mobile-integration. */
+header.public-app-header{
+  box-sizing:border-box;width:100%;height:48px;min-height:48px;padding:0;
+  display:flex;align-items:stretch;justify-content:flex-start;
+  background:#11152E;color:#fff;position:sticky;top:0;z-index:100;
+}
+header.public-app-header nav.public-app-tabs{
+  width:100%;height:48px;min-height:48px;padding:0;margin:0;
+  display:flex;align-items:stretch;justify-content:flex-start;
+  flex-wrap:nowrap;overflow-x:auto;white-space:nowrap;scrollbar-width:none;
+}
+header.public-app-header nav.public-app-tabs::-webkit-scrollbar{display:none}
+header.public-app-header nav.public-app-tabs a{
+  position:relative;display:flex;flex:0 0 auto;align-items:center;justify-content:center;
+  height:48px;padding:0 16px;color:rgba(255,255,255,.7);
+  font-size:14px;font-weight:500;text-decoration:none;white-space:nowrap;
+}
+header.public-app-header nav.public-app-tabs a[aria-current="page"]{color:#fff}
+header.public-app-header nav.public-app-tabs a[aria-current="page"]:after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:#D6B46A;
+}
+.octo7-welcome-hero{
+  position:relative;display:block;width:100%;height:calc(100svh - 48px);
+  min-height:480px;margin:0;padding:0;overflow:hidden;
+  background-color:#071426!important;
+  background-image:url("https://raw.githubusercontent.com/Octo7India/octo7-member-portal/feature/supabase-mobile-integration/mobile_app/assets/images/welcome_bg.png");
+  background-position:center center;background-size:cover;background-repeat:no-repeat;
+}
+.octo7-welcome-hero:before{display:none!important}
+.public-welcome-title{
+  position:absolute;top:8px;left:0;right:0;z-index:2;text-align:center;
+  color:#fff;font-size:clamp(20px,6.5vw,29px);font-weight:900;
+  letter-spacing:2.2px;text-shadow:0 2px 8px #000;
+}
+.public-welcome-login{
+  position:absolute;left:6%;right:6%;top:69.5%;height:8.5%;z-index:3;
+  display:block;width:88%;padding:0;border:0;border-radius:48px;
+  background:transparent;cursor:pointer;
+}
+.public-welcome-login:focus-visible{outline:3px solid #D6B46A;outline-offset:3px}
+.public-welcome-hide-create{
+  position:absolute;left:0;right:0;top:78.5%;height:9.5%;z-index:2;
+  background:linear-gradient(to bottom,#003C98 0%,#0056C9 52%,#003B96 100%);
+  pointer-events:none;
+}
+body{padding-bottom:0!important}
+.public-app-bottom-nav{display:none!important}
+#about,#products,#opportunity,#contact,#member-login{
+  box-sizing:border-box;min-height:calc(100svh - 48px);
+  padding:24px 20px 34px;background:#F4FFF7;
+}
+#about>*,#products>*,#opportunity>*,#contact>*{
+  max-width:620px;margin-left:auto;margin-right:auto;
+}
+#about h2,#products h2,#opportunity h2,#contact h2{
+  color:#11152E;font-size:27px;font-weight:800;text-align:center;
+}
+#about .subtitle,#products .subtitle,#opportunity .subtitle,#contact p{
+  color:#505050;font-size:15px;line-height:1.65;text-align:center;
+}
+@media(max-width:650px){
+  .octo7-welcome-hero{height:calc(100svh - 48px);min-height:480px}
+  header.public-app-header nav.public-app-tabs a{padding-left:16px;padding-right:16px}
+}
+
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
 </head>
@@ -582,31 +649,20 @@ body{padding-bottom:62px}
 <body>
 
 <header class="public-app-header">
-  <div class="public-app-brand" aria-label="OCTO7 India">
-    <span class="public-app-globe">🌎</span>
-    <span class="public-app-octo">OCTO</span><span class="public-app-seven">7</span><span class="public-app-india"> India</span>
-  </div>
-  <nav>
-    <a href="#home">Home</a>
-    <a href="#about">About Us</a>
-    <a href="#products">Products</a>
-    <a href="#opportunity">Opportunity</a>
-    <a href="#join">Join Us</a>
-    <a href="#contact">Contact</a>
-    <a href="#member-login">Member Login</a>
+  <nav class="public-app-tabs" aria-label="Public website sections">
+    <a href="#home" data-public-tab="home" aria-current="page">Home</a>
+    <a href="#about" data-public-tab="about">About Us</a>
+    <a href="#products" data-public-tab="products">Products</a>
+    <a href="#opportunity" data-public-tab="opportunity">Opportunity</a>
+    <a href="#contact" data-public-tab="contact">Contact</a>
   </nav>
 </header>
 
-<section class="hero octo7-welcome-hero" id="home">
-  <div class="hero-content public-app-home-content">
-    <div class="public-app-welcome">WELCOME<br>TO</div>
-    <div class="public-app-home-brand" aria-label="OCTO7">
-      <span class="public-app-home-globe">🌎</span><span>OCTO</span><span class="public-app-home-seven">7</span>
-    </div>
-    <img src="OCTO7_emblem_transparent-2.png" alt="OCTO7 emblem" class="home-emblem">
-    <p class="public-app-home-description">Discover a world of opportunities<br>through quality products,<br>entrepreneurship and a growing<br>business network.</p>
-    <p class="public-app-home-tagline">Together For a Better Tomorrow.</p>
-  </div>
+<section class="hero octo7-welcome-hero" id="home" aria-label="OCTO7 India public welcome">
+  <div class="public-welcome-title">WELCOME</div>
+  <button class="public-welcome-login" type="button" aria-label="Member Login"
+    onclick="showPublicPage('member-login');showLoginForm()"></button>
+  <div class="public-welcome-hide-create" aria-hidden="true"></div>
 </section>
 
 <section class="about" id="about" hidden>
@@ -1059,6 +1115,10 @@ function showPublicPage(pageId, fromHistory = false) {
   if (portal) { portal.hidden = true; portal.style.display = "none"; }
   const footer = document.querySelector("footer");
   if (footer) footer.hidden = true;
+  document.querySelectorAll("[data-public-tab]").forEach(tab => {
+    if (tab.dataset.publicTab === pageId) tab.setAttribute("aria-current","page");
+    else tab.removeAttribute("aria-current");
+  });
   const target = document.getElementById(pageId);
   if (target) target.scrollIntoView({behavior:"auto",block:"start"});
   hidePageLoaderSoon();
@@ -2425,12 +2485,7 @@ function publicAppNavAction(item,button){
 }
 </script>
 
-<nav class="public-app-bottom-nav" id="publicAppBottomNav" aria-label="App navigation">
-  <button type="button" aria-current="page" onclick="showPublicPage('home');setPublicBottomActive(this)"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></span><span>Home</span></button>
-  <button type="button" onclick="welcomeMenuAction('genealogy');setPublicBottomActive(this)"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4M5 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4m14 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4M12 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4M12 6v4M5 14v2h7m7-2v2h-7v2"/></svg></span><span>Tree</span></button>
-  <button type="button" onclick="publicAppNavAction('products',this)"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/></svg></span><span>Products</span></button>
-  <button type="button" onclick="welcomeMenuAction('dashboard');setPublicBottomActive(this)"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8m0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5"/></svg></span><span>Dashboard</span></button>
-</nav>
+
 
 </body>
 </html>
