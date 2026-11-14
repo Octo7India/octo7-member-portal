@@ -531,10 +531,14 @@ header.public-app-header nav.public-app-tabs a[aria-current="page"]:after{
   position:relative;display:block;width:100%;height:calc(100svh - 48px);
   min-height:480px;margin:0;padding:0;overflow:hidden;
   background-color:#071426!important;
+  background-image:none!important;
+}
+.octo7-welcome-hero:before{
+  content:"";display:block!important;position:absolute;inset:0;z-index:0;
   background-image:url("https://raw.githubusercontent.com/Octo7India/octo7-member-portal/feature/supabase-mobile-integration/mobile_app/assets/images/welcome_bg.png");
   background-position:center center;background-size:cover;background-repeat:no-repeat;
+  filter:brightness(1.12) contrast(1.04);pointer-events:none;
 }
-.octo7-welcome-hero:before{display:none!important}
 .public-welcome-title{
   position:absolute;top:8px;left:0;right:0;z-index:2;text-align:center;
   color:#fff;font-size:clamp(20px,6.5vw,29px);font-weight:900;
