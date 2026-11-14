@@ -2024,8 +2024,10 @@ function cancelMemberRegistration(){
 async function loadGenealogy(rootMemberId=null,navigationMode="reset"){
   ensurePortalPage("genealogy");
   const box=document.getElementById("genealogyTree");
+  // Render the destination immediately; fetch the genealogy in one request.
+  // The previous sequential profile + genealogy requests delayed the tree.
+  box.innerHTML='<div class="card" role="status" aria-live="polite">Loading genealogy…</div>';
   try{
-    const profile=await api("me");
     const payload=rootMemberId?{root_member_id:String(rootMemberId)}:{};
     const genealogy=await api("my_genealogy",payload);
     const nodes=Array.isArray(genealogy.nodes)?genealogy.nodes:[];
@@ -2034,7 +2036,7 @@ async function loadGenealogy(rootMemberId=null,navigationMode="reset"){
     if(!tree.root)throw new Error("The genealogy root position is missing.");
     genealogyCurrentMemberId=String(genealogy.root?.member_id||tree.root.member_id);
     if(navigationMode==="reset")genealogyNavigationStack=[];
-    const binary=profile.binary||genealogy.binary||{};
+    const binary=genealogy.binary||{};
     const backButton=genealogyNavigationStack.length?'<button type="button" id="genealogyBack" onclick="genealogyGoBack()">‹ Back one level</button>':'';
     const homeButton=rootMemberId?'<button type="button" id="genealogyHome">⌂ My ID</button>':'';
     box.innerHTML='<div class="genealogy-tree"><div class="genealogy-controls-header"><h2>My Genealogy</h2><div class="toolbar">'+backButton+homeButton+'<span id="viewing-label" class="genealogy-current">Viewing OCTO7 / '+escapeHTML(genealogyCurrentMemberId)+'</span><button type="button" id="genealogyZoomOut" aria-label="Zoom out">−</button><span id="genealogyZoomLabel">81%</span><button type="button" id="genealogyZoomIn" aria-label="Zoom in">+</button></div><div class="action-buttons"><button type="button" id="genealogyFit">Reset view</button><button type="button" id="genealogyVacancies">Show all vacant positions</button></div></div><div class="genealogy-viewport" id="genealogyViewport"><div class="genealogy-canvas" id="genealogyCanvas">'+renderGenealogyNode(tree.root)+'</div></div><div id="genealogyVacancyResults" aria-live="polite"></div><div class="genealogy-legend" style="position:fixed;bottom:4px;left:8px;right:8px;z-index:45;text-align:center;pointer-events:none">Tap a Member ID to view its downline · Tap an available position to register · LBV: '+escapeHTML(String(binary.left_available_bv??0))+' · RBV: '+escapeHTML(String(binary.right_available_bv??0))+'</div></div>';
