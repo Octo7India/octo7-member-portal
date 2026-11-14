@@ -504,9 +504,11 @@ footer .logo {color:white}
   translate:none!important;
 }
 
-/* Public website welcome page matches the OCTO7 Android app home screen. */
+/* HTML/CSS translation of mobile_app/lib/main.dart:
+   MainNavigationWrapper + Octo7WebsiteHomeScreen. Keep these dimensions,
+   colors, copy, image and spacing aligned with the Flutter source. */
 header.public-app-header{
-  min-height:110px;height:auto;padding:10px 12px 12px;background:#060D1A;color:#fff;
+  box-sizing:border-box;min-height:110px;height:110px;padding:10px 12px;background:#060D1A;color:#fff;
   display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px;
   position:sticky;top:0;z-index:100;flex-wrap:nowrap;
 }
@@ -517,7 +519,7 @@ header.public-app-header{
 .public-app-india{color:#fff;font-size:16px;font-weight:500}
 header.public-app-header nav{
   width:100%;display:flex;flex-wrap:nowrap;justify-content:flex-start;gap:0;
-  overflow-x:auto;white-space:nowrap;padding:0 4px;scrollbar-width:none;
+  overflow-x:auto;white-space:nowrap;padding:0 12px;scrollbar-width:none;
 }
 header.public-app-header nav::-webkit-scrollbar{display:none}
 header.public-app-header nav a{
@@ -557,7 +559,7 @@ header.public-app-header nav a{
 }
 @media(max-width:650px){
   header.public-app-header{min-height:110px;padding:10px 12px 12px;gap:10px}
-  .octo7-welcome-hero{padding:20px 24px 40px}
+  .octo7-welcome-hero{padding:20px 24px 60px}
   .octo7-welcome-hero .home-emblem{width:260px;max-width:78vw}
 }
 
@@ -570,7 +572,7 @@ header.public-app-header nav a{
 body{padding-bottom:62px}
 /* Keep hidden public sections and the footer hidden even where site CSS sets display:flex. */
 [hidden]{display:none!important}
-.octo7-welcome-hero{padding-bottom:40px}
+.octo7-welcome-hero{padding-bottom:60px}
 @media(max-width:650px){body{padding-bottom:62px}}
 
 </style>
