@@ -1745,6 +1745,8 @@ function setupGenealogyControls(){
     x=cx-(cx-x)*ratio;y=cy-(cy-y)*ratio;scale=next;apply();
   };
   const reset=()=>{
+    // Reset restores the fixed Founder ID to its normal visible position.
+    setPinnedRootLifted(false);
     scale=.81;
     x=window.innerWidth/2-(2000*scale);
     y=120-(220*scale);
@@ -1785,8 +1787,9 @@ function setupGenealogyControls(){
     }else if(points.length===1){
       pointerGesture={mode:"pan",x:points[0].x,y:points[0].y,moved:false};
     }else{
+      // Keep the fixed Founder ID lifted after a pan/pinch ends.
+      // It returns only when the member explicitly resets the tree view.
       pointerGesture=null;
-      setPinnedRootLifted(false);
     }
   };
   view.addEventListener("pointerdown",e=>{
