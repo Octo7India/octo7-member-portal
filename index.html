@@ -546,11 +546,6 @@ header.public-app-header nav.public-app-tabs a[aria-current="page"]:after{
   background:transparent;cursor:pointer;
 }
 .public-welcome-login:focus-visible{outline:3px solid #D6B46A;outline-offset:3px}
-.public-welcome-hide-create{
-  position:absolute;left:0;right:0;top:78.5%;height:9.5%;z-index:2;
-  background:linear-gradient(to bottom,#003C98 0%,#0056C9 52%,#003B96 100%);
-  pointer-events:none;
-}
 body{padding-bottom:0!important}
 .public-app-bottom-nav{display:none!important}
 #about,#products,#opportunity,#contact,#member-login{
@@ -591,7 +586,6 @@ body{padding-bottom:0!important}
   <div class="public-welcome-title">WELCOME</div>
   <button class="public-welcome-login" type="button" aria-label="Member Login"
     onclick="showPublicPage('member-login');showLoginForm()"></button>
-  <div class="public-welcome-hide-create" aria-hidden="true"></div>
 </section>
 
 <section class="about" id="about" hidden>
