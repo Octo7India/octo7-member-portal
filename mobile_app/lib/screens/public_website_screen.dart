@@ -155,6 +155,48 @@ class _PublicWebsiteScreenState extends State<PublicWebsiteScreen>
               ),
             ),
           ),
+          Positioned(
+            left: width * 0.05,
+            right: width * 0.05,
+            top: height * 0.805,
+            height: height * 0.18,
+            child: IgnorePointer(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    'Discover a world of opportunity',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: (width * 0.052).clamp(16.0, 22.0).toDouble(),
+                      fontWeight: FontWeight.w900,
+                      height: 1.2,
+                      shadows: const [
+                        Shadow(color: Color(0xFF00143A), blurRadius: 5, offset: Offset(0, 2)),
+                        Shadow(color: Color(0xFF00143A), blurRadius: 10),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    'through quality products, entrepreneurship, and a growing business network.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: (width * 0.034).clamp(12.0, 15.0).toDouble(),
+                      fontWeight: FontWeight.w700,
+                      height: 1.35,
+                      shadows: const [
+                        Shadow(color: Color(0xFF00143A), blurRadius: 5, offset: Offset(0, 2)),
+                        Shadow(color: Color(0xFF00143A), blurRadius: 10),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       );
     },
