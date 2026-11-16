@@ -1131,7 +1131,7 @@ async function login() {
   const memberNumber = document.getElementById("memberNumberInput").value.trim();
   // Accept both legacy numeric IDs and the new two-letter + number IDs
   // (for example VA1). The OCTO7 prefix is display-only and is not sent.
-  const identifier = memberNumber.replace(/^OCTO7\\s*/i, "").replace(/\\s+/g, "").toUpperCase();
+  const identifier = memberNumber.replace(/^OCTO7\s*/i, "").replace(/\s+/g, "").toUpperCase();
   const password = document.getElementById("password").value;
   const button = document.getElementById("loginButton");
 
