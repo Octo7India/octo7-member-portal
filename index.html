@@ -579,7 +579,7 @@ body{padding-bottom:0!important}
 <div class="login-input-group">
 <span class="login-leading" aria-hidden="true">♙</span>
 <span class="login-id-prefix" aria-hidden="true">OCTO7</span>
-<input id="memberNumberInput" name="octo7_member_number" type="password" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" data-lpignore="true" readonly onfocus="this.removeAttribute('readonly')" placeholder="Enter number only" aria-label="Enter OCTO7 User ID number">
+<input id="memberNumberInput" name="octo7_member_number" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" data-lpignore="true" readonly onfocus="this.removeAttribute('readonly')" placeholder="Enter initials and number" aria-label="Enter OCTO7 User ID initials and number">
 <button type="button" class="eye-button" onclick="togglePassword('memberNumberInput',this)" aria-label="Show User ID">👁</button>
 </div>
 <div class="login-input-group">
@@ -1129,12 +1129,14 @@ let loginRequestInProgress = false;
 
 async function login() {
   const memberNumber = document.getElementById("memberNumberInput").value.trim();
-  const identifier = memberNumber.replace(/^OCTO7\\s*/i, "");
+  // Accept both legacy numeric IDs and the new two-letter + number IDs
+  // (for example VA1). The OCTO7 prefix is display-only and is not sent.
+  const identifier = memberNumber.replace(/^OCTO7\\s*/i, "").replace(/\\s+/g, "").toUpperCase();
   const password = document.getElementById("password").value;
   const button = document.getElementById("loginButton");
 
-  if (!/^[0-9]+$/.test(identifier) || !password) {
-    showMessage("loginMessage", "Enter your OCTO7 User ID number and password.", true);
+  if (!/^(?:[0-9]+|[A-Z]{2}[0-9]+)$/.test(identifier) || !password) {
+    showMessage("loginMessage", "Enter your OCTO7 User ID (for example, VA1) and password.", true);
     return;
   }
 
