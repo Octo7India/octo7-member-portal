@@ -1,2 +1,2 @@
-# octo7-member-portal
-OCTO7 India – Member Login, Registration and Binary Genealogy Portal.
+# OCTO7
+OCTO7 – Official website.
