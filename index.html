@@ -428,30 +428,27 @@ header.public-app-header nav.public-app-tabs a[aria-current="page"]{color:#fff}
 header.public-app-header nav.public-app-tabs a[aria-current="page"]:after{
   content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:#D6B46A;
 }
-/* Match the Android app welcome screen: original image, no filters or overlays */
+/* Match the New OCTO7 Android app PublicWelcomeScreen artwork exactly. */
 .octo7-welcome-hero{
   position:relative;display:block;width:100%;height:calc(100svh - 48px);
   min-height:480px;margin:0;padding:0;overflow:hidden;
   background-color:#03143c!important;
-  background-image:url("https://raw.githubusercontent.com/Octo7India/octo7-member-portal/feature/supabase-mobile-integration/mobile_app/assets/images/welcome_bg.png")!important;
+  background-image:url("https://raw.githubusercontent.com/Octo7India/OCTO7_NEW_APP/7f0f71bce186f4154b3eac9d3286219d25e0812a/assets/images/1794854291008.png")!important;
   background-position:center center!important;
-  background-size:cover!important;
+  background-size:100% 100%!important;
   background-repeat:no-repeat!important;
 }
-.octo7-welcome-hero:before{
-  content:none!important;display:none!important;
-}
-.public-welcome-title{
-  position:absolute;top:8px;left:0;right:0;z-index:2;text-align:center;
-  color:#fff;font-size:clamp(20px,6.5vw,29px);font-weight:900;
-  letter-spacing:2.2px;text-shadow:0 2px 8px #000;
-}
-.public-welcome-login{
-  position:absolute;left:6%;right:6%;top:69.5%;height:8.5%;z-index:3;
-  display:block;width:88%;padding:0;border:0;border-radius:48px;
+.octo7-welcome-hero:before{content:none!important;display:none!important}
+.public-welcome-login,.public-welcome-register{
+  position:absolute;left:8%;right:8%;height:7.5%;z-index:3;
+  display:block;width:84%;padding:0;border:0;border-radius:48px;
   background:transparent;cursor:pointer;
 }
-.public-welcome-login:focus-visible{outline:3px solid #D6B46A;outline-offset:3px}
+.public-welcome-login{top:62.5%}
+.public-welcome-register{top:71.5%}
+.public-welcome-login:focus-visible,.public-welcome-register:focus-visible{
+  outline:3px solid #D6B46A;outline-offset:3px
+}
 body{padding-bottom:0!important}
 .public-app-bottom-nav{display:none!important}
 #about,#products,#opportunity,#contact,#member-login{
@@ -488,10 +485,11 @@ body{padding-bottom:0!important}
   </nav>
 </header>
 
-<section class="octo7-welcome-hero" id="home" aria-label="OCTO7 India public welcome">
-  <div class="public-welcome-title">WELCOME</div>
+<section class="octo7-welcome-hero" id="home" aria-label="OCTO7 India mobile app welcome">
   <button class="public-welcome-login" type="button" aria-label="Member Login"
     onclick="showPublicPage('member-login');showLoginForm()"></button>
+  <button class="public-welcome-register" type="button" aria-label="Member Registration"
+    onclick="showPublicPage('member-register')"></button>
 </section>
 
 <section class="about" id="about" hidden>
